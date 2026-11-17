@@ -1,0 +1,451 @@
+{% comment %}
+  Tangelos — Customer Reviews Section
+  File: sections/reviews.liquid
+  Place in: /sections/reviews.liquid
+  Add to a page or theme via: {% section 'reviews' %}
+{% endcomment %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+<style>
+  .rv-section {
+    {% comment %} font-family: 'Jost', sans-serif; {% endcomment %}
+    padding: {{ section.settings.padding_top }}px 32px {{ section.settings.padding_bottom }}px;
+    max-width: 1100px;
+    margin: 0 auto;
+    background: transparent;
+  }
+
+  .rv-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .rv-eyebrow {
+    {% comment %} font-family: 'Jost', sans-serif; {% endcomment %}
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 12px;
+  }
+
+  .rv-title {
+    {% comment %} font-family: 'Cormorant Garamond', serif; {% endcomment %}
+    font-size: 42px;
+    font-weight: 400;
+    color: #1a1a1a;
+    line-height: 1.15;
+    margin: 0 0 8px;
+  }
+
+  .rv-title em {
+    font-style: italic;
+  }
+
+  .rv-avg-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .rv-avg-score {
+    {% comment %} font-family: 'Cormorant Garamond', serif; {% endcomment %}
+    font-size: 28px;
+    font-weight: 500;
+    color: #1a1a1a;
+  }
+
+  .rv-stars-lg {
+    display: flex;
+    gap: 2px;
+  }
+
+  .rv-stars-lg span {
+    font-size: 18px;
+    color: #00B67A;
+  }
+
+  .rv-count {
+    font-size: 13px;
+    color: #888;
+    font-weight: 300;
+    letter-spacing: 0.04em;
+  }
+
+  .rv-divider {
+    width: 48px;
+    height: 1px;
+    background: #ddd;
+    margin: 0 auto 48px;
+  }
+
+  .rv-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .rv-card {
+    background: #fff;
+    border: 0.5px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: border-color 0.2s;
+  }
+
+  .rv-card:hover {
+    border-color: #bbb;
+  }
+
+  .rv-card--featured {
+    border-color: #ddd;
+    grid-column: span 2;
+  }
+
+  .rv-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .rv-stars-sm {
+    display: flex;
+    gap: 1px;
+  }
+
+  .rv-stars-sm span {
+    font-size: 17px;
+    color: #00B67A;
+  }
+
+  .rv-verified {
+    font-size: 11px;
+    font-weight: 400;
+    color: #3a7d44;
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+
+  .rv-verified i {
+    font-size: 13px;
+  }
+
+  .rv-body {
+    {% comment %} font-family: 'Cormorant Garamond', serif; {% endcomment %}
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.65;
+    color: #1a1a1a;
+    flex: 1;
+  }
+
+  .rv-body::before {
+    content: '\201C';
+    font-size: 36px;
+    line-height: 0.5;
+    vertical-align: -12px;
+    margin-right: 2px;
+    color: #ccc;
+    {% comment %} font-family: 'Cormorant Garamond', serif; {% endcomment %}
+  }
+
+  .rv-author {
+    border-top: 0.5px solid #e5e5e5;
+    padding-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .rv-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #f5f5f5;
+    border: 0.5px solid #e5e5e5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: #888;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+  }
+
+  .rv-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1a1a1a;
+    letter-spacing: 0.04em;
+  }
+
+  .rv-label {
+    font-size: 11px;
+    color: #888;
+    font-weight: 300;
+    margin-top: 1px;
+  }
+
+  .rv-footer {
+    text-align: center;
+    margin-top: 40px;
+  }
+
+  .rv-btn {
+    display: inline-block;
+    padding: 12px 32px;
+    border: 0.5px solid #999;
+    border-radius: 8px;
+    {% comment %} font-family: 'Jost', sans-serif; {% endcomment %}
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #1a1a1a;
+    cursor: pointer;
+    background: transparent;
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .rv-btn:hover {
+    background: #f5f5f5;
+  }
+
+  @media (max-width: 640px) {
+    .rv-card--featured { grid-column: span 1; }
+    .rv-title { font-size: 32px; }
+  }
+</style>
+
+<section class="rv-section" aria-label="Customer Reviews">
+
+  <div class="rv-header">
+    <p class="rv-eyebrow">{{ section.settings.eyebrow }}</p>
+    <h2 class="rv-title">{{ section.settings.heading_plain }} <em>{{ section.settings.heading_italic }}</em></h2>
+    <div class="rv-avg-row">
+      {% comment %} <span class="rv-avg-score">4.5 / 5</span> {% endcomment %}
+      {% comment %} <div class="rv-stars-lg" aria-label="5 out of 5 stars">
+        <span aria-hidden="true">★</span>
+        <span aria-hidden="true">★</span>
+        <span aria-hidden="true">★</span>
+        <span aria-hidden="true">★</span>
+        <span aria-hidden="true">★</span>
+      </div> {% endcomment %}
+      <!-- TrustBox widget - Mini -->
+<div class="trustpilot-widget" data-locale="en-US" data-template-id="53aa8807dec7e10d38f59f32" data-businessunit-id="6790c2c917619e19c8e592c9" data-style-height="150px" data-style-width="100%" data-token="f873c572-29a7-4924-b621-e314818e27c0">
+  <a href="https://www.trustpilot.com/review/tangelos.co.uk" target="_blank" rel="noopener">Trustpilot</a>
+</div>
+<!-- End TrustBox widget -->
+    </div>
+  </div>
+
+  <div class="rv-divider"></div>
+
+  <div class="rv-grid">
+    {% for block in section.blocks %}
+      {% assign initials = block.settings.name | split: ' ' %}
+      {% assign first_initial = initials[0] | slice: 0 %}
+      {% assign last_initial = initials[1] | slice: 0 %}
+
+      <article
+        class="rv-card{% if block.settings.featured %} rv-card--featured{% endif %}"
+        {{ block.shopify_attributes }}
+      >
+        <div class="rv-card-top">
+          <div class="rv-stars-sm" aria-label="5 stars">
+            <span aria-hidden="true">★</span>
+            <span aria-hidden="true">★</span>
+            <span aria-hidden="true">★</span>
+            <span aria-hidden="true">★</span>
+            <span aria-hidden="true">★</span>
+          </div>
+          <span class="rv-verified">
+            <i class="ti ti-circle-check" aria-hidden="true"></i> Verified purchase
+          </span>
+        </div>
+
+        <p class="rv-body">{{ block.settings.review }}</p>
+
+        <div class="rv-author">
+          <div class="rv-avatar" aria-hidden="true">{{ first_initial }}{{ last_initial }}</div>
+          <div>
+            <p class="rv-name">{{ block.settings.name }}</p>
+            <p class="rv-label">{{ block.settings.location }}</p>
+          </div>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+
+  {% if section.settings.show_button %}
+    <div class="rv-footer">
+      <a href="{{ section.settings.button_url }}" class="rv-btn">
+        {{ section.settings.button_label }}
+      </a>
+    </div>
+  {% endif %}
+
+</section>
+
+{% schema %}
+{
+  "name": "Customer Reviews",
+  "tag": "section",
+  "class": "tangelos-reviews",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow text",
+      "default": "What our customers say"
+    },
+    {
+      "type": "text",
+      "id": "heading_plain",
+      "label": "Heading (plain part)",
+      "default": "Loved by sleepers,"
+    },
+    {
+      "type": "text",
+      "id": "heading_italic",
+      "label": "Heading (italic part)",
+      "default": "everywhere"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top (px)",
+      "min": 0,
+      "max": 120,
+      "step": 8,
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom (px)",
+      "min": 0,
+      "max": 120,
+      "step": 8,
+      "default": 64
+    },
+    {
+      "type": "checkbox",
+      "id": "show_button",
+      "label": "Show button",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Read all reviews"
+    },
+    {
+      "type": "url",
+      "id": "button_url",
+      "label": "Button link"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "review",
+      "name": "Review",
+      "settings": [
+        {
+          "type": "text",
+          "id": "name",
+          "label": "Reviewer name",
+          "default": "Jane Doe"
+        },
+        {
+          "type": "text",
+          "id": "location",
+          "label": "Location or label",
+          "default": "Verified buyer"
+        },
+        {
+          "type": "textarea",
+          "id": "review",
+          "label": "Review text",
+          "default": "Amazing quality bedding, so soft and comfortable."
+        },
+        {
+          "type": "checkbox",
+          "id": "featured",
+          "label": "Feature this review (full width)",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Customer Reviews",
+      "blocks": [
+        {
+          "type": "review",
+          "settings": {
+            "name": "Christine Wheeler",
+            "location": "United Kingdom",
+            "review": "Honestly this bedding feels so soft and superior. Such amazing quality — it feels so fresh and comfortable. I fell asleep very quickly and felt like I slept like an angel, in a cloud of comfortable white cotton bedding. I've finally found the best cotton bedding available in the UK.",
+            "featured": true
+          }
+        },
+        {
+          "type": "review",
+          "settings": {
+            "name": "Kristina R.",
+            "location": "Verified buyer",
+            "review": "So soft and amazing quality for the price. The new muslin bed set is incredibly soft — exactly what I was hoping for. The purple color is really unique and looks amazing in my room. Delivery was smooth, which made the whole experience even better.",
+            "featured": false
+          }
+        },
+        {
+          "type": "review",
+          "settings": {
+            "name": "Rebecca Simpson",
+            "location": "Verified buyer",
+            "review": "Quick delivery and extremely high-quality product. The bedding is beautifully smooth and soft, and the colour is subtle and exactly matches the picture.",
+            "featured": false
+          }
+        },
+        {
+          "type": "review",
+          "settings": {
+            "name": "Gaye Wallis",
+            "location": "Verified buyer",
+            "review": "Wonderful. Soft. Washable. No ironing needed — I'll definitely get a second set! Highly recommend to anyone looking for effortless luxury.",
+            "featured": false
+          }
+        },
+        {
+          "type": "review",
+          "settings": {
+            "name": "Jay Hudson",
+            "location": "Verified buyer",
+            "review": "Excellent quality duvet cover — wonderfully soft and a gorgeous colour. An easy purchase I'd happily make again.",
+            "featured": false
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

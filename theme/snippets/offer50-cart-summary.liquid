@@ -1,0 +1,83 @@
+{% comment %}
+  snippets/offer50-cart-summary.liquid  (UK)
+  Popup-offer summary inside the mini-cart, rendered by cart-summary.liquid when
+  header-actions.liquid passes offer50: true.
+
+  Shows ONLY the popup offer that is actually applied to this cart:
+    OFFER50 (pdp-offer50 / pdp-offer), OFFER15 (pdp-offer15), OFFER20 (pdp-offer20)
+    or OFFER30 (pdp-offer30).
+  To add an offer, add its code to tg_offer_codes below and to OFFERS in
+  offer50-auto-apply.liquid.
+
+  These are PRODUCT discounts, so Shopify reports them on the line items, not
+  as an order-level discount. Both are counted here. offer50-auto-apply.liquid
+  keeps the box updated live, including the preview for guest subscribers.
+{% endcomment %}
+
+{%- liquid
+  assign tg_offer_codes = 'OFFER50,OFFER15,OFFER20,OFFER30' | split: ','
+
+  # Which popup offer is applied (the auto-apply script keeps only one in the cart)
+  assign tg_code = ''
+  for d in cart.cart_level_discount_applications
+    assign tg_t = d.title | upcase
+    if tg_code == blank and tg_offer_codes contains tg_t
+      assign tg_code = tg_t
+    endif
+  endfor
+  for item in cart.items
+    for a in item.line_level_discount_allocations
+      assign tg_t = a.discount_application.title | upcase
+      if tg_code == blank and tg_offer_codes contains tg_t
+        assign tg_code = tg_t
+      endif
+    endfor
+  endfor
+
+  assign tg_cart_saved = 0
+  assign tg_line_saved = 0
+  if tg_code != blank
+    for d in cart.cart_level_discount_applications
+      assign tg_t = d.title | upcase
+      if tg_t == tg_code
+        assign tg_cart_saved = tg_cart_saved | plus: d.total_allocated_amount
+      endif
+    endfor
+
+    for item in cart.items
+      for a in item.line_level_discount_allocations
+        assign tg_t = a.discount_application.title | upcase
+        if tg_t == tg_code
+          assign tg_line_saved = tg_line_saved | plus: a.amount
+        endif
+      endfor
+    endfor
+  endif
+
+  assign tg_saved = tg_cart_saved | plus: tg_line_saved
+  # Products price before the offer (line-level discounts already reduce the subtotal)
+  assign tg_subtotal = cart.items_subtotal_price | plus: tg_line_saved
+-%}
+
+<div class="offer50-summary" data-offer50-summary{% if tg_saved == 0 %} hidden{% endif %}>
+  {%- if tg_saved > 0 -%}
+    <div class="offer50-chip">
+      <span class="offer50-chip__code">🏷️ {{ tg_code }}</span>
+      <span class="offer50-chip__status">✓ Applied</span>
+    </div>
+    <div class="offer50-rows">
+      <div class="offer50-row">
+        <span>Subtotal ({{ cart.item_count }} {% if cart.item_count == 1 %}item{% else %}items{% endif %})</span>
+        <span>{{ tg_subtotal | money }}</span>
+      </div>
+      <div class="offer50-row offer50-row--saving">
+        <span>Discount ({{ tg_code }})</span>
+        <span>−{{ tg_saved | money }}</span>
+      </div>
+      <div class="offer50-row offer50-row--total">
+        <span>Total</span>
+        <span>{{ cart.total_price | money }}</span>
+      </div>
+    </div>
+  {%- endif -%}
+</div>

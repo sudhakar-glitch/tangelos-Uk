@@ -1,0 +1,1106 @@
+{%- liquid
+  assign first_block = section.blocks.first
+  assign lcp_desk    = first_block.settings.desktop_image
+  assign lcp_mob     = first_block.settings.mobile_image
+  if lcp_mob == blank
+    assign lcp_mob = lcp_desk
+  endif
+-%}
+
+{%- comment -%} LCP preload for first slide {%- endcomment -%}
+{%- if lcp_desk != blank -%}
+  {{- lcp_desk | image_url: width: 1500 | image_tag:
+      preload: true, fetchpriority: 'high', loading: 'eager', decoding: 'sync',
+      widths: '750,1000,1500,2000', sizes: '100vw',
+      class: 'hbs-lcp-preload', style: 'display:none' -}}
+{%- endif -%}
+{%- if lcp_mob != blank -%}
+  {{- lcp_mob | image_url: width: 800 | image_tag:
+      preload: true, fetchpriority: 'high', loading: 'eager', decoding: 'sync',
+      widths: '375,500,750,800', sizes: '100vw',
+      class: 'hbs-lcp-preload', style: 'display:none' -}}
+{%- endif -%}
+
+{%- comment -%} Google Fonts — non-blocking {%- endcomment -%}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style"
+  href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400;500&display=swap"
+  onload="this.onload=null;this.rel='stylesheet'">
+<noscript>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400;500&display=swap">
+</noscript>
+
+<style>
+/* ── Reset ── */
+.hbs-section *, .hbs-section *::before, .hbs-section *::after {
+  box-sizing: border-box; margin: 0; padding: 0;
+}
+
+/* ── Section shell ── */
+.hbs-section {
+  position: relative; width: 100%;
+  height: var(--hbs-h-desk, 100vh);
+  overflow: hidden; background: #111;
+  font-family: 'Jost', 'Helvetica Neue', sans-serif;
+  --hbs-ease: cubic-bezier(0.77, 0, 0.18, 1);
+  --hbs-hoff: var(--hbs-header-offset, 0px);
+  isolation: isolate; z-index: 0;
+}
+@media (max-width: 749px) {
+  .hbs-section { height: var(--hbs-h-mob, 100svh); }
+}
+
+/* ── Empty state ── */
+.hbs-empty {
+  position: absolute; inset: 0; display: flex;
+  align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.4); font-size: 0.9rem;
+}
+
+/* ── Track & Slides ── */
+.hbs-track { position: absolute; inset: 0; }
+
+.hbs-slide {
+  position: absolute; inset: 0;
+  opacity: 0; pointer-events: none;
+  transition: opacity 900ms var(--hbs-ease);
+  will-change: opacity; contain: strict;
+}
+.hbs-slide.is-active {
+  opacity: 1; pointer-events: all; z-index: 2; contain: layout style;
+}
+
+/* Slide transition variants */
+.hbs-section[data-transition="slide"] .hbs-slide {
+  opacity: 1; transform: translateX(100%);
+  transition: transform 900ms var(--hbs-ease);
+}
+.hbs-section[data-transition="slide"] .hbs-slide.is-active  { transform: translateX(0); }
+.hbs-section[data-transition="slide"] .hbs-slide.is-leaving { transform: translateX(-100%); z-index: 1; }
+
+/* ── Background images — object-fit prevents stretching ── */
+.hbs-bg { position: absolute; inset: 0; overflow: hidden; }
+
+.hbs-bg__img,
+.hbs-bg__placeholder {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center; display: block;
+}
+
+.hbs-bg__img { will-change: transform; transform: scale(1); }
+.hbs-bg__img.hbs-kb { transform: scale(1.06); transition: transform 8000ms linear; }
+.hbs-slide.is-active     .hbs-bg__img.hbs-kb { transform: scale(1); }
+.hbs-slide:not(.is-active) .hbs-bg__img.hbs-kb { transform: scale(1.06); }
+
+.hbs-bg__img--mob { display: none; }
+@media (max-width: 749px) {
+  .hbs-bg__img--desk { display: none; }
+  .hbs-bg__img--mob  { display: block; }
+}
+
+/* ── Overlay ── */
+.hbs-overlay {
+  position: absolute; inset: 0; pointer-events: none;
+  background: var(--slide-oc, #000); opacity: var(--slide-oo, 0.4);
+}
+
+/* ── Content layer ── */
+.hbs-content {
+  position: absolute; inset: 0; z-index: 3;
+  display: flex; align-items: center;
+  padding-top: var(--hbs-hoff);
+  padding-left:  var(--hbs-pad-x-d, 8vw);
+  padding-right: var(--hbs-pad-x-d, 8vw);
+}
+.hbs-content--left   { justify-content: flex-start; }
+.hbs-content--center { justify-content: center; text-align: center; }
+.hbs-content--right  { justify-content: flex-end; text-align: right; }
+
+@media (max-width: 749px) {
+  .hbs-content {
+    padding-left:  var(--hbs-pad-x-m, 5vw);
+    padding-right: var(--hbs-pad-x-m, 5vw);
+  }
+  .hbs-content-mob--left   { justify-content: flex-start !important; text-align: left !important; }
+  .hbs-content-mob--center { justify-content: center !important; text-align: center !important; }
+  .hbs-content-mob--right  { justify-content: flex-end !important; text-align: right !important; }
+}
+
+/* ── Desktop / Mobile content toggle ──
+   .hbs-inner--desk → visible ≥750px, hidden on mobile
+   .hbs-inner--mob  → hidden ≥750px, visible on mobile
+── */
+.hbs-inner { width: 100%; max-width: 680px; }
+.hbs-content--center .hbs-inner { max-width: 740px; }
+
+.hbs-inner--mob { display: none; }
+
+@media (max-width: 749px) {
+  .hbs-inner--desk { display: none; }
+  .hbs-inner--mob  { display: block; }
+}
+
+/* ── Entrance animations ── */
+.hbs-eyebrow, .hbs-heading, .hbs-body, .hbs-cta {
+  opacity: 0; transform: translateY(28px);
+  transition: opacity 0.7s var(--hbs-ease), transform 0.7s var(--hbs-ease);
+}
+.hbs-slide.is-active .hbs-eyebrow { opacity: 1; transform: none; transition-delay: 0.18s; }
+.hbs-slide.is-active .hbs-heading { opacity: 1; transform: none; transition-delay: 0.34s; }
+.hbs-slide.is-active .hbs-body    { opacity: 1; transform: none; transition-delay: 0.50s; }
+.hbs-slide.is-active .hbs-cta     { opacity: 1; transform: none; transition-delay: 0.64s; }
+
+/* ── Eyebrow ── */
+.hbs-eyebrow {
+  display: inline-block;
+  font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--slide-ec, #c8b89e);
+  font-size: var(--slide-efs, 11px);
+  margin-bottom: var(--slide-eyebrow-pb, 20px);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid currentColor;
+}
+
+/* ── Heading ── */
+.hbs-heading {
+  font-weight: 400; line-height: 1.07; letter-spacing: -0.01em;
+  color: var(--slide-hc, #fff);
+  font-size: var(--slide-hfs, 72px);
+  margin-bottom: var(--slide-heading-pb, 24px);
+}
+.hbs-heading p { margin: 0; }
+
+.hbs-font-serif-italic { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; }
+.hbs-font-serif        { font-family: 'Cormorant Garamond', Georgia, serif; }
+.hbs-font-sans         { font-family: 'Jost', 'Helvetica Neue', sans-serif; font-weight: 300; letter-spacing: -0.02em; }
+
+/* ── Body ── */
+.hbs-body {
+  font-weight: 300; line-height: 1.75; letter-spacing: 0.02em;
+  color: var(--slide-bc, rgba(255,255,255,0.8));
+  font-size: var(--slide-bfs, 15px);
+  max-width: var(--slide-body-maxw, 440px);
+  margin-bottom: var(--slide-body-pb, 40px);
+}
+.hbs-body p { margin: 0; }
+.hbs-content--center .hbs-body { margin-left: auto; margin-right: auto; }
+.hbs-content--right  .hbs-body { margin-left: auto; }
+
+/* ── CTA button ── */
+.hbs-cta {
+  display: inline-flex; align-items: center; gap: 0.65rem;
+  text-decoration: none; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase;
+  position: relative; overflow: hidden;
+  transition: color 0.35s ease, opacity 0.3s ease; cursor: pointer;
+  font-size: var(--slide-cfs, 11px);
+  margin-top: var(--slide-cta-pt, 0px);
+}
+.hbs-cta--outline {
+  color: var(--slide-cc, #fff); padding: 0.75rem 1.2rem; border: 1px solid currentColor;
+}
+.hbs-cta--outline::before {
+  content: ''; position: absolute; inset: 0;
+  background: var(--slide-cc, #fff); transform: scaleX(0); transform-origin: left;
+  transition: transform 0.4s var(--hbs-ease);
+}
+.hbs-cta--outline:hover::before { transform: scaleX(1); }
+.hbs-cta--outline:hover         { color: var(--slide-cbg, #111); }
+.hbs-cta--outline span, .hbs-cta--outline svg { position: relative; z-index: 1; }
+
+.hbs-cta--solid  { color: var(--slide-cbg,#111); background: var(--slide-cc,#fff); padding: 0.95rem 2.2rem; }
+.hbs-cta--solid:hover  { opacity: 0.85; }
+.hbs-cta--ghost  { color: var(--slide-cc,#fff); padding: 0.5rem 0; border-bottom: 1px solid currentColor; }
+.hbs-cta--ghost:hover  { opacity: 0.65; }
+.hbs-cta--pill   { color: var(--slide-cbg,#111); background: var(--slide-cc,#fff); padding: 0.9rem 2.4rem; border-radius: 100px; }
+.hbs-cta--pill:hover   { opacity: 0.85; }
+.hbs-cta__arrow { flex-shrink: 0; transition: transform 0.3s ease; }
+.hbs-cta:hover .hbs-cta__arrow { transform: translateX(4px); }
+
+/* ── Progress bar ── */
+.hbs-progress {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 2px; background: rgba(255,255,255,0.15); z-index: 5;
+}
+.hbs-progress__fill {
+  height: 100%; width: 0%;
+  background: var(--slide-pc, #c8b89e); transition: background 0.4s ease;
+}
+
+/* ── Navigation arrows ── */
+.hbs-arrow {
+  position: absolute;
+  top: calc(var(--hbs-hoff) + (100% - var(--hbs-hoff)) / 2);
+  transform: translateY(-50%); z-index: 5;
+  width: 52px; height: 52px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  color: #fff; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+  outline: none;
+}
+.hbs-arrow:hover {
+  background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.75);
+  transform: translateY(-50%) scale(1.08);
+}
+.hbs-arrow:active { transform: translateY(-50%) scale(0.96); }
+.hbs-arrow--prev  { left: 2rem; }
+.hbs-arrow--next  { right: 2rem; }
+
+.hbs-arrow__ring {
+  position: absolute; inset: -8px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0); pointer-events: none;
+  transition: all 0.4s ease;
+}
+.hbs-arrow:hover .hbs-arrow__ring { border-color: rgba(255,255,255,0.2); inset: -14px; }
+
+@media (max-width: 749px) {
+  .hbs-arrow { width: 42px; height: 42px; }
+  .hbs-arrow--prev { left: 0.8rem; }
+  .hbs-arrow--next { right: 0.8rem; }
+  .hbs-hide-arrows-mob .hbs-arrow { display: none !important; }
+  .hbs-slide.is-active .hbs-body { width:70%}
+}
+
+/* ── Thumbnails ── */
+.hbs-thumbs {
+  position: absolute; bottom: 2.4rem; left: 50%;
+  transform: translateX(-50%); z-index: 5;
+  display: flex; gap: 0.7rem; align-items: flex-end;
+}
+.hbs-thumb {
+  position: relative; width: 68px; height: 46px;
+  border-radius: 5px; overflow: hidden; cursor: pointer;
+  border: 2px solid transparent; background: transparent;
+  padding: 0; opacity: 0.5; flex-shrink: 0; outline: none;
+  transition: opacity 0.4s ease, width 0.4s var(--hbs-ease),
+              height 0.4s var(--hbs-ease), border-color 0.3s ease, transform 0.3s ease;
+}
+.hbs-thumb:hover { opacity: 0.78; transform: translateY(-3px); }
+.hbs-thumb.is-active { border-color: rgba(255,255,255,0.85); opacity: 1; width: 92px; height: 60px; }
+.hbs-thumb.is-active::after {
+  content: ''; position: absolute; inset: -5px; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.35);
+  animation: hbs-pulse 2.4s ease infinite; pointer-events: none;
+}
+@keyframes hbs-pulse {
+  0%,100% { opacity: 0.5; transform: scale(1); }
+  50%      { opacity: 0;   transform: scale(1.05); }
+}
+.hbs-thumb__img, .hbs-thumb__placeholder {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; transition: transform 0.4s ease;
+}
+.hbs-thumb:hover .hbs-thumb__img { transform: scale(1.08); }
+.hbs-thumb__overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.5), transparent); pointer-events: none;
+}
+.hbs-thumb__num {
+  position: absolute; bottom: 4px; right: 6px;
+  font-size: 0.55rem; font-weight: 500; letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.75); pointer-events: none;
+}
+@media (max-width: 749px) {
+  .hbs-thumbs { gap: 0.5rem; bottom: 1.6rem; }
+  .hbs-thumb  { width: 50px; height: 34px; }
+  .hbs-thumb.is-active { width: 66px; height: 46px; }
+}
+
+/* ── Slide counter ── */
+.hbs-counter {
+  position: absolute; right: 2.2rem;
+  top: calc(var(--hbs-hoff) + (100% - var(--hbs-hoff)) / 2);
+  transform: translateY(-50%); z-index: 5;
+  display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+  color: rgba(255,255,255,0.45);
+}
+.hbs-counter__current {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 2rem; color: #fff; line-height: 1; font-weight: 300; font-style: italic;
+}
+.hbs-counter__sep   { display: block; width: 1px; height: 36px; background: rgba(255,255,255,0.22); }
+.hbs-counter__total { font-size: 0.68rem; letter-spacing: 0.1em; }
+@media (max-width: 749px) { .hbs-counter { display: none; } }
+
+/* ── Autoplay toggle ── */
+.hbs-autoplay-btn {
+  position: absolute; bottom: calc(var(--hbs-hoff) + 1.2rem);
+  right: 1.6rem; z-index: 5;
+  width: 38px; height: 38px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.3); background: transparent;
+  color: rgba(255,255,255,0.7); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.3s ease, color 0.3s ease; outline: none;
+}
+.hbs-autoplay-btn:hover { border-color: rgba(255,255,255,0.7); color: #fff; }
+.hbs-autoplay-btn__play  { display: none; }
+.hbs-autoplay-btn__pause { display: block; }
+.hbs-autoplay-btn.is-paused .hbs-autoplay-btn__play  { display: block; }
+.hbs-autoplay-btn.is-paused .hbs-autoplay-btn__pause { display: none; }
+
+/* ── Noise texture ── */
+.hbs-noise {
+  position: absolute; inset: 0; z-index: 4; pointer-events: none; opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat; background-size: 150px;
+}
+</style>
+
+{%- assign slider_id = 'hbs-' | append: section.id -%}
+
+<section
+  class="hbs-section{% if section.settings.hide_arrows_mobile %} hbs-hide-arrows-mob{% endif %}"
+  id="{{ slider_id }}"
+  data-autoplay="{{ section.settings.autoplay }}"
+  data-speed="{{ section.settings.autoplay_speed | times: 1000 }}"
+  data-transition="{{ section.settings.transition_style }}"
+  style="
+    --hbs-h-desk:        {{ section.settings.slider_height_desktop }};
+    --hbs-h-mob:         {{ section.settings.slider_height_mobile }};
+    --hbs-header-offset: {{ section.settings.header_offset }}px;
+    --hbs-pad-x-d:       {{ section.settings.section_padding_desktop }}vw;
+    --hbs-pad-x-m:       {{ section.settings.section_padding_mobile }}vw;
+  "
+>
+
+  {%- if section.blocks.size > 0 -%}
+
+    <div class="hbs-track" role="list" aria-label="Banner slider">
+      {%- for block in section.blocks -%}
+        {%- liquid
+          assign is_first = forloop.first
+          assign desk_img = block.settings.desktop_image
+          assign mob_img  = block.settings.mobile_image
+          assign oo       = block.settings.overlay_opacity | divided_by: 100.0
+
+          # Desktop heading font
+          case block.settings.d_heading_font
+            when 'serif_italic'
+              assign d_hfont = 'hbs-font-serif-italic'
+            when 'serif_normal'
+              assign d_hfont = 'hbs-font-serif'
+            when 'sans'
+              assign d_hfont = 'hbs-font-sans'
+            else
+              assign d_hfont = 'hbs-font-serif-italic'
+          endcase
+
+          # Mobile heading font — fallback to desktop if 'inherit'
+          case block.settings.m_heading_font
+            when 'serif_italic'
+              assign m_hfont = 'hbs-font-serif-italic'
+            when 'serif_normal'
+              assign m_hfont = 'hbs-font-serif'
+            when 'sans'
+              assign m_hfont = 'hbs-font-sans'
+            else
+              assign m_hfont = d_hfont
+          endcase
+
+          # Mobile text fallbacks — blank field inherits desktop value
+          if block.settings.m_eyebrow != blank
+            assign m_eyebrow = block.settings.m_eyebrow
+          else
+            assign m_eyebrow = block.settings.d_eyebrow
+          endif
+
+          if block.settings.m_heading != blank
+            assign m_heading = block.settings.m_heading
+          else
+            assign m_heading = block.settings.d_heading
+          endif
+
+          if block.settings.m_body != blank
+            assign m_body = block.settings.m_body
+          else
+            assign m_body = block.settings.d_body
+          endif
+
+          if block.settings.m_cta_text != blank
+            assign m_cta_text = block.settings.m_cta_text
+          else
+            assign m_cta_text = block.settings.d_cta_text
+          endif
+
+          if block.settings.m_cta_url != blank
+            assign m_cta_url = block.settings.m_cta_url
+          else
+            assign m_cta_url = block.settings.d_cta_url
+          endif
+
+          if block.settings.m_cta_style != 'inherit'
+            assign m_cta_style = block.settings.m_cta_style
+          else
+            assign m_cta_style = block.settings.d_cta_style
+          endif
+        -%}
+
+        <div
+          class="hbs-slide{% if is_first %} is-active{% endif %}"
+          role="listitem"
+          aria-label="Slide {{ forloop.index }} of {{ section.blocks.size }}"
+          {{ block.shopify_attributes }}
+          style="
+            --slide-oc: {{ block.settings.overlay_color }};
+            --slide-oo: {{ oo }};
+            --slide-pc: {{ block.settings.progress_color }};
+          "
+        >
+
+          {%- comment -%} ── Background ── {%- endcomment -%}
+          <div class="hbs-bg" aria-hidden="true">
+
+            {%- if desk_img != blank -%}
+              {%- if is_first -%}
+                {{- desk_img | image_url: width: 2000 | image_tag:
+                    class: 'hbs-bg__img hbs-bg__img--desk',
+                    loading: 'eager', fetchpriority: 'high', decoding: 'sync',
+                    widths: '750,1000,1500,2000', sizes: '100vw' -}}
+              {%- else -%}
+                {{- desk_img | image_url: width: 2000 | image_tag:
+                    class: 'hbs-bg__img hbs-bg__img--desk hbs-kb',
+                    loading: 'lazy', fetchpriority: 'low', decoding: 'async',
+                    widths: '750,1000,1500,2000', sizes: '100vw' -}}
+              {%- endif -%}
+            {%- else -%}
+              <div class="hbs-bg__placeholder hbs-bg__img--desk" style="background:{{ block.settings.fallback_bg_color }};"></div>
+            {%- endif -%}
+
+            {%- if mob_img != blank -%}
+              {%- assign mob_src = mob_img -%}
+            {%- else -%}
+              {%- assign mob_src = desk_img -%}
+            {%- endif -%}
+            {%- if mob_src != blank -%}
+              {%- if is_first -%}
+                {{- mob_src | image_url: width: 800 | image_tag:
+                    class: 'hbs-bg__img hbs-bg__img--mob',
+                    loading: 'eager', fetchpriority: 'high', decoding: 'sync',
+                    widths: '375,500,750,800', sizes: '100vw' -}}
+              {%- else -%}
+                {{- mob_src | image_url: width: 800 | image_tag:
+                    class: 'hbs-bg__img hbs-bg__img--mob hbs-kb',
+                    loading: 'lazy', fetchpriority: 'low', decoding: 'async',
+                    widths: '375,500,750,800', sizes: '100vw' -}}
+              {%- endif -%}
+            {%- else -%}
+              <div class="hbs-bg__placeholder hbs-bg__img--mob" style="background:{{ block.settings.fallback_bg_color }};"></div>
+            {%- endif -%}
+
+            <div class="hbs-overlay" aria-hidden="true"></div>
+          </div>
+
+          {%- comment -%}
+            ╔═══════════════════════════════════╗
+            ║  DESKTOP CONTENT  (≥750px only)   ║
+            ╚═══════════════════════════════════╝
+          {%- endcomment -%}
+          <div
+            class="hbs-content hbs-content--{{ block.settings.d_content_align }}"
+            style="
+              --slide-ec:         {{ block.settings.d_eyebrow_color }};
+              --slide-efs:        {{ block.settings.d_eyebrow_size }}px;
+              --slide-eyebrow-pb: {{ block.settings.d_eyebrow_spacing }}px;
+              --slide-hc:         {{ block.settings.d_heading_color }};
+              --slide-hfs:        {{ block.settings.d_heading_size }}px;
+              --slide-heading-pb: {{ block.settings.d_heading_spacing }}px;
+              --slide-bc:         {{ block.settings.d_body_color }};
+              --slide-bfs:        {{ block.settings.d_body_size }}px;
+              --slide-body-maxw:  {{ block.settings.d_body_max_width }}px;
+              --slide-body-pb:    {{ block.settings.d_body_spacing }}px;
+              --slide-cc:         {{ block.settings.d_cta_color }};
+              --slide-cbg:        {{ block.settings.d_cta_bg_color }};
+              --slide-cfs:        {{ block.settings.d_cta_size }}px;
+              --slide-cta-pt:     {{ block.settings.d_cta_spacing }}px;
+            "
+          >
+            <div class="hbs-inner hbs-inner--desk">
+              {%- if block.settings.d_eyebrow != blank -%}
+                <p class="hbs-eyebrow">{{ block.settings.d_eyebrow | escape }}</p>
+              {%- endif -%}
+              {%- if block.settings.d_heading != blank -%}
+                <{{ block.settings.d_heading_tag }} class="hbs-heading {{ d_hfont }}">
+                  {{ block.settings.d_heading }}
+                </{{ block.settings.d_heading_tag }}>
+              {%- endif -%}
+              {%- if block.settings.d_body != blank -%}
+                <div class="hbs-body">{{ block.settings.d_body }}</div>
+              {%- endif -%}
+              {%- if block.settings.d_cta_text != blank and block.settings.d_cta_url != blank -%}
+                <a href="{{ block.settings.d_cta_url }}" class="hbs-cta hbs-cta--{{ block.settings.d_cta_style }}">
+                  <span>{{ block.settings.d_cta_text | escape }}</span>
+                  <svg class="hbs-cta__arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M2 8h12M10 4l4 4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </a>
+              {%- endif -%}
+            </div>
+          </div>
+
+          {%- comment -%}
+            ╔═══════════════════════════════════════════════╗
+            ║  MOBILE CONTENT  (≤749px only)                ║
+            ║  Blank fields inherit the Desktop value above ║
+            ╚═══════════════════════════════════════════════╝
+          {%- endcomment -%}
+          <div
+            class="hbs-content hbs-content--{{ block.settings.d_content_align }} hbs-content-mob--{{ block.settings.m_content_align }}"
+            style="
+              --slide-ec:         {{ block.settings.m_eyebrow_color | default: block.settings.d_eyebrow_color }};
+              --slide-efs:        {{ block.settings.m_eyebrow_size }}px;
+              --slide-eyebrow-pb: {{ block.settings.m_eyebrow_spacing }}px;
+              --slide-hc:         {{ block.settings.m_heading_color | default: block.settings.d_heading_color }};
+              --slide-hfs:        {{ block.settings.m_heading_size }}px;
+              --slide-heading-pb: {{ block.settings.m_heading_spacing }}px;
+              --slide-bc:         {{ block.settings.m_body_color | default: block.settings.d_body_color }};
+              --slide-bfs:        {{ block.settings.m_body_size }}px;
+              --slide-body-maxw:  {{ block.settings.m_body_max_width }}px;
+              --slide-body-pb:    {{ block.settings.m_body_spacing }}px;
+              --slide-cc:         {{ block.settings.m_cta_color | default: block.settings.d_cta_color }};
+              --slide-cbg:        {{ block.settings.m_cta_bg_color | default: block.settings.d_cta_bg_color }};
+              --slide-cfs:        {{ block.settings.m_cta_size }}px;
+              --slide-cta-pt:     {{ block.settings.m_cta_spacing }}px;
+            "
+          >
+            <div class="hbs-inner hbs-inner--mob">
+              {%- if m_eyebrow != blank -%}
+                <p class="hbs-eyebrow">{{ m_eyebrow | escape }}</p>
+              {%- endif -%}
+              {%- if m_heading != blank -%}
+                <{{ block.settings.d_heading_tag }} class="hbs-heading {{ m_hfont }}">
+                  {{ m_heading }}
+                </{{ block.settings.d_heading_tag }}>
+              {%- endif -%}
+              {%- if m_body != blank -%}
+                <div class="hbs-body">{{ m_body }}</div>
+              {%- endif -%}
+              {%- if m_cta_text != blank and m_cta_url != blank -%}
+                <a href="{{ m_cta_url }}" class="hbs-cta hbs-cta--{{ m_cta_style }}">
+                  <span>{{ m_cta_text | escape }}</span>
+                  <svg class="hbs-cta__arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M2 8h12M10 4l4 4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </a>
+              {%- endif -%}
+            </div>
+          </div>
+
+        </div>
+      {%- endfor -%}
+    </div>
+
+    <div class="hbs-noise" aria-hidden="true"></div>
+
+    {%- if section.settings.show_progress -%}
+      <div class="hbs-progress" aria-hidden="true">
+        <div class="hbs-progress__fill"></div>
+      </div>
+    {%- endif -%}
+
+    {%- if section.settings.show_arrows and section.blocks.size > 1 -%}
+      <button class="hbs-arrow hbs-arrow--prev" aria-label="Previous slide">
+        <span class="hbs-arrow__ring" aria-hidden="true"></span>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M13 16L7 10l6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button class="hbs-arrow hbs-arrow--next" aria-label="Next slide">
+        <span class="hbs-arrow__ring" aria-hidden="true"></span>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    {%- endif -%}
+
+    {%- if section.settings.show_thumbnails and section.blocks.size > 1 -%}
+      <div class="hbs-thumbs" role="tablist" aria-label="Slide thumbnails">
+        {%- for block in section.blocks -%}
+          {%- assign t_img = block.settings.desktop_image -%}
+          {%- if block.settings.mobile_image != blank -%}{%- assign t_img = block.settings.mobile_image -%}{%- endif -%}
+          <button
+            class="hbs-thumb{% if forloop.first %} is-active{% endif %}"
+            data-index="{{ forloop.index0 }}" role="tab"
+            aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+            aria-label="Go to slide {{ forloop.index }}"
+          >
+            {%- if t_img != blank -%}
+              {{- t_img | image_url: width: 160 | image_tag: class: 'hbs-thumb__img', loading: 'lazy', decoding: 'async' -}}
+            {%- else -%}
+              <div class="hbs-thumb__placeholder" style="background:{{ block.settings.fallback_bg_color }};"></div>
+            {%- endif -%}
+            <span class="hbs-thumb__overlay" aria-hidden="true"></span>
+            <span class="hbs-thumb__num">{{ forloop.index | prepend: '0' | slice: -2, 2 }}</span>
+          </button>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    {%- if section.settings.show_counter and section.blocks.size > 1 -%}
+      <div class="hbs-counter" aria-live="polite" aria-atomic="true">
+        <span class="hbs-counter__current">01</span>
+        <span class="hbs-counter__sep" aria-hidden="true"></span>
+        <span class="hbs-counter__total">{{ section.blocks.size | prepend: '0' | slice: -2, 2 }}</span>
+      </div>
+    {%- endif -%}
+
+    {%- if section.settings.autoplay and section.settings.show_autoplay_btn and section.blocks.size > 1 -%}
+      <button class="hbs-autoplay-btn is-playing" aria-label="Pause autoplay">
+        <svg class="hbs-autoplay-btn__pause" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+          <rect x="2"   y="1" width="3.5" height="12" rx="1" fill="currentColor"/>
+          <rect x="8.5" y="1" width="3.5" height="12" rx="1" fill="currentColor"/>
+        </svg>
+        <svg class="hbs-autoplay-btn__play" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+          <path d="M3 1.5l10 5.5-10 5.5V1.5z" fill="currentColor"/>
+        </svg>
+      </button>
+    {%- endif -%}
+
+  {%- else -%}
+    <div class="hbs-empty"><p>Add slides in the theme editor to get started.</p></div>
+  {%- endif -%}
+
+</section>
+
+<script defer>
+(function () {
+  'use strict';
+
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () {
+      document.querySelectorAll(
+        '.hbs-slide.is-active .hbs-bg__img--desk, .hbs-slide.is-active .hbs-bg__img--mob'
+      ).forEach(function (img) { img.classList.add('hbs-kb'); });
+    });
+  });
+
+  class HeroBannerSlider {
+    constructor(el) {
+      this.el         = el;
+      this.slides     = [...el.querySelectorAll('.hbs-slide')];
+      this.thumbs     = [...el.querySelectorAll('.hbs-thumb')];
+      this.fill       = el.querySelector('.hbs-progress__fill');
+      this.prevBtn    = el.querySelector('.hbs-arrow--prev');
+      this.nextBtn    = el.querySelector('.hbs-arrow--next');
+      this.counter    = el.querySelector('.hbs-counter__current');
+      this.autoBtn    = el.querySelector('.hbs-autoplay-btn');
+      this.transition = el.dataset.transition || 'zoom-fade';
+      this.duration   = parseInt(el.dataset.speed, 10) || 6000;
+      this.autoplay   = el.dataset.autoplay !== 'false';
+      this.current    = 0;
+      this.timer      = null;
+      this.isPlaying  = this.autoplay;
+
+      if (this.slides.length < 2) { this._resetProgress(); return; }
+      this._bind();
+      if (this.isPlaying) this._startAuto();
+    }
+
+    goTo(idx) {
+      const prev   = this.current;
+      this.current = ((idx % this.slides.length) + this.slides.length) % this.slides.length;
+      if (prev === this.current) return;
+
+      const leaving  = this.slides[prev];
+      const entering = this.slides[this.current];
+
+      entering.querySelectorAll('.hbs-bg__img').forEach(img => img.classList.add('hbs-kb'));
+
+      if (this.transition === 'slide') {
+        leaving.classList.add('is-leaving');
+        const onEnd = () => { leaving.classList.remove('is-leaving'); leaving.removeEventListener('transitionend', onEnd); };
+        leaving.addEventListener('transitionend', onEnd);
+      }
+
+      leaving.classList.remove('is-active');
+      entering.classList.add('is-active');
+
+      if (this.thumbs.length) {
+        this.thumbs[prev].classList.remove('is-active');
+        this.thumbs[prev].setAttribute('aria-selected', 'false');
+        this.thumbs[this.current].classList.add('is-active');
+        this.thumbs[this.current].setAttribute('aria-selected', 'true');
+      }
+
+      if (this.counter) this.counter.textContent = this._pad(this.current);
+
+      if (this.fill) {
+        const col = getComputedStyle(entering).getPropertyValue('--slide-pc').trim();
+        this.fill.style.background = col || '#c8b89e';
+      }
+
+      this._resetProgress();
+    }
+
+    _pad(n) { return String(n + 1).padStart(2, '0'); }
+
+    _startAuto() {
+      this._stopAuto();
+      this._resetProgress();
+      this.timer = setInterval(() => this.goTo(this.current + 1), this.duration);
+    }
+
+    _stopAuto() { clearInterval(this.timer); this.timer = null; }
+
+    _resetProgress() {
+      if (!this.fill) return;
+      this.fill.style.transition = 'none';
+      this.fill.style.width      = '0%';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        this.fill.style.transition = `width ${this.duration}ms linear`;
+        this.fill.style.width      = '100%';
+      }));
+    }
+
+    _pauseProgress() {
+      if (!this.fill) return;
+      const pct = (parseFloat(getComputedStyle(this.fill).width) / parseFloat(getComputedStyle(this.fill.parentElement).width)) * 100;
+      this.fill.style.transition = 'none';
+      this.fill.style.width      = pct + '%';
+    }
+
+    _bind() {
+      const restartIfPlaying = () => { if (this.isPlaying) this._startAuto(); };
+
+      if (this.prevBtn) this.prevBtn.addEventListener('click', () => { this.goTo(this.current - 1); restartIfPlaying(); });
+      if (this.nextBtn) this.nextBtn.addEventListener('click', () => { this.goTo(this.current + 1); restartIfPlaying(); });
+
+      this.thumbs.forEach(t => t.addEventListener('click', () => { this.goTo(parseInt(t.dataset.index, 10)); restartIfPlaying(); }));
+
+      this.el.addEventListener('keydown', e => {
+        if (e.key === 'ArrowLeft')  { this.goTo(this.current - 1); restartIfPlaying(); }
+        if (e.key === 'ArrowRight') { this.goTo(this.current + 1); restartIfPlaying(); }
+      });
+
+      let tx = 0, ty = 0;
+      this.el.addEventListener('touchstart', e => { tx = e.changedTouches[0].clientX; ty = e.changedTouches[0].clientY; }, { passive: true });
+      this.el.addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].clientX - tx;
+        const dy = e.changedTouches[0].clientY - ty;
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+          dx < 0 ? this.goTo(this.current + 1) : this.goTo(this.current - 1);
+          restartIfPlaying();
+        }
+      }, { passive: true });
+
+      this.el.addEventListener('mouseenter', () => this._pauseProgress());
+      this.el.addEventListener('mouseleave', () => { if (this.isPlaying) this._resetProgress(); });
+      this.el.addEventListener('focusin',    () => this._stopAuto());
+      this.el.addEventListener('focusout',   () => { if (this.isPlaying) this._startAuto(); });
+
+      if (this.autoBtn) {
+        this.autoBtn.addEventListener('click', () => {
+          this.isPlaying = !this.isPlaying;
+          if (this.isPlaying) {
+            this._startAuto();
+            this.autoBtn.classList.remove('is-paused');
+            this.autoBtn.setAttribute('aria-label', 'Pause autoplay');
+          } else {
+            this._stopAuto();
+            this._pauseProgress();
+            this.autoBtn.classList.add('is-paused');
+            this.autoBtn.setAttribute('aria-label', 'Play autoplay');
+          }
+        });
+      }
+    }
+
+    onBlockSelect(e)  { const i = this.slides.indexOf(e.target); if (i > -1) { this._stopAuto(); this.goTo(i); } }
+    onBlockDeselect() { if (this.isPlaying) this._startAuto(); }
+    onDeselect()      { if (this.isPlaying) this._startAuto(); }
+    onUnload()        { this._stopAuto(); }
+  }
+
+  function init() {
+    document.querySelectorAll('.hbs-section').forEach(el => { if (!el._hbs) el._hbs = new HeroBannerSlider(el); });
+  }
+
+  document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', init) : init();
+
+  document.addEventListener('shopify:section:load',     e => { const el = e.target.querySelector('.hbs-section'); if (el) el._hbs = new HeroBannerSlider(el); });
+  document.addEventListener('shopify:block:select',     e => { const s = e.target.closest('.hbs-section'); if (s && s._hbs) s._hbs.onBlockSelect(e); });
+  document.addEventListener('shopify:block:deselect',   e => { const s = e.target.closest('.hbs-section'); if (s && s._hbs) s._hbs.onBlockDeselect(); });
+  document.addEventListener('shopify:section:deselect', e => { const el = e.target.querySelector('.hbs-section'); if (el && el._hbs) el._hbs.onDeselect(); });
+  document.addEventListener('shopify:section:unload',   e => { const el = e.target.querySelector('.hbs-section'); if (el && el._hbs) el._hbs.onUnload(); });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Hero Banner Slider",
+  "tag": "section",
+  "class": "hbs-wrapper",
+  "disabled_on": { "groups": ["header", "footer"] },
+  "settings": [
+    {
+      "type": "header",
+      "content": "⚡ LCP Speed Tips",
+      "info": "Upload images as WebP, max 150KB each. Slide 1 is preloaded with high priority automatically."
+    },
+    { "type": "header", "content": "⚠️ Header Overlap" },
+    {
+      "type": "range", "id": "header_offset", "label": "Sticky Header Height",
+      "info": "Set to your theme's sticky header height. Use 0 if header is not sticky.",
+      "min": 0, "max": 200, "step": 4, "default": 0, "unit": "px"
+    },
+    { "type": "header", "content": "Slider Height" },
+    {
+      "type": "select", "id": "slider_height_desktop", "label": "Desktop Height",
+      "options": [
+        { "value": "100vh",  "label": "Full Screen (100vh)" },
+        { "value": "90vh",   "label": "90vh" },
+        { "value": "80vh",   "label": "80vh" },
+        { "value": "70vh",   "label": "70vh" },
+        { "value": "650px",  "label": "650px" },
+        { "value": "550px",  "label": "550px" },
+        { "value": "450px",  "label": "450px" }
+      ],
+      "default": "100vh"
+    },
+    {
+      "type": "select", "id": "slider_height_mobile", "label": "Mobile Height",
+      "options": [
+        { "value": "100svh", "label": "Full Screen" },
+        { "value": "80svh",  "label": "80%" },
+        { "value": "65svh",  "label": "65%" },
+        { "value": "520px",  "label": "520px" },
+        { "value": "420px",  "label": "420px" },
+        { "value": "320px",  "label": "320px" }
+      ],
+      "default": "100svh"
+    },
+    { "type": "header", "content": "Section Padding" },
+    { "type": "range", "id": "section_padding_desktop", "label": "Horizontal Padding — Desktop", "min": 2, "max": 20, "step": 1, "default": 8, "unit": "vw" },
+    { "type": "range", "id": "section_padding_mobile",  "label": "Horizontal Padding — Mobile",  "min": 2, "max": 15, "step": 1, "default": 5, "unit": "vw" },
+    { "type": "header", "content": "Autoplay" },
+    { "type": "checkbox", "id": "autoplay",       "label": "Enable Autoplay",  "default": true },
+    { "type": "range",    "id": "autoplay_speed", "label": "Autoplay Speed",   "min": 3, "max": 12, "step": 1, "default": 6, "unit": "s" },
+    {
+      "type": "select", "id": "transition_style", "label": "Slide Transition",
+      "options": [
+        { "value": "zoom-fade", "label": "Zoom + Fade" },
+        { "value": "fade",      "label": "Fade" },
+        { "value": "slide",     "label": "Slide" }
+      ],
+      "default": "zoom-fade"
+    },
+    { "type": "header", "content": "Controls" },
+    { "type": "checkbox", "id": "show_arrows",        "label": "Show Arrows",           "default": true },
+    { "type": "checkbox", "id": "hide_arrows_mobile", "label": "Hide Arrows on Mobile", "default": false },
+    { "type": "checkbox", "id": "show_thumbnails",    "label": "Show Thumbnails",        "default": true },
+    { "type": "checkbox", "id": "show_counter",       "label": "Show Slide Counter",     "default": true },
+    { "type": "checkbox", "id": "show_progress",      "label": "Show Progress Bar",      "default": true },
+    { "type": "checkbox", "id": "show_autoplay_btn",  "label": "Show Autoplay Toggle",   "default": true }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "settings": [
+
+        {
+          "type": "header", "content": "🖼️ Background Images",
+          "info": "WebP recommended, max 150KB per image."
+        },
+        { "type": "image_picker", "id": "desktop_image", "label": "Desktop Image (Required)" },
+        { "type": "image_picker", "id": "mobile_image",  "label": "Mobile Image", "info": "Optional — falls back to desktop image if blank." },
+        { "type": "color", "id": "fallback_bg_color", "label": "Fallback BG Color", "default": "#1a1a1a" },
+
+        { "type": "header", "content": "Overlay" },
+        { "type": "color", "id": "overlay_color",   "label": "Overlay Color",   "default": "#000000" },
+        { "type": "range", "id": "overlay_opacity", "label": "Overlay Opacity", "min": 0, "max": 85, "step": 5, "default": 40, "unit": "%" },
+
+        { "type": "header", "content": "Accent" },
+        { "type": "color", "id": "progress_color", "label": "Progress Bar Color", "default": "#c8b89e" },
+
+
+        { "type": "header", "content": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" },
+        { "type": "header", "content": "🖥️  DESKTOP CONTENT" },
+        { "type": "header", "content": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" },
+
+        {
+          "type": "select", "id": "d_content_align", "label": "Alignment — Desktop",
+          "options": [
+            { "value": "left",   "label": "Left" },
+            { "value": "center", "label": "Center" },
+            { "value": "right",  "label": "Right" }
+          ],
+          "default": "left"
+        },
+
+        { "type": "header", "content": "Eyebrow — Desktop" },
+        { "type": "text",  "id": "d_eyebrow",         "label": "Eyebrow Text",      "default": "New Collection 2024" },
+        { "type": "color", "id": "d_eyebrow_color",   "label": "Color",             "default": "#c8b89e" },
+        { "type": "range", "id": "d_eyebrow_size",    "label": "Font Size",         "min": 8,  "max": 20, "step": 1, "default": 11, "unit": "px" },
+        { "type": "range", "id": "d_eyebrow_spacing", "label": "Bottom Gap",        "min": 0,  "max": 60, "step": 2, "default": 20, "unit": "px" },
+
+        { "type": "header", "content": "Heading — Desktop" },
+        { "type": "richtext", "id": "d_heading", "label": "Heading Text (Required)", "default": "<p>The architecture of rest.</p>" },
+        {
+          "type": "select", "id": "d_heading_tag", "label": "HTML Tag",
+          "options": [
+            { "value": "h1", "label": "H1 — Main heading" },
+            { "value": "h2", "label": "H2 — Section heading" },
+            { "value": "h3", "label": "H3 — Sub-heading" }
+          ],
+          "default": "h2"
+        },
+        {
+          "type": "select", "id": "d_heading_font", "label": "Font Style",
+          "options": [
+            { "value": "serif_italic", "label": "Serif Italic (Elegant)" },
+            { "value": "serif_normal", "label": "Serif Normal" },
+            { "value": "sans",         "label": "Sans Serif (Modern)" }
+          ],
+          "default": "serif_italic"
+        },
+        { "type": "color", "id": "d_heading_color",   "label": "Color",     "default": "#ffffff" },
+        { "type": "range", "id": "d_heading_size",    "label": "Font Size", "min": 24, "max": 120, "step": 2, "default": 72, "unit": "px" },
+        { "type": "range", "id": "d_heading_spacing", "label": "Bottom Gap","min": 0,  "max": 80,  "step": 2, "default": 24, "unit": "px" },
+
+        { "type": "header", "content": "Body Text — Desktop" },
+        { "type": "richtext", "id": "d_body", "label": "Body Text", "default": "<p>Organically grown fibers, meticulously woven for a sanctuary of tactile quietude.</p>" },
+        { "type": "color", "id": "d_body_color",     "label": "Color",           "default": "#ffffff" },
+        { "type": "range", "id": "d_body_size",      "label": "Font Size",       "min": 10, "max": 24, "step": 1, "default": 15, "unit": "px" },
+        { "type": "range", "id": "d_body_max_width", "label": "Paragraph Width", "info": "Max readable line length.", "min": 200, "max": 800, "step": 20, "default": 440, "unit": "px" },
+        { "type": "range", "id": "d_body_spacing",   "label": "Bottom Gap",      "min": 0,  "max": 80,  "step": 2, "default": 40, "unit": "px" },
+
+        { "type": "header", "content": "Button — Desktop" },
+        { "type": "text", "id": "d_cta_text", "label": "Button Text", "default": "Explore the Loom" },
+        { "type": "url",  "id": "d_cta_url",  "label": "Button Link" },
+        {
+          "type": "select", "id": "d_cta_style", "label": "Button Style",
+          "options": [
+            { "value": "outline", "label": "Outline" },
+            { "value": "solid",   "label": "Solid Fill" },
+            { "value": "ghost",   "label": "Ghost (underline)" },
+            { "value": "pill",    "label": "Pill / Rounded" }
+          ],
+          "default": "outline"
+        },
+        { "type": "color", "id": "d_cta_color",    "label": "Text & Border Color", "default": "#ffffff" },
+        { "type": "color", "id": "d_cta_bg_color", "label": "Background Color",    "default": "#111111" },
+        { "type": "range", "id": "d_cta_size",     "label": "Font Size",           "min": 8, "max": 18, "step": 1, "default": 11, "unit": "px" },
+        { "type": "range", "id": "d_cta_spacing",  "label": "Top Gap",             "min": 0, "max": 60, "step": 2, "default": 0,  "unit": "px" },
+
+
+        { "type": "header", "content": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" },
+        {
+          "type": "header", "content": "📱  MOBILE CONTENT",
+          "info": "Leave any field blank to inherit the Desktop value above."
+        },
+        { "type": "header", "content": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" },
+
+        {
+          "type": "select", "id": "m_content_align", "label": "Alignment — Mobile",
+          "options": [
+            { "value": "left",   "label": "Left" },
+            { "value": "center", "label": "Center" },
+            { "value": "right",  "label": "Right" }
+          ],
+          "default": "left"
+        },
+
+        { "type": "header", "content": "Eyebrow — Mobile" },
+        { "type": "text",  "id": "m_eyebrow",         "label": "Eyebrow Text",  "info": "Blank = use Desktop value." },
+        { "type": "color", "id": "m_eyebrow_color",   "label": "Color",         "default": "#c8b89e" },
+        { "type": "range", "id": "m_eyebrow_size",    "label": "Font Size",     "min": 8,  "max": 20, "step": 1, "default": 10, "unit": "px" },
+        { "type": "range", "id": "m_eyebrow_spacing", "label": "Bottom Gap",    "min": 0,  "max": 60, "step": 2, "default": 14, "unit": "px" },
+
+        { "type": "header", "content": "Heading — Mobile" },
+        { "type": "richtext", "id": "m_heading", "label": "Heading Text", "info": "Blank = use Desktop value." },
+        {
+          "type": "select", "id": "m_heading_font", "label": "Font Style",
+          "info": "'Inherit' uses the Desktop font.",
+          "options": [
+            { "value": "inherit",      "label": "↑ Inherit from Desktop" },
+            { "value": "serif_italic", "label": "Serif Italic (Elegant)" },
+            { "value": "serif_normal", "label": "Serif Normal" },
+            { "value": "sans",         "label": "Sans Serif (Modern)" }
+          ],
+          "default": "inherit"
+        },
+        { "type": "color", "id": "m_heading_color",   "label": "Color",     "default": "#ffffff" },
+        { "type": "range", "id": "m_heading_size",    "label": "Font Size", "min": 18, "max": 72, "step": 2, "default": 38, "unit": "px" },
+        { "type": "range", "id": "m_heading_spacing", "label": "Bottom Gap","min": 0,  "max": 80, "step": 2, "default": 16, "unit": "px" },
+
+        { "type": "header", "content": "Body Text — Mobile" },
+        { "type": "richtext", "id": "m_body", "label": "Body Text", "info": "Blank = use Desktop value." },
+        { "type": "color", "id": "m_body_color",     "label": "Color",           "default": "#ffffff" },
+        { "type": "range", "id": "m_body_size",      "label": "Font Size",       "min": 10, "max": 22, "step": 1, "default": 13, "unit": "px" },
+        { "type": "range", "id": "m_body_max_width", "label": "Paragraph Width", "min": 160, "max": 480, "step": 20, "default": 320, "unit": "px" },
+        { "type": "range", "id": "m_body_spacing",   "label": "Bottom Gap",      "min": 0,  "max": 80,  "step": 2, "default": 28, "unit": "px" },
+
+        { "type": "header", "content": "Button — Mobile" },
+        { "type": "text", "id": "m_cta_text", "label": "Button Text", "info": "Blank = use Desktop value." },
+        { "type": "url",  "id": "m_cta_url",  "label": "Button Link", "info": "Blank = use Desktop link." },
+        {
+          "type": "select", "id": "m_cta_style", "label": "Button Style",
+          "info": "'Inherit' uses the Desktop style.",
+          "options": [
+            { "value": "inherit", "label": "↑ Inherit from Desktop" },
+            { "value": "outline", "label": "Outline" },
+            { "value": "solid",   "label": "Solid Fill" },
+            { "value": "ghost",   "label": "Ghost (underline)" },
+            { "value": "pill",    "label": "Pill / Rounded" }
+          ],
+          "default": "inherit"
+        },
+        { "type": "color", "id": "m_cta_color",    "label": "Text & Border Color", "default": "#ffffff" },
+        { "type": "color", "id": "m_cta_bg_color", "label": "Background Color",    "default": "#111111" },
+        { "type": "range", "id": "m_cta_size",     "label": "Font Size",           "min": 8, "max": 18, "step": 1, "default": 11, "unit": "px" },
+        { "type": "range", "id": "m_cta_spacing",  "label": "Top Gap",             "min": 0, "max": 60, "step": 2, "default": 0,  "unit": "px" }
+
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero Banner Slider",
+      "blocks": [
+        {
+          "type": "slide",
+          "settings": {
+            "d_eyebrow": "New Collection 2024",
+            "d_heading": "<p>The architecture of rest.</p>",
+            "d_body": "<p>Organically grown fibers, meticulously woven for a sanctuary of tactile quietude.</p>",
+            "d_cta_text": "Explore the Loom",
+            "d_heading_size": 72, "m_heading_size": 38,
+            "d_body_max_width": 440, "m_body_max_width": 320
+          }
+        },
+        {
+          "type": "slide",
+          "settings": {
+            "d_eyebrow": "Artisan Series",
+            "d_heading": "<p>Crafted for living well.</p>",
+            "d_body": "<p>Each piece carries the quiet confidence of hands that shaped the finest materials for generations.</p>",
+            "d_cta_text": "Discover More",
+            "d_eyebrow_color": "#a8c4b0", "m_eyebrow_color": "#a8c4b0",
+            "progress_color": "#a8c4b0",
+            "d_heading_size": 80, "m_heading_size": 42,
+            "d_body_max_width": 400, "m_body_max_width": 300
+          }
+        },
+        {
+          "type": "slide",
+          "settings": {
+            "d_eyebrow": "Limited Edition",
+            "d_heading": "<p>Warmth, reimagined.</p>",
+            "d_body": "<p>A considered palette drawn from nature — linen, stone, sage — woven into forms that age gracefully.</p>",
+            "d_cta_text": "Shop the Edit",
+            "d_eyebrow_color": "#e8d5b0", "m_eyebrow_color": "#e8d5b0",
+            "progress_color": "#e8d5b0",
+            "d_heading_size": 64, "m_heading_size": 34,
+            "d_body_max_width": 460, "m_body_max_width": 340
+          }
+        }
+      ]
+    }
+  ],
+  "max_blocks": 8
+}
+{% endschema %}

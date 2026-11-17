@@ -1,0 +1,160 @@
+{% comment %}
+  =====================================================================
+  FILE NAME  : snippets/price-comparison.liquid
+  THEME      : Atelier (Shopify Free Theme – Horizon family)
+  
+  HOW TO ADD TO YOUR STORE:
+  Step 1 → Shopify Admin → Online Store → Themes → (Atelier) → Edit Code
+  Step 2 → Snippets folder → "Add a new snippet" → name it: price-comparison
+  Step 3 → Paste this entire file and Save
+  Step 4 → Open: sections/main-product.liquid
+  Step 5 → Find the line that contains:  {%- when 'price' -%}
+            OR find:  <div class="product-info__price">  or  {{ product.price | money }}
+  Step 6 → AFTER that price block, add this single line:
+              {% render 'price-comparison', product: product %}
+  
+  METAFIELD SETUP (one-time, required):
+  → Shopify Admin → Settings → Custom Data → Variants → Add definition (×3)
+     Namespace : custom
+     Key       : competitor1_price    Type: Single line text
+     Key       : competitor2_price    Type: Single line text
+     Key       : competitor3_price    Type: Single line text
+  → Open any product → click each variant → enter prices like: 1499.00
+  
+  EDIT COMPETITOR NAMES BELOW ↓
+  =====================================================================
+{% endcomment %}
+
+{%- assign pc_comp1 = "Amazon"   -%}
+{%- assign pc_comp2 = "Flipkart" -%}
+{%- assign pc_comp3 = "Meesho"   -%}
+
+{% comment %} Build variant data map (rendered server-side, used by JS) {% endcomment %}
+<script>
+window.__pc = {
+  sym: {{ cart.currency.symbol | json }},
+  c1: {{ pc_comp1 | json }},
+  c2: {{ pc_comp2 | json }},
+  c3: {{ pc_comp3 | json }},
+  v: {
+    {%- for v in product.variants -%}
+    "{{ v.id }}":{
+      p:  {{ v.price | divided_by: 100.0 }},
+      c1: "{{ v.metafields.custom.competitor1_price.value | default: '0' }}",
+      c2: "{{ v.metafields.custom.competitor2_price.value | default: '0' }}",
+      c3: "{{ v.metafields.custom.competitor3_price.value | default: '0' }}"
+    }{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  }
+};
+</script>
+
+{% comment %} HTML {% endcomment %}
+<div id="pc-box">
+  <p class="pc-head">💰 Price Comparison</p>
+  <table id="pc-table" role="table" aria-label="Price comparison with competitors">
+    <thead>
+      <tr>
+        <th scope="col">Store</th>
+        <th scope="col">Price</th>
+        <th scope="col">You Save</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="pc-mine">
+        <td><span class="pc-badge">Our Store</span></td>
+        <td id="pc-p0">—</td>
+        <td class="pc-green">✓ Best Price</td>
+      </tr>
+      <tr>
+        <td id="pc-n1">—</td>
+        <td id="pc-p1">—</td>
+        <td id="pc-s1" class="pc-red">—</td>
+      </tr>
+      <tr>
+        <td id="pc-n2">—</td>
+        <td id="pc-p2">—</td>
+        <td id="pc-s2" class="pc-red">—</td>
+      </tr>
+      <tr>
+        <td id="pc-n3">—</td>
+        <td id="pc-p3">—</td>
+        <td id="pc-s3" class="pc-red">—</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+{% comment %} CSS {% endcomment %}
+<style>
+#pc-box{margin:20px 0;padding:14px 16px;border:1px solid #e2e8f0;border-radius:10px;background:#fff;font-family:inherit}
+.pc-head{margin:0 0 10px;font-weight:700;font-size:.95rem;color:#1e293b}
+#pc-table{width:100%;border-collapse:collapse;font-size:.875rem}
+#pc-table th{background:#f8fafc;padding:7px 10px;text-align:left;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0}
+#pc-table td{padding:7px 10px;border-bottom:1px solid #f1f5f9;color:#334155;vertical-align:middle}
+.pc-mine td{background:#f0fdf4;font-weight:700}
+.pc-badge{background:#16a34a;color:#fff;padding:2px 9px;border-radius:99px;font-size:.75rem;white-space:nowrap}
+.pc-green{color:#16a34a;font-weight:600}
+.pc-red{color:#dc2626}
+@media(max-width:480px){#pc-table td,#pc-table th{padding:5px 7px;font-size:.8rem}}
+</style>
+
+{% comment %} JS: listens to Atelier's native variant:change event {% endcomment %}
+<script>
+(function(){
+  var d = window.__pc, V = d.v, S = d.sym;
+
+  function fmt(n){ return S + (parseFloat(n)||0).toFixed(2); }
+
+  function save(mine, other){
+    var diff = (parseFloat(other)||0) - (parseFloat(mine)||0);
+    if(diff <= 0) return '—';
+    return '−' + S + diff.toFixed(2) + ' (' + Math.round(diff / other * 100) + '% off)';
+  }
+
+  function update(id){
+    var r = V[String(id)];
+    if(!r) return;
+    document.getElementById('pc-p0').textContent = fmt(r.p);
+    [
+      ['pc-n1','pc-p1','pc-s1', d.c1, r.c1],
+      ['pc-n2','pc-p2','pc-s2', d.c2, r.c2],
+      ['pc-n3','pc-p3','pc-s3', d.c3, r.c3]
+    ].forEach(function(x){
+      document.getElementById(x[0]).textContent = x[3];
+      var pr = parseFloat(x[4]) || 0;
+      document.getElementById(x[1]).textContent = pr ? fmt(pr) : 'N/A';
+      document.getElementById(x[2]).textContent = pr ? save(r.p, pr) : '—';
+    });
+  }
+
+  /*
+   * PRIMARY: Atelier (Horizon family) fires variant:change as a native
+   * CustomEvent with detail: { variant: { id, price, ... } }
+   */
+  document.addEventListener('variant:change', function(e){
+    if(e.detail && e.detail.variant) update(e.detail.variant.id);
+  });
+
+  /* Fallback 1: <select name="id"> change */
+  document.addEventListener('change', function(e){
+    var el = e.target;
+    if(el.name === 'id' && V[el.value]) update(el.value);
+  });
+
+  /* Fallback 2: lightweight 250ms poll for swatch/button selectors */
+  var _last = null, _hits = 0;
+  var _poll = setInterval(function(){
+    var el = document.querySelector('input[name="id"]:checked, select[name="id"]');
+    if(el && el.value && el.value !== _last){
+      _last = el.value;
+      update(el.value);
+      if(++_hits > 5) clearInterval(_poll);
+    }
+  }, 250);
+
+  /* Init on page load */
+  var firstId = Object.keys(V)[0];
+  if(firstId) update(firstId);
+})();
+</script>

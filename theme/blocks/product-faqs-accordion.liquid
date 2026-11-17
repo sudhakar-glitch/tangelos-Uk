@@ -1,0 +1,239 @@
+{% assign block_settings = block.settings %}
+<div class="accordion accordion--ASDl0amQ3dlpxSS8zU__accordion_YFdmAa accordion--plus border-style spacing-style accordion--dividers" style="
+    --summary-font-family: var(--font-h5--family);
+     --summary-font-style: var(--font-h5--style);
+     --summary-font-weight: var(--font-h5--weight);
+     --summary-font-size: var(--font-h5--size);
+     --summary-font-line-height: var(--font-h5--line-height);
+     --summary-font-case: var(--font-h5--case);
+    --padding-block-start: max(20px, calc(var(--spacing-scale) * 35px));--padding-block-end: 0px;--padding-inline-start: 0px;--padding-inline-end: 0px;
+    --border-width: 1px; --border-style: none; --border-color:
+rgb(var(--color-border-rgb) / 1.0); --border-radius:
+0px; 
+
+  ">
+
+  {% assign product_faqs_json = product.metafields.custom.product_faq_s.value %}
+
+  {% assign faqs = '[]' | json_parse %}
+
+  {% if product_faqs_json != blank %}
+
+
+
+{% comment %} {% if product.title contains "Butter Bean Muslin Duvet Cover" %}
+
+<accordion-custom>
+
+    <details class="details" data-testid="accordion-details">
+        <summary class="details__header">
+          Why Preorder?
+                      <span class="svg-wrapper icon-plus"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path class="vertical" d="M2.75 7H11.25" stroke="currentColor" stroke-width="var(--icon-stroke-width)" stroke-linecap="round"></path>
+  <path class="horizontal" d="M7 2.75L7 11.25" stroke="currentColor" stroke-width="var(--icon-stroke-width)" stroke-linecap="round"></path>
+</svg>
+</span>
+        </summary>
+        <div class="details-content new-cnt">            
+            <rte-formatter class=" spacing-style text-block text-block--AN3BHRkxWTlR6azZNN__text_KGXwk6 paragraph    text-block--align-left rte   " style="    --padding-block-start: 0px; --padding-block-end:0px; --padding-inline-start:0px; --padding-inline-end:0px;     --color: var(--color-foreground);    --width: 100%;    --max-width: var(--max-width--body-normal);          --text-align: left;          ">
+                <p> Due to high demand, this item sells out fast. Pre-ordering guarantees your piece from our upcoming batch before inventory runs out. Exceptional quality takes time, but it’s always worth the wait.</p>
+            </rte-formatter>
+
+        </div>
+    </details>
+</accordion-custom>
+ {% endif %} {% endcomment %}
+    {% assign faqs = product_faqs_json %}
+  {% endif %}
+
+  {% if faqs.size > 0 %}
+      {% for faq in faqs %}      
+
+        <accordion-custom>
+
+    <details class="details" data-testid="accordion-details">
+        <summary class="details__header">
+
+           {{ faq.question | escape }}
+           
+</span>            <span class="svg-wrapper icon-plus"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path class="vertical" d="M2.75 7H11.25" stroke="currentColor" stroke-width="var(--icon-stroke-width)" stroke-linecap="round"></path>
+  <path class="horizontal" d="M7 2.75L7 11.25" stroke="currentColor" stroke-width="var(--icon-stroke-width)" stroke-linecap="round"></path>
+</svg>
+</span>
+        </summary>
+        <div class="details-content new-cnt">            
+            <rte-formatter class=" spacing-style text-block text-block--AN3BHRkxWTlR6azZNN__text_KGXwk6 paragraph    text-block--align-left rte   " style="    --padding-block-start: 0px; --padding-block-end:0px; --padding-inline-start:0px; --padding-inline-end:0px;     --color: var(--color-foreground);    --width: 100%;    --max-width: var(--max-width--body-normal);          --text-align: left;          ">
+                <p> {{ faq.answer }}</p>
+            </rte-formatter>
+
+        </div>
+    </details>
+</accordion-custom>
+        
+
+
+      {% endfor %}
+     <accordion-custom>
+
+    <details class="details" data-testid="accordion-details">
+        <summary class="details__header">
+
+          Where does our bedding come from?
+                      <span class="svg-wrapper icon-plus"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path class="vertical" d="M2.75 7H11.25" stroke="currentColor" stroke-width="var(--icon-stroke-width)" stroke-linecap="round"></path>
+  <path class="horizontal" d="M7 2.75L7 11.25" stroke="currentColor" stroke-width="var(--icon-stroke-width)" stroke-linecap="round"></path>
+</svg>
+</span>
+        </summary>
+        <div class="details-content new-cnt">            
+            <rte-formatter class=" spacing-style text-block text-block--AN3BHRkxWTlR6azZNN__text_KGXwk6 paragraph    text-block--align-left rte   " style="    --padding-block-start: 0px; --padding-block-end:0px; --padding-inline-start:0px; --padding-inline-end:0px;     --color: var(--color-foreground);    --width: 100%;    --max-width: var(--max-width--body-normal);          --text-align: left;          ">
+                <p> We manufacture the bedding in India from premium organic cotton and European linen, our bedding is sustainably made with ethical practices. They carry the richness of textile heritage while reflecting the aesthetics and comfort loved in the UK.
+</p>
+            </rte-formatter>
+
+        </div>
+    </details>
+</accordion-custom>
+
+  {% endif %}
+    </div>
+
+
+{% stylesheet %}
+  .accordion {
+    flex: 1;
+    width: 100%;
+  }
+div#shopify-block-AVDd2NHd6Z3RFTVpMR__product_faqs_accordion_nPttiN {
+    width: 50%;
+}
+body .accordion.accordion--ASDl0amQ3dlpxSS8zU__accordion_YFdmAa.accordion--plus.border-style.spacing-style.accordion--dividers {
+    width: 100% !important;
+    margin: auto;
+}
+  .accordion--dividers accordion-custom:not(:first-child) .details {
+    border-block-start: var(--style-border-width) solid var(--color-border);
+  }
+
+  /* When accordion borders are not set, show fallback borders */
+  .accordion--dividers {
+    /* stylelint-disable-next-line declaration-property-value-disallowed-list */
+    --show-fallback-borders: 0;
+  }
+
+  .accordion--dividers:not([class*='color-'])[style*='--border-width: 0'],
+  .accordion--dividers:not([class*='color-'])[style*='--border-style: none'] {
+    --show-fallback-borders: 1;
+  }
+
+  .accordion--dividers accordion-custom:first-child .details {
+    border-block-start: calc(var(--style-border-width) * var(--show-fallback-borders)) solid var(--color-border);
+  }
+
+  .accordion--dividers accordion-custom:last-child .details {
+    border-block-end: calc(var(--style-border-width) * var(--show-fallback-borders)) solid var(--color-border);
+  }
+
+  .accordion--dividers .details-content {
+    padding-block-end: var(--padding-sm);
+  }
+
+  .accordion--caret .icon-plus,
+  .accordion--plus .icon-caret {
+    display: none;
+  }
+
+  /* because we can't pass apply a specific class on a block based on its parent block setting */
+  .accordion .details__header {
+    font-family: var(--summary-font-family);
+    font-style: var(--summary-font-style);
+    font-weight: var(--summary-font-weight);
+    font-size: var(--summary-font-size);
+    line-height: var(--summary-font-line-height);
+    text-transform: var(--summary-font-case);
+    min-height: var(--minimum-touch-target);
+  }
+{% endstylesheet %}
+
+<style>
+  /* Basic styling for the accordion (Tailwind classes would replace much of this) */
+  .accordion-item {
+    border-bottom: 1px solid #e2e8f0; /* border-b border-gray-200 */
+  }
+
+  .accordion-header {
+    width: 100%;
+    padding: 1rem 0; /* py-4 */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    background: none;
+    border: none;
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 600; /* font-semibold */
+    color: #2d3748; /* text-gray-800 */
+    cursor: pointer;
+    transition: color 0.2s ease-in-out;
+  }
+
+  .accordion-header:hover {
+    color: #4c51bf; /* hover:text-indigo-600 */
+  }
+
+  .accordion-icon {
+    transition: transform 0.2s ease-in-out;
+  }
+
+  /* JavaScript will toggle this class for rotation */
+  .accordion-icon.rotate {
+    transform: rotate(180deg);
+  }
+
+  .accordion-content {
+    padding-bottom: 1rem; /* pb-4 */
+    color: #4a5568; /* text-gray-700 */
+    line-height: 1.6;
+    display: none; /* Hidden by default, JS will toggle */
+  }
+
+  .accordion-content.open {
+    display: block; /* Show when open */
+  }
+  .accordion-item.active svg.minus-icon {
+    display: block !important;
+}
+.accordion-item.active svg.plus-icon {
+    display: none;
+}
+</style>
+{% schema %}
+{
+  "name": "Product FAQs Accordion",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Section Heading",
+      "default": "Frequently Asked Questions"
+    },
+     {
+      "type": "text",
+      "id": "descriptions",
+      "label": "Section Descriptions",
+      "default": "Frequently Asked Questions"
+    },
+    {
+      "type": "paragraph",
+      "content": "This section displays FAQs from the product's `custom.product_faqs` metafield."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product FAQs"
+    }
+  ],
+  "blocks": []
+}
+{% endschema %}

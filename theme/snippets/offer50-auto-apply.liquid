@@ -1,0 +1,484 @@
+{% comment %}
+  snippets/offer50-auto-apply.liquid  (Horizon theme version)
+  Auto-applies the subscriber's OWN popup offer in the mini-cart and prefills
+  the subscribed email at checkout. Only that one offer is ever shown or
+  applied; any other offer code is removed from the cart.
+
+    Customer tag   Code     Discount   Minimum spend
+    pdp-offer15    OFFER15  £15 off    £80
+    pdp-offer20    OFFER20  £20 off    £100
+    pdp-offer30    OFFER30  £30 off    £100
+
+    pdp-offer50    OFFER50  £50 off    £125   (current popup offer)
+    pdp-offer      OFFER50  £50 off    £125   (older OFFER50 signups)
+
+  OFFER15/20/30 popups are switched off, but customers who already signed up
+  for them still get their own code here.
+
+  To change an offer, edit OFFERS below AND the discount in Shopify admin.
+
+  Install: {% render 'offer50-auto-apply' %} in layout/theme.liquid (already done).
+
+  Rules enforced by Shopify at checkout (discount settings):
+    - each code is limited to its segment (its tag + 0 orders)
+    - minimum spend as above, one use per customer
+
+  Optional: set ELIGIBILITY_URL to your deployed offer50-eligibility-worker
+  URL to also hide the coupon in the mini-cart for emails that have already
+  ordered. Left empty, the mini-cart applies it for every popup subscriber
+  and checkout rejects repeat buyers.
+
+  Debug: run  tgOffer50Debug()  in the browser console.
+{% endcomment %}
+
+<style>
+  .offer50-summary {     width: 100%; margin: 0 0 12px; padding: 12px 14px; border: 1px dashed #1d6b34; border-radius: 8px; background: #f1faf3; font-size: 14px; line-height: 1.4; color: #1f2a22; }
+  .offer50-summary[hidden] { display: none !important; }
+  .offer50-summary--nudge { border-color: #c58a00; background: #fff8e8; }
+  .offer50-chip { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .offer50-chip__code { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: #1d6b34; color: #fff; font-weight: 600; letter-spacing: .04em; font-size: 13px; }
+  .offer50-chip__status { color: #1d6b34; font-weight: 600; font-size: 13px; }
+  .offer50-note { font-size: 13px; color: #45524a; margin-top: 6px; }
+  .offer50-rows { margin-top: 10px; }
+  .offer50-row { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; }
+  .offer50-row--saving { color: #1d6b34; font-weight: 600; }
+  .offer50-row--total { border-top: 1px solid rgba(0,0,0,.12); margin-top: 6px; padding-top: 8px; font-weight: 700; font-size: 15px; }
+  .offer50-bar { height: 6px; border-radius: 999px; background: rgba(0,0,0,.08); overflow: hidden; margin-top: 8px; }
+  .offer50-bar > span { display: block; height: 100%; background: #c58a00; }
+</style>
+
+<script>
+(function () {
+  // One offer per popup tag. Amounts in pence (display only, the rules live in admin).
+  var OFFERS = {
+    'pdp-offer15': { code: 'OFFER15', threshold: 8000,  amount: 1500 },
+    'pdp-offer20': { code: 'OFFER20', threshold: 10000, amount: 2000 },
+    'pdp-offer30': { code: 'OFFER30', threshold: 10000, amount: 3000 },
+    'pdp-offer50': { code: 'OFFER50', threshold: 12500, amount: 5000 },
+    'pdp-offer':   { code: 'OFFER50', threshold: 12500, amount: 5000 }
+  };
+  var NO_OFFER = { code: '', threshold: 0, amount: 0 };   // no active popup offer for this visitor
+  var RETIRED_CODES = [];                                  // ended offers: removed from carts
+  var ALL_CODES = Object.keys(OFFERS).map(function (t) { return OFFERS[t].code; }).concat(RETIRED_CODES);
+  function isOfferCode(c) { return ALL_CODES.indexOf(String(c).toUpperCase()) > -1; }
+
+  // The offer for this visitor (set in sync). CODE / THRESHOLD / DISCOUNT_AMOUNT follow it.
+  var CODE = NO_OFFER.code;
+  var THRESHOLD = NO_OFFER.threshold;
+  var DISCOUNT_AMOUNT = NO_OFFER.amount;
+  function useOffer(tag) {
+    var o = OFFERS[tag] || NO_OFFER;
+    CODE = o.code; THRESHOLD = o.threshold; DISCOUNT_AMOUNT = o.amount;
+  }
+
+  var FLAG = 'tg_newsletter_subscriber';
+  var EMAIL_KEY = 'tg_subscriber_email';
+  var OFFER_KEY = 'tg_subscriber_offer_tag';
+
+  // Optional: your deployed eligibility Worker, e.g. 'https://offer50-check.yourname.workers.dev/'
+  var ELIGIBILITY_URL = '';
+
+  // Storefront API PUBLIC access token (Headless channel → Storefront API → Public access token).
+  // When set, the subscriber's email is attached to the cart, so Shopify itself calculates
+  // OFFER50 in the cart (live subtotal / discount / total) and prefills checkout.
+  var STOREFRONT_TOKEN = '';
+  var STOREFRONT_API_VERSION = '2026-07';
+
+  // Horizon cart drawer
+  var DRAWER_SELECTOR = 'cart-drawer-component, .cart-drawer, .cart-drawer__summary, cart-items-component';
+  var BOX_TARGET = '.cart-drawer__summary .cart__ctas, .cart__ctas';
+
+  /* ---------------- 1. Who is eligible? ---------------- */
+  {% if customer %}
+    {%- assign tg_offer_tag = '' -%}
+    {%- for t in customer.tags -%}
+      {%- assign tg_t = t | downcase | strip -%}
+      {%- if tg_offer_tag == blank -%}
+        {%- if tg_t == 'pdp-offer50' or tg_t == 'pdp-offer' or tg_t == 'pdp-offer15' or tg_t == 'pdp-offer20' or tg_t == 'pdp-offer30' -%}
+          {%- assign tg_offer_tag = tg_t -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endfor -%}
+    var KNOWN = true;
+    var KNOWN_TAG = {{ tg_offer_tag | json }};
+    var KNOWN_ELIGIBLE = KNOWN_TAG !== '' && {{ customer.orders_count | default: 0 }} === 0;
+  {% else %}
+    var KNOWN = false;
+    var KNOWN_TAG = '';
+    var KNOWN_ELIGIBLE = false;
+  {% endif %}
+
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function getFlag() { return lsGet(FLAG) === '1'; }
+  function setFlag() { lsSet(FLAG, '1'); }
+  function getEmail() { return lsGet(EMAIL_KEY) || ''; }
+  function setEmail(v) { if (v) lsSet(EMAIL_KEY, String(v).trim().toLowerCase()); }
+
+  // Which popup offer this visitor signed up for
+  function getOfferTag() {
+    if (KNOWN) return OFFERS[KNOWN_TAG] ? KNOWN_TAG : '';
+    var t = lsGet(OFFER_KEY);
+    return OFFERS[t] ? t : '';
+  }
+  function offerTagFrom(tagsValue) {
+    var parts = String(tagsValue || '').split(',');
+    for (var i = 0; i < parts.length; i++) {
+      var t = parts[i].trim().toLowerCase();
+      if (OFFERS[t]) return t;
+    }
+    return '';
+  }
+
+  var nativeFetch = window.fetch.bind(window);
+
+  /* Optional email check against the eligibility Worker */
+  var CHECK_KEY = 'tg_offer50_check';
+  var CHECK_TTL = 6 * 60 * 60 * 1000;
+  var lastCheck = 'not run';
+
+  function endpointConfigured() {
+    return /^https:\/\//.test(ELIGIBILITY_URL) && ELIGIBILITY_URL.indexOf('YOUR-SUBDOMAIN') === -1;
+  }
+
+  function checkEmail(email) {
+    if (!endpointConfigured()) { lastCheck = 'skipped (no endpoint) → checkout decides'; return Promise.resolve(true); }
+    try {
+      var c = JSON.parse(lsGet(CHECK_KEY) || 'null');
+      if (c && c.email === email && Date.now() - c.at < CHECK_TTL) { lastCheck = 'cached: ' + c.eligible; return Promise.resolve(c.eligible); }
+    } catch (e) {}
+    return nativeFetch(ELIGIBILITY_URL + '?email=' + encodeURIComponent(email))
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (d) {
+        var ok = d && d.eligible === true;
+        lsSet(CHECK_KEY, JSON.stringify({ email: email, eligible: ok, at: Date.now() }));
+        lastCheck = 'endpoint: ' + ok;
+        return ok;
+      })
+      // Endpoint down → still add the code; checkout's segment rule rejects repeat buyers.
+      .catch(function (e) { lastCheck = 'endpoint error (' + e.message + ') → checkout decides'; return true; });
+  }
+
+  function resolveEligible() {
+    if (KNOWN) return Promise.resolve(KNOWN_ELIGIBLE);
+    if (!getFlag()) return Promise.resolve(false);
+    var email = getEmail();
+    return email ? checkEmail(email) : Promise.resolve(true);
+  }
+
+  var currentEligible = false;
+
+  /* ---------------- 2. Capture the popup signup (sections/pdp-offer-popup.liquid) ---------------- */
+  // The popup form posts contact[tags] = "newsletter,pdp-offer20" (etc.) and contact[email].
+  document.addEventListener('submit', function (e) {
+    var f = e.target;
+    if (!f || !f.querySelector) return;
+    var tag = f.querySelector('input[name="contact[tags]"]');
+    var offerTag = tag ? offerTagFrom(tag.value) : '';
+    if (!offerTag) return;
+    var em = f.querySelector('input[name="contact[email]"]');
+    if (em && em.value) { setEmail(em.value); setFlag(); lsSet(OFFER_KEY, offerTag); lsSet(CHECK_KEY, ''); }
+  }, true);
+
+  // Back on the page after a successful signup
+  if (/[?&]customer_posted=true/.test(location.search) && getEmail()) setFlag();
+
+  window.tgMarkSubscriber = function (email) { setEmail(email); setFlag(); scheduleSync(0); };
+
+  /* ---------------- 3. Cart helpers ---------------- */
+  function getCart() {
+    return nativeFetch('/cart.js', { headers: { Accept: 'application/json' }, cache: 'no-store' })
+      .then(function (r) { return r.json(); });
+  }
+  function setCodes(codes) {
+    return nativeFetch('/cart/update.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ discount: codes.join(',') })
+    }).then(function (r) { return r.json(); });
+  }
+
+  // Attach the subscriber's email to this cart (Storefront API cartBuyerIdentityUpdate).
+  var BI_KEY = 'tg_offer50_buyer';
+  var biStatus = STOREFRONT_TOKEN ? 'not run' : 'off (no STOREFRONT_TOKEN)';
+
+  function attachEmailToCart(cart, email) {
+    var key = cart.token + '|' + email;
+    if (lsGet(BI_KEY) === key) { biStatus = 'already attached'; return Promise.resolve(false); }
+    var cartId = 'gid://shopify/Cart/' + cart.token;
+    return nativeFetch('/api/' + STOREFRONT_API_VERSION + '/graphql.json', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Shopify-Storefront-Access-Token': STOREFRONT_TOKEN },
+      body: JSON.stringify({
+        query: 'mutation SetBuyer($cartId: ID!, $buyerIdentity: CartBuyerIdentityInput!) {' +
+               ' cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: $buyerIdentity) {' +
+               ' cart { id buyerIdentity { email } discountCodes { code applicable } }' +
+               ' userErrors { field message } } }',
+        variables: { cartId: cartId, buyerIdentity: { email: email } }
+      })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      var res = d && d.data && d.data.cartBuyerIdentityUpdate;
+      var errs = (d && d.errors) || (res && res.userErrors && res.userErrors.length ? res.userErrors : null);
+      if (errs) { biStatus = 'error: ' + JSON.stringify(errs).slice(0, 160); return false; }
+      lsSet(BI_KEY, key);
+      var codes = (res.cart.discountCodes || []).map(function (c) { return c.code + (c.applicable ? ' ✓' : ' ✗'); }).join(', ');
+      biStatus = 'attached ' + res.cart.buyerIdentity.email + ' → codes: ' + (codes || '(none)');
+      return true;
+    })
+    .catch(function (e) { biStatus = 'error: ' + e.message; return false; });
+  }
+
+  // Horizon: tell the theme the cart changed so it re-renders the drawer,
+  // its totals, the discount line and the discount pill itself.
+  function refreshMiniCart(cart) {
+    try {
+      var ev = new Event('cart:update', { bubbles: true });
+      ev.detail = { resource: cart, sourceId: 'offer50', data: { source: 'offer50', itemCount: cart.item_count } };
+      document.dispatchEvent(ev);
+    } catch (e) {}
+  }
+
+  /* ---------------- 4. Coupon box in the mini-cart (above the checkout button) ---------------- */
+  var renderedBox = null;
+  var lastHtml = null;   // what the box looked like after our last render
+  var lastShow = false;
+
+  function fmt(pence, currency) {
+    try { return new Intl.NumberFormat('en-GB', { style: 'currency', currency: currency || 'GBP' }).format(pence / 100); }
+    catch (e) { return '£' + (pence / 100).toFixed(2); }
+  }
+
+  function getBox() {
+    var box = document.querySelector('[data-offer50-summary]');
+    if (box && box.isConnected) return box;
+    var target = document.querySelector(BOX_TARGET);
+    if (!target) return null;
+    box = document.createElement('div');
+    box.className = 'offer50-summary';
+    box.setAttribute('data-offer50-summary', '');
+    box.hidden = true;
+    target.parentNode.insertBefore(box, target);
+    return box;
+  }
+
+  var lastCart = null;
+
+  function render(cart) {
+    if (!cart) return;
+    lastCart = cart;
+    var box = getBox();
+    if (!box) return;
+    renderedBox = box;
+
+    var cur = cart.currency;
+    var entry = (cart.discount_codes || []).find(function (d) { return d.code.toUpperCase() === CODE; });
+    // OFFER50 can appear two ways in the live cart:
+    //  - as a cart-level discount line, or
+    //  - spread across the products (line-level allocations) — then the theme's
+    //    item prices and "Subtotal" are ALREADY reduced by it.
+    var cartSaved = (cart.cart_level_discount_applications || [])
+      .filter(function (a) { return (a.title || '').toUpperCase() === CODE; })
+      .reduce(function (s, a) { return s + (a.total_allocated_amount || 0); }, 0);
+    var lineSaved = 0;
+    (cart.items || []).forEach(function (it) {
+      (it.line_level_discount_allocations || []).forEach(function (a) {
+        var t = (a.discount_application && a.discount_application.title) || '';
+        if (t.toUpperCase() === CODE) lineSaved += a.amount || 0;
+      });
+    });
+    var saved = cartSaved + lineSaved;
+
+    // Products price BEFORE OFFER50 (other discounts, e.g. the free gift, stay applied)
+    var subtotal = cart.items_subtotal_price + lineSaved;
+    var below = subtotal < THRESHOLD;
+
+    var html = '', cls = 'offer50-summary', show = true;
+
+    function breakdown(discount, total, status, totalLabel) {
+      return '<div class="offer50-chip"><span class="offer50-chip__code">🏷️ ' + CODE + '</span>' +
+               '<span class="offer50-chip__status">' + status + '</span></div>' +
+             '<div class="offer50-rows">' +
+               '<div class="offer50-row"><span>Subtotal (' + cart.item_count + (cart.item_count === 1 ? ' item' : ' items') + ')</span><span>' + fmt(subtotal, cur) + '</span></div>' +
+               '<div class="offer50-row offer50-row--saving"><span>Discount (' + CODE + ')</span><span>−' + fmt(discount, cur) + '</span></div>' +
+               '<div class="offer50-row offer50-row--total"><span>' + totalLabel + '</span><span>' + fmt(total, cur) + '</span></div>' +
+             '</div>';
+    }
+
+    if (saved > 0) {
+      // Shopify has applied it in the cart — use the real figures.
+      html = breakdown(saved, cart.total_price, '✓ Applied', 'Total');
+    } else if (entry && cart.item_count > 0 && !below && currentEligible) {
+      // Code is on the cart; Shopify confirms the customer at checkout (guest).
+      var est = Math.min(DISCOUNT_AMOUNT, subtotal);
+      html = breakdown(est, Math.max(0, cart.total_price - est), '✓ Applied', 'Total to pay') +
+             '<div class="offer50-note">Your discount is confirmed at checkout with the email you subscribed with.</div>';
+    } else if (currentEligible && cart.item_count > 0 && below) {
+      var pct = Math.min(100, Math.round(subtotal / THRESHOLD * 100));
+      cls += ' offer50-summary--nudge';
+      html = '<div>Spend <strong>' + fmt(THRESHOLD - subtotal, cur) + '</strong> more to unlock <strong>' + CODE + '</strong></div>' +
+             '<div class="offer50-bar"><span style="width:' + pct + '%"></span></div>';
+    } else {
+      show = false;
+    }
+
+    if (box.className !== cls) box.className = cls;
+    if (box.hidden === show) box.hidden = !show;
+    if (box.innerHTML !== html) box.innerHTML = html;
+    lastHtml = box.innerHTML;
+    lastShow = show;
+  }
+
+  /* ---------------- 5. Main sync ---------------- */
+  var running = false, again = false, timer = null;
+
+  function scheduleSync(delay) {
+    clearTimeout(timer);
+    timer = setTimeout(sync, delay == null ? 300 : delay);
+  }
+
+  function sync() {
+    if (running) { again = true; return; }
+    running = true;
+
+    Promise.all([getCart(), resolveEligible()]).then(function (res) {
+      var cart = res[0];
+      useOffer(getOfferTag());
+      currentEligible = res[1] && CODE !== '';   // no active offer (e.g. old OFFER50 subscriber) → nothing to apply
+      var codes = (cart.discount_codes || []).map(function (d) { return d.code; });
+      var has = codes.some(function (c) { return c.toUpperCase() === CODE; });
+      var hasOther = codes.some(function (c) { return isOfferCode(c) && c.toUpperCase() !== CODE; });
+
+      if (currentEligible && cart.item_count > 0 && (!has || hasOther)) {
+        // Keep ONLY this subscriber's offer: drop any other offer code, add theirs.
+        // Shopify applies it whenever the cart reaches the minimum spend.
+        var keep = codes.filter(function (c) { return !isOfferCode(c); }).concat(CODE);
+        return setCodes(keep).then(function (c) { refreshMiniCart(c); return c; });
+      }
+      // Not eligible (logged-in customer with orders, or email already purchased) → remove offer codes.
+      if (!currentEligible && (has || hasOther) && (KNOWN || getFlag())) {
+        return setCodes(codes.filter(function (c) { return !isOfferCode(c); }))
+          .then(function (c) { refreshMiniCart(c); return c; });
+      }
+      return cart;
+    })
+    .then(function (cart) {
+      // Guest subscriber: tell Shopify who they are so it calculates OFFER50 in the cart.
+      var email = getEmail();
+      if (!KNOWN && STOREFRONT_TOKEN && currentEligible && email && cart.item_count > 0) {
+        return attachEmailToCart(cart, email).then(function (changed) {
+          if (!changed) return cart;
+          return getCart().then(function (c) { refreshMiniCart(c); return c; });
+        });
+      }
+      return cart;
+    })
+    .then(render)
+    .catch(function (e) { console.warn('[OFFER50]', e); })
+    .finally(function () {
+      running = false;
+      if (again) { again = false; scheduleSync(150); }
+    });
+  }
+
+  /* ---------------- 6. Detect cart changes ---------------- */
+  var CART_URL = /\/cart\/(add|change|update|clear)(\.js|\.json)?(\?|$)/;
+
+  window.fetch = function (input) {
+    var url = typeof input === 'string' ? input : (input && input.url) || '';
+    var p = nativeFetch.apply(window, arguments);
+    if (CART_URL.test(url)) p.then(function () { scheduleSync(); }).catch(function () {});
+    return p;
+  };
+
+  var xhrOpen = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function (method, url) {
+    if (CART_URL.test(String(url))) this.addEventListener('loadend', function () { scheduleSync(); });
+    return xhrOpen.apply(this, arguments);
+  };
+
+  // Horizon re-renders the drawer by morphing. That can remove the box, OR keep
+  // the box but reset it to the server's version (empty + hidden). Either way,
+  // redraw it from the last cart we saw.
+  var moTimer;
+  function boxIsStale() {
+    if (!renderedBox || !renderedBox.isConnected) return true;
+    if (document.querySelector('[data-offer50-summary]') !== renderedBox) return true;
+    return renderedBox.hidden !== !lastShow || renderedBox.innerHTML !== lastHtml;
+  }
+  new MutationObserver(function (records) {
+    for (var i = 0; i < records.length; i++) {
+      var t = records[i].target;
+      if (t.closest && t.closest(DRAWER_SELECTOR)) {
+        clearTimeout(moTimer);
+        moTimer = setTimeout(function () {
+          if (lastCart && boxIsStale()) render(lastCart);
+        }, 50);
+        return;
+      }
+    }
+  }).observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['hidden']
+  });
+
+  // Opening the mini cart: make sure the box reflects the latest cart
+  document.addEventListener('click', function (e) {
+    if (e.target.closest && e.target.closest('[data-testid="cart-drawer-trigger"]')) scheduleSync(0);
+  });
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { sync(); });
+  else sync();
+
+  /* ---------------- 7. Prefill the subscribed email at checkout ---------------- */
+  var CHECKOUT_SELECTOR = 'button[name="checkout"], #checkout, .cart__checkout-button, a[href="/checkout"], a[href^="/checkout?"]';
+
+  function needsEmailPrefill() { return !KNOWN && getFlag() && !!getEmail(); }
+
+  document.addEventListener('click', function (e) {
+    if (!needsEmailPrefill()) return;
+    var btn = e.target.closest && e.target.closest(CHECKOUT_SELECTOR);
+    if (!btn || btn.disabled) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    window.location.href = '/checkout?checkout[email]=' + encodeURIComponent(getEmail());
+  }, true);
+
+  /* ---------------- Debug helper ---------------- */
+  window.tgOffer50Debug = function () {
+    getCart().then(function (cart) {
+      console.table({
+        loggedIn: KNOWN,
+        loggedInEligible: KNOWN_ELIGIBLE,
+        offer: getOfferTag() + ' → ' + CODE + ' (' + fmt(DISCOUNT_AMOUNT) + ' off ' + fmt(THRESHOLD) + '+)',
+        subscribedFlag: getFlag(),
+        savedEmail: getEmail() || '(none — subscribe through the popup again)',
+        eligibleNow: currentEligible,
+        emailCheck: lastCheck,
+        emailOnCart: biStatus,
+        shopifyDiscountInCart: (function () {
+          var parts = (cart.cart_level_discount_applications || []).map(function (a) { return a.title + ' −' + fmt(a.total_allocated_amount, cart.currency) + ' (cart)'; });
+          (cart.items || []).forEach(function (it) {
+            (it.line_level_discount_allocations || []).forEach(function (a) {
+              parts.push((a.discount_application && a.discount_application.title) + ' −' + fmt(a.amount, cart.currency) + ' (on ' + it.title + ')');
+            });
+          });
+          return parts.join(', ') || '(none — box shows a preview)';
+        })(),
+        cartSubtotal: fmt(cart.items_subtotal_price, cart.currency),
+        codesInCart: (cart.discount_codes || []).map(function (d) { return d.code + (d.applicable ? ' ✓' : ' ✗'); }).join(', ') || '(none)',
+        checkoutPrefill: needsEmailPrefill()
+      });
+    });
+  };
+  window.tgOffer50Reset = function () {
+    [FLAG, EMAIL_KEY, OFFER_KEY, CHECK_KEY, BI_KEY, 'pdpOfferPopup:subscribed', 'pdpOfferPopup:dismissedAt', 'pdpOfferPopup:lastCollection'].forEach(function (k) {
+      try { localStorage.removeItem(k); } catch (e) {}
+    });
+    console.log('[OFFER50] Test data cleared. Reload the muslin collection page to see the popup again.');
+  };
+})();
+</script>

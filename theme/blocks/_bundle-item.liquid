@@ -1,0 +1,60 @@
+{%- doc -%}
+  Bundle item — single product tile used inside build-the-full-set.liquid
+  This block is only meant to be added within "Build the full set" (type
+  prefixed with "_" so it's treated as a private/nested block).
+
+  Static / design-preview behaviour: the merchant sets each tile's starting
+  state directly via "Selected by default" and "Required item" — nothing is
+  auto-detected. Tapping a non-required tile only toggles its visual state
+  (checkmark <-> plus); it does not touch the real cart unless "Add / remove
+  from cart immediately on tap" is turned on in the parent block.
+{%- enddoc -%}
+
+
+
+{% schema %}
+{
+  "name": "Bundle item",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enabled",
+      "label": "Enable this item",
+      "default": true
+    },
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Product"
+    },
+    {
+      "type": "text",
+      "id": "variant_label",
+      "label": "Variant / size label",
+      "info": "e.g. Single, Standard — shown under the product title"
+    },
+    {
+      "type": "checkbox",
+      "id": "required",
+      "label": "Required item",
+      "info": "Locks this tile as selected — the shopper can't tap it off.",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "default_selected",
+      "label": "Selected by default",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "tier_percent",
+      "label": "% saved when this item is included",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "default": 10
+    }
+  ]
+}
+{% endschema %}

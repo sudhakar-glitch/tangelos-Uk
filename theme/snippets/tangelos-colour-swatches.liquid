@@ -1,0 +1,115 @@
+{%- comment -%}
+  COLLECTION PAGE SWATCHES
+
+  custom.multi_color_images NOT empty -> loop that list, show the file images.
+  custom.multi_color_images empty     -> loop custom.color_swatches, show colours.
+
+  The image branch loops the file list directly rather than indexing it, since
+  `images[i]` with a variable index was returning nothing. The link for each
+  image is found with a nested loop, which always works.
+
+  Usage:
+  {% render 'tangelos-swatches', product: closest.product, swap_image: true %}
+{%- endcomment -%}
+
+{% assign p = product %}
+{% if p == blank %}
+  {% assign p = closest.product %}
+{% endif %}
+
+{% assign images = p.metafields.custom.multi_color_images.value %}
+{% assign swatches = p.metafields.custom.color_swatches.value %}
+{% assign dot_size = size | default: 20 %}
+
+
+{%- if debug -%}
+  <div style="font:11px monospace;background:#ffc;border:1px solid #000;padding:4px;position:relative;z-index:99;word-break:break-all;">
+    <b>{{ p.handle }}</b><br>
+    images.size: [{{ images.size }}] swatches.size: [{{ swatches.size }}]<br>
+    {% for img in images %}
+      img {{ forloop.index0 }}: [{{ img | image_url: width: 80 }}]<br>
+    {% endfor %}
+  </div>
+{%- endif -%}
+
+
+{%- comment -%} ============ BRANCH 1: IMAGES ============ {%- endcomment -%}
+{% if images.size > 0 %}
+
+  <tangelos-swatches class="tng-swatches"
+    style="--tng-swatch-size: {{ dot_size }}px;"
+    {% if swap_image %}data-swap-image="true"{% endif %}>
+
+    {% for img in images %}
+
+      {%- comment -%} Find the swatch entry at the same position, for the link. {%- endcomment -%}
+      {% assign target = forloop.index0 %}
+      {% assign linked = blank %}
+      {% assign label = '' %}
+      {% for sw in swatches %}
+        {% if forloop.index0 == target %}
+          {% assign linked = sw.product.value %}
+          {% assign label = sw.color_name.value %}
+          {% break %}
+        {% endif %}
+      {% endfor %}
+
+      {% assign label = label | split: ' - ' | last | strip %}
+      {% if label == blank %}
+        {% assign label = linked.title %}
+      {% endif %}
+
+      {% assign img_url = img | image_url: width: 80 %}
+      {% if img_url == blank %}
+        {% assign img_url = img | file_url %}
+      {% endif %}
+
+      <a class="tng-swatch{% if linked.handle == p.handle %} tng-swatch--current{% endif %}"
+         href="{{ linked.url | default: p.url }}"
+         title="{{ label | escape }}"
+         {% if swap_image and linked.featured_image %}data-preview="{{ linked.featured_image | image_url: width: 700 }}"{% endif %}
+         style="--tng-swatch-color: url({{ img_url }});">
+        <span class="visually-hidden">{{ label }}</span>
+      </a>
+
+    {% endfor %}
+  </tangelos-swatches>
+
+
+{%- comment -%} ============ BRANCH 2: COLOURS ============ {%- endcomment -%}
+{% elsif swatches.size > 1 %}
+
+  <tangelos-swatches class="tng-swatches"
+    style="--tng-swatch-size: {{ dot_size }}px;"
+    {% if swap_image %}data-swap-image="true"{% endif %}>
+
+    {% for sw in swatches %}
+      {% assign linked = sw.product.value %}
+      {% assign hex = sw.background_color.value %}
+
+      {% assign label = sw.color_name.value %}
+      {% if label == blank %}
+        {% assign label = sw.specific_name.value %}
+      {% endif %}
+      {% assign label = label | split: ' - ' | last | strip %}
+      {% if label == blank %}
+        {% assign label = linked.title %}
+      {% endif %}
+
+      {% if hex == blank %}
+        {% assign hex = '#e5e5e5' %}
+      {% endif %}
+
+      {% if linked.handle != blank %}
+        <a class="tng-swatch{% if linked.handle == p.handle %} tng-swatch--current{% endif %}"
+           href="{{ linked.url }}"
+           title="{{ label | escape }}"
+           {% if swap_image and linked.featured_image %}data-preview="{{ linked.featured_image | image_url: width: 700 }}"{% endif %}
+           style="--tng-swatch-color: {{ hex }};">
+          <span class="visually-hidden">{{ label }}</span>
+        </a>
+      {% endif %}
+    {% endfor %}
+  </tangelos-swatches>
+
+{% endif %}

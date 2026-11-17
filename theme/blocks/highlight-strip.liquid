@@ -1,0 +1,203 @@
+{%- liquid
+  case block.settings.align_desktop
+    when 'left'
+      assign justify_desktop = 'flex-start'
+    when 'right'
+      assign justify_desktop = 'flex-end'
+    else
+      assign justify_desktop = 'center'
+  endcase
+
+  case block.settings.align_mobile
+    when 'left'
+      assign justify_mobile = 'flex-start'
+    when 'right'
+      assign justify_mobile = 'flex-end'
+    else
+      assign justify_mobile = 'center'
+  endcase
+-%}
+
+<div
+  class="tg-highlight-strip"
+  style="
+    --tg-hs-bg: {{ block.settings.background }};
+    --tg-hs-border: {{ block.settings.border }};
+    --tg-hs-text: {{ block.settings.text_color }};
+    --tg-hs-icon: {{ block.settings.icon_color }};
+    --tg-hs-size-d: {{ block.settings.font_size_desktop }}px;
+    --tg-hs-size-m: {{ block.settings.font_size_mobile }}px;
+    --tg-hs-justify-d: {{ justify_desktop }};
+    --tg-hs-justify-m: {{ justify_mobile }};
+    --tg-hs-align-d: {{ block.settings.align_desktop }};
+    --tg-hs-align-m: {{ block.settings.align_mobile }};
+  "
+  {{ block.shopify_attributes }}
+>
+  {%- if block.settings.show_icon -%}
+    <span class="tg-highlight-strip__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="12" fill="currentColor"/>
+        <path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
+  {%- endif -%}
+  <p class="tg-highlight-strip__text">{{ block.settings.text }}</p>
+</div>
+
+{% stylesheet %}
+  .tg-highlight-strip {
+    display: flex;
+    align-items: center;
+    justify-content: var(--tg-hs-justify-d);
+    gap: 10px;
+    width: 100%;
+    margin: 16px 0;
+    padding: 10px 16px;
+    background: #e0d0b53d;
+    border: 1px solid #dcc8b0;
+    border-radius: 6px;
+    box-sizing: border-box;
+  }
+  .tg-highlight-strip__icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: var(--tg-hs-icon);
+  }
+  .tg-highlight-strip__icon svg {
+    width: calc(var(--tg-hs-size-d) + 4px);
+    height: calc(var(--tg-hs-size-d) + 4px);
+  }
+  .tg-highlight-strip__text {
+    margin: 0;
+    font-size: var(--tg-hs-size-d);
+    line-height: 1.4;
+    color: var(--tg-hs-text);
+    text-align: var(--tg-hs-align-d);
+  }
+  .tg-highlight-strip__text strong,
+  .tg-highlight-strip__text b {
+    font-weight: 700;
+  }
+  @media (max-width: 749px) {
+    .tg-highlight-strip {
+      justify-content: var(--tg-hs-justify-m);
+    }
+    .tg-highlight-strip__text {
+      font-size: var(--tg-hs-size-m);
+      text-align: var(--tg-hs-align-m);
+    }
+    .tg-highlight-strip__icon svg {
+      width: calc(var(--tg-hs-size-m) + 4px);
+      height: calc(var(--tg-hs-size-m) + 4px);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Highlight strip",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "<strong><em>Less than 1%</em></strong> of customers claim our Money Back Guarantee"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_icon",
+      "label": "Show check icon",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Font size"
+    },
+    {
+      "type": "range",
+      "id": "font_size_desktop",
+      "label": "Desktop font size",
+      "min": 10,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "font_size_mobile",
+      "label": "Mobile font size",
+      "min": 10,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "header",
+      "content": "Alignment"
+    },
+    {
+      "type": "select",
+      "id": "align_desktop",
+      "label": "Desktop alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "select",
+      "id": "align_mobile",
+      "label": "Mobile alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "color",
+      "id": "icon_color",
+      "label": "Icon",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "background",
+      "label": "Background",
+      "default": "#b5f0a8"
+    },
+    {
+      "type": "color",
+      "id": "border",
+      "label": "Border",
+      "default": "#9ce38d"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Highlight strip"
+    }
+  ]
+}
+{% endschema %}

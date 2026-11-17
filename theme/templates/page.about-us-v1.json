@@ -1,0 +1,113 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "about_us_JC6HfE": {
+      "type": "about-us",
+      "blocks": {
+        "hero-1": {
+          "type": "hero",
+          "disabled": true,
+          "settings": {
+            "hero_image": "shopify://shop_images/banner_45ab826e-875d-49c2-a610-027bc984968e.png",
+            "label": "about tangelos",
+            "title": "OUR STORY"
+          }
+        },
+        "why-1": {
+          "type": "why",
+          "disabled": true,
+          "settings": {
+            "heading": "Why tangelos Exists",
+            "text": "A pair of hands examining fabric - held up to light, or laid flat on a workbench, being assessed. No faces. The hands should look like they belong to someone who does this carefully and often. Natural light. Shot on a plain surface - no background interest, no props. The hands and the cotton are the entire frame.\n<br>\nTangelos began with a belief that the finest organic bedding in the world was a real and possible thing. That luxury and honesty could occupy the same space. That the price you pay for what you sleep in every night should be the price it actually costs to make.\n<br>\nWe decided to build it on that conviction.",
+            "tagline": "- by Tangelos, for everyone."
+          }
+        },
+        "feature_image_right_BWJeTr": {
+          "type": "feature_image_right",
+          "disabled": true,
+          "settings": {
+            "image": "shopify://shop_images/Section_1.png",
+            "heading": "THE BEGINNING",
+            "text": "Tangelos began with a belief - that the finest organic bedding in the world was a real and possible thing. That luxury and honesty could occupy the same space. That the price you pay for what you sleep in every night should be the price it actually costs to make.\n<br>\nWe decided to build it on that conviction."
+          }
+        },
+        "feature-left-1": {
+          "type": "feature_image_left",
+          "settings": {
+            "image": "shopify://shop_images/abt1.jpg",
+            "heading": "It started with a feeling.",
+            "text": "You know the feeling of being wrapped up in something soft and feeling completely safe? Most of us had it as babies, in muslin. Then we grew up and forgot about it.\n<br><br>\nLife got busier and louder. We're always on, always reachable, always tired. And the bedding world kept telling us that luxury means crisp white hotel sheets, as if the answer to a hard day is to sleep like you're checking in somewhere. But a hotel bed isn't home. It's not what you want when you just need to switch off and feel looked after.\n<br><br>\nWhen we went looking for that wrapped-up feeling again, it wasn't there. There were baby clothes and thin covers, nearly all of them beige. Nothing felt like that. We kept thinking someone must be making it. Nobody was, so we did.",
+            "show_badges": false,
+            "badge_1": "shopify://shop_images/certification_1.svg",
+            "badge_1_alt": "",
+            "badge_2_alt": ""
+          }
+        },
+        "feature-right-1": {
+          "type": "feature_image_right",
+          "settings": {
+            "image": "shopify://shop_images/abt2.jpg",
+            "heading": "",
+            "text": "If something is meant to make you feel safe, you should be able to trust it completely. We couldn't say that about bedding we'd bought from someone else, without knowing where it was grown or how it was made.\n<br>\n<br>\n\nSo we went to where muslin began. People in South Asia have been weaving it for centuries, and it was once fine enough for royal courts. We could have found a supplier there and left it at that. But it didn't feel right to promise people comfort and safety without knowing the whole story ourselves.\n<br><br>\nSo we started at the very beginning. We sowed the seeds, ploughed the fields and made the fabric ourselves. It took longer, and it was harder. But now, when you get into bed at the end of a long day, we know exactly what's wrapped around you, because we were there for all of it."
+          }
+        },
+        "divider-1": {
+          "type": "divider",
+          "settings": {}
+        },
+        "feature-left-2": {
+          "type": "feature_image_left",
+          "disabled": true,
+          "settings": {
+            "image": "shopify://shop_images/Section-4.png",
+            "heading": "THE PEOPLE",
+            "text": "We are a small team. We care about cotton in a way our friends find unreasonable. We believe the best things are made slowly, by people who are paying attention. That is who makes Tangelos.",
+            "show_badges": false,
+            "badge_1_alt": "GOTS Certified",
+            "badge_2_alt": "OEKO-TEX Standard 100"
+          }
+        },
+        "feature_image_right_PPJtYP": {
+          "type": "feature_image_right",
+          "disabled": true,
+          "settings": {
+            "image": "shopify://shop_images/Section_-_6.png",
+            "heading": "THE CLOSE",
+            "text": "Tangelos exists for the people who know the difference between a claim and a certificate, a price and a margin, organic and genuinely organic. The ones who decided that wasn't too much to ask.\n\n<br>\nWe are glad they led you here.\n<br>\n<br>\n— Tangelos, London."
+          }
+        },
+        "community-1": {
+          "type": "community",
+          "disabled": true,
+          "settings": {
+            "heading": "Join A Community That Shares Your Values",
+            "text": "<p>tangelos isn't just a bedding - it's a thoughtful lifestyle choice. We unite people who value honest materials, genuine craftsmanship, and ethical practices.<strong>Join thousands across the UK who trust us, reflected in our 4.8 Trustpilot rating,</strong>and who believe in making sleep restorative, responsible, and personal.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "hero-1",
+        "why-1",
+        "feature_image_right_BWJeTr",
+        "feature-left-1",
+        "feature-right-1",
+        "divider-1",
+        "feature-left-2",
+        "feature_image_right_PPJtYP",
+        "community-1"
+      ],
+      "settings": {}
+    }
+  },
+  "order": [
+    "about_us_JC6HfE"
+  ]
+}

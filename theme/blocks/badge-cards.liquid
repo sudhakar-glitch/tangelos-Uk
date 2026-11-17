@@ -1,0 +1,201 @@
+{%- comment -%}
+  Theme block: Badge cards (3 icon + text cards in a row)
+  Put this file in: blocks/badge-cards.liquid
+{%- endcomment -%}
+
+{%- style -%}
+  .bc-{{ block.id }} {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: {{ block.settings.gap }}px;
+    list-style: none;
+    margin: {{ block.settings.margin_top }}px 0 {{ block.settings.margin_bottom }}px;
+    padding: 0;
+    width: 100%;
+  }
+  .bc-{{ block.id }} .bc__card {
+    background: {{ block.settings.card_bg }};
+    border-radius: {{ block.settings.card_radius }}px;
+    padding: 18px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 10px;
+    box-sizing: border-box;
+  }
+  .bc-{{ block.id }} .bc__icon {
+    color: {{ block.settings.icon_color }};
+    line-height: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    {%- if block.settings.show_icon_bg %}
+    width: {{ block.settings.icon_bg_size }}px;
+    height: {{ block.settings.icon_bg_size }}px;
+    background: {{ block.settings.icon_bg }};
+    border-radius: {% if block.settings.icon_bg_shape == 'circle' %}50%{% else %}10px{% endif %};
+    {%- endif %}
+  }
+  .bc-{{ block.id }} .bc__icon svg,
+  .bc-{{ block.id }} .bc__icon img {
+    width: {{ block.settings.icon_size }}px;
+    height: {{ block.settings.icon_size }}px;
+    object-fit: contain;
+  }
+  .bc-{{ block.id }} .bc__text {
+    color: {{ block.settings.text_color }};
+    font-size: {{ block.settings.font_size }}px;
+    line-height: 1.35;
+    margin: 0;
+  }
+  @media (max-width: 480px) {
+    .bc-{{ block.id }} { gap: 8px; }
+    .bc-{{ block.id }} .bc__card { padding: 14px 6px; }
+    .bc-{{ block.id }} .bc__text { font-size: {{ block.settings.font_size | minus: 2 }}px; }
+  }
+{%- endstyle -%}
+
+<ul class="bc-{{ block.id }}" {{ block.shopify_attributes }}>
+  {%- for i in (1..3) -%}
+    {%- liquid
+      assign icon_key = 'icon_' | append: i
+      assign image_key = 'image_' | append: i
+      assign text_key = 'text_' | append: i
+      assign icon = block.settings[icon_key]
+      assign image = block.settings[image_key]
+      assign text = block.settings[text_key]
+    -%}
+    {%- if text != blank or image != blank -%}
+      <li class="bc__card">
+        <span class="bc__icon" aria-hidden="true">
+          {%- if image != blank -%}
+            {{ image | image_url: width: 160 | image_tag: loading: 'lazy', alt: '' }}
+          {%- elsif icon != 'none' -%}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              {%- case icon -%}
+                {%- when 'breathable' -%}
+                  <path d="M3 9h11a3 3 0 1 0-3-3"/><path d="M3 14h15a3 3 0 1 1-3 3"/>
+                {%- when 'cotton' -%}
+                  <circle cx="12" cy="8" r="3"/><circle cx="8" cy="12" r="3"/><circle cx="16" cy="12" r="3"/><circle cx="12" cy="15" r="3"/><path d="M12 18v4"/>
+                {%- when 'shield' -%}
+                  <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/>
+                {%- when 'leaf' -%}
+                  <path d="M5 19c0-8 5-14 14-14 0 9-6 14-14 14z"/><path d="M5 19l8-8"/>
+                {%- when 'heart' -%}
+                  <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>
+                {%- when 'droplet' -%}
+                  <path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>
+                {%- when 'sparkle' -%}
+                  <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>
+                {%- when 'check' -%}
+                  <circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/>
+                {%- when 'half_circle' -%}
+                  <circle cx="12" cy="12" r="9"/><path d="M12 3v18"/>
+                {%- else -%}
+                  <circle cx="12" cy="12" r="9"/>
+              {%- endcase -%}
+            </svg>
+          {%- endif -%}
+        </span>
+        {%- if text != blank -%}
+          <p class="bc__text">{{ text | escape | newline_to_br }}</p>
+        {%- endif -%}
+      </li>
+    {%- endif -%}
+  {%- endfor -%}
+</ul>
+
+{% schema %}
+{
+  "name": "Badge cards",
+  "settings": [
+    { "type": "header", "content": "Badge 1" },
+    {
+      "type": "select", "id": "icon_1", "label": "Icon", "default": "breathable",
+      "options": [
+        { "value": "breathable", "label": "Breathable (air)" },
+        { "value": "cotton", "label": "Cotton" },
+        { "value": "shield", "label": "Shield / Safe" },
+        { "value": "leaf", "label": "Leaf" },
+        { "value": "heart", "label": "Heart" },
+        { "value": "droplet", "label": "Droplet" },
+        { "value": "sparkle", "label": "Sparkle" },
+        { "value": "check", "label": "Check" },
+        { "value": "half_circle", "label": "Half circle" },
+        { "value": "circle", "label": "Circle" },
+        { "value": "none", "label": "No icon" }
+      ]
+    },
+    { "type": "image_picker", "id": "image_1", "label": "Custom icon image" },
+    { "type": "textarea", "id": "text_1", "label": "Text", "default": "Soft &\nbreathable" },
+
+    { "type": "header", "content": "Badge 2" },
+    {
+      "type": "select", "id": "icon_2", "label": "Icon", "default": "cotton",
+      "options": [
+        { "value": "breathable", "label": "Breathable (air)" },
+        { "value": "cotton", "label": "Cotton" },
+        { "value": "shield", "label": "Shield / Safe" },
+        { "value": "leaf", "label": "Leaf" },
+        { "value": "heart", "label": "Heart" },
+        { "value": "droplet", "label": "Droplet" },
+        { "value": "sparkle", "label": "Sparkle" },
+        { "value": "check", "label": "Check" },
+        { "value": "half_circle", "label": "Half circle" },
+        { "value": "circle", "label": "Circle" },
+        { "value": "none", "label": "No icon" }
+      ]
+    },
+    { "type": "image_picker", "id": "image_2", "label": "Custom icon image" },
+    { "type": "textarea", "id": "text_2", "label": "Text", "default": "100% organic\ncotton" },
+
+    { "type": "header", "content": "Badge 3" },
+    {
+      "type": "select", "id": "icon_3", "label": "Icon", "default": "shield",
+      "options": [
+        { "value": "breathable", "label": "Breathable (air)" },
+        { "value": "cotton", "label": "Cotton" },
+        { "value": "shield", "label": "Shield / Safe" },
+        { "value": "leaf", "label": "Leaf" },
+        { "value": "heart", "label": "Heart" },
+        { "value": "droplet", "label": "Droplet" },
+        { "value": "sparkle", "label": "Sparkle" },
+        { "value": "check", "label": "Check" },
+        { "value": "half_circle", "label": "Half circle" },
+        { "value": "circle", "label": "Circle" },
+        { "value": "none", "label": "No icon" }
+      ]
+    },
+    { "type": "image_picker", "id": "image_3", "label": "Custom icon image" },
+    { "type": "textarea", "id": "text_3", "label": "Text", "default": "OEKO-TEX\nClass I baby safe" },
+
+    { "type": "header", "content": "Style" },
+    { "type": "color", "id": "card_bg", "label": "Card background", "default": "#F3EFE7" },
+    { "type": "color", "id": "icon_color", "label": "Icon color", "default": "#3E6B4F" },
+    { "type": "color", "id": "text_color", "label": "Text color", "default": "#2B2B2B" },
+    { "type": "range", "id": "card_radius", "label": "Corner radius", "min": 0, "max": 30, "step": 1, "unit": "px", "default": 14 },
+    { "type": "range", "id": "icon_size", "label": "Icon size", "min": 16, "max": 56, "step": 2, "unit": "px", "default": 22 },
+    { "type": "header", "content": "Icon background" },
+    { "type": "checkbox", "id": "show_icon_bg", "label": "Show icon background", "default": true },
+    { "type": "color", "id": "icon_bg", "label": "Icon background color", "default": "#FFFFFF" },
+    {
+      "type": "select", "id": "icon_bg_shape", "label": "Shape", "default": "circle",
+      "options": [
+        { "value": "circle", "label": "Circle" },
+        { "value": "rounded", "label": "Rounded square" }
+      ]
+    },
+    { "type": "range", "id": "icon_bg_size", "label": "Background size", "min": 28, "max": 80, "step": 2, "unit": "px", "default": 44 },
+    { "type": "range", "id": "font_size", "label": "Text size", "min": 11, "max": 20, "step": 1, "unit": "px", "default": 14 },
+    { "type": "range", "id": "gap", "label": "Gap between cards", "min": 4, "max": 30, "step": 2, "unit": "px", "default": 12 },
+    { "type": "range", "id": "margin_top", "label": "Top space", "min": 0, "max": 60, "step": 2, "unit": "px", "default": 12 },
+    { "type": "range", "id": "margin_bottom", "label": "Bottom space", "min": 0, "max": 60, "step": 2, "unit": "px", "default": 12 }
+  ],
+  "presets": [
+    { "name": "Badge cards" }
+  ]
+}
+{% endschema %}

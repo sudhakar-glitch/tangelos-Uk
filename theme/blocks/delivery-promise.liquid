@@ -1,0 +1,419 @@
+{%- comment -%}
+  Tangelos · Delivery answered before checkout  (V1 · #10 Delivery estimate, A6)
+  ---------------------------------------------------------------------------------
+  One approved promise, shown the same way everywhere.
+  Three rows: delivery window · free delivery · returns. Every line is editable in the
+  theme editor; leave a row's title empty to hide that row.
+  Put this file in  blocks/delivery-promise.liquid , then add the "Delivery promise" block
+  under Buy buttons in the product template.
+{%- endcomment -%}
+
+{%- liquid
+  assign s = block.settings
+  assign has_any = false
+  if s.row1_title != blank or s.row2_title != blank or s.row3_title != blank
+    assign has_any = true
+  endif
+-%}
+
+{%- if has_any -%}
+  <div
+    class="tg-dp spacing-style"
+    style="{% render 'spacing-style', settings: s %}"
+    {{ block.shopify_attributes }}
+  >
+    <ul class="tg-dp__list" role="list">
+      {%- if s.row1_title != blank -%}
+        <li class="tg-dp__row">
+          <span class="tg-dp__icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5h11v9H3z"/><path d="M14 9.5h3.6l3.4 3.4v2.6h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17.5" cy="17.5" r="1.8"/></svg>
+          </span>
+          <span class="tg-dp__text">
+            <span class="tg-dp__title">{{ s.row1_title }}</span>
+            {%- if s.row1_text != blank -%}
+              <span class="tg-dp__sub">{{ s.row1_text }}</span>
+            {%- endif -%}
+          </span>
+        </li>
+      {%- endif -%}
+
+      {%- if s.row2_title != blank -%}
+        <li class="tg-dp__row">
+          <span class="tg-dp__icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/><path d="M7 14.5h4"/></svg>
+          </span>
+          <span class="tg-dp__text">
+            <span class="tg-dp__title">{{ s.row2_title }}</span>
+            {%- if s.row2_text != blank -%}
+              <span class="tg-dp__sub">{{ s.row2_text }}</span>
+            {%- endif -%}
+          </span>
+        </li>
+      {%- endif -%}
+
+      {%- if s.row3_title != blank -%}
+        <li class="tg-dp__row">
+          <span class="tg-dp__icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4.5v4h4"/></svg>
+          </span>
+          <span class="tg-dp__text">
+            <span class="tg-dp__title">{{ s.row3_title }}</span>
+            {%- if s.row3_text != blank -%}
+              {%- if s.row3_link != blank -%}
+               <a href="#delivery-returns" data-dr-open class="ethics-btn tg-dp__sub tg-dp__link">{{ s.row3_text }}</a>
+              {%- else -%}
+                <span class="tg-dp__sub">{{ s.row3_text }}</span>
+              {%- endif -%}
+            {%- endif -%}
+          </span>
+        </li>
+      {%- endif -%}
+    </ul>
+  </div>
+
+{% comment %}
+  Delivery & Returns side panel (standalone)
+  Open it from any link or button with the attribute data-dr-open, e.g.
+  <a href="#delivery-returns" data-dr-open class="ethics-btn tg-dp__sub tg-dp__link">{{ s.row3_text }}</a>
+{% endcomment %}
+
+<div class="dr-overlay" id="drOverlay" hidden></div>
+
+<aside class="dr-panel" id="drPanel" role="dialog" aria-modal="true" aria-labelledby="drTitle" aria-hidden="true">
+
+  <div class="dr-header">
+    <h2 class="dr-title" id="drTitle">Delivery &amp; Returns</h2>
+    <button type="button" class="dr-x" data-dr-close aria-label="Close">&times;</button>
+  </div>
+
+  <div class="dr-body">  
+
+    <!-- Wrong item -->
+    <div class="dr-text">
+<div class="content-block--page  py-5 ">
+<!-- Returns policy: paste into a Custom Liquid block, a page, or the Delivery & Returns panel -->
+<div class="tg-returns">
+  <p class="tg-returns__lead"><strong>365-Day Returns:</strong> You can return your bedding within 365 days of delivery.</p>
+  <ul class="tg-returns__list">
+    <li><strong>UK Only:</strong> Returns are accepted within the UK only.</li>
+    <li><strong>Product Condition:</strong> Wash care labels must remain attached. Products with any odour are non-refundable.</li>
+    <li><strong>Final Sale:</strong> Final sale items are non-refundable, and promotions cannot be transferred to another order.</li>
+    <li><strong>Return Approval:</strong> Tangelos reserves the right to accept or reject returns based on product condition.</li>
+    <li><strong>Incorrect Items:</strong> Contact <a href="mailto:care@tangelos.co.uk">care@tangelos.co.uk</a> immediately if you send the wrong item. Recovery is not guaranteed, and no compensation is provided.</li>
+    <li><strong>Processing Time:</strong> Allow up to 14 business days after carrier receipt and weighing.</li>
+    <li><strong>Refund Timeline:</strong> Refunds appear on your credit card within 48 hours of refund notification. Email confirmation will be sent once processed.</li>
+    <li><strong>Missing Returns:</strong> Proof of shipment and receipt via tracking is required if we haven't received your return.</li>
+    <li><strong>Lost Packages:</strong> If tracking doesn't confirm shipment or delivery, file a claim with the carrier before a refund can be processed.</li>
+  </ul>
+</div>
+
+<style>
+  .tg-returns { font-size: 13px; line-height: 1.7; color: #555; }
+  .tg-returns strong { color: #1a1a1a; font-weight: 600; }
+  .tg-returns__lead { margin: 0 0 12px; }
+  .tg-returns__list { margin: 0; padding-left: 18px; }
+  .tg-returns__list li { margin: 0 0 8px; }
+  .tg-returns__list li:last-child { margin-bottom: 0; }
+  .tg-returns a { color: #1a1a1a; text-decoration: underline; text-underline-offset: 2px; }
+</style>
+
+<style>
+#MainContent section.shopify-section {
+    display: block;
+}
+#MainContent section#shopify-section-template--17313417920672__main {
+    display: block;
+}
+   .faq_sessions.container-fluid {
+    display: none;
+}
+</style>
+  </div>    </div>
+
+  </div>
+
+  <div class="dr-footer">
+    <button type="button" class="dr-close-btn" data-dr-close>Return to Product</button>
+  </div>
+</aside>
+
+<style>
+.dr-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); backdrop-filter: blur(2px); z-index: 10000; }
+.dr-overlay[hidden] { display: none !important; }
+.dr-panel { position: fixed; top: 0px !important; right: 0; bottom: 0; width: 500px; max-width: 100%; background: #fff; border-left: 1px solid #e0ddd9; z-index: 10001; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); visibility: hidden; }
+.dr-panel.is-open { transform: translateX(0); visibility: visible; }
+
+.dr-header { display: flex; justify-content: space-between; align-items: center; padding: 28px 32px 20px; border-bottom: 1px solid #eee; flex-shrink: 0; }
+.dr-title { margin: 0; font-size: 20px; font-weight: 400; color: #1a1a1a; letter-spacing: 0.01em; }
+.dr-x { background: none; border: none; font-size: 24px; color: #bbb; cursor: pointer; line-height: 1; padding: 0; width: 24px !important; transition: color 0.2s; }
+.dr-x:hover { color: #1a1a1a; }
+
+.dr-body { flex: 1; overflow-y: auto; padding: 28px 32px 32px; }
+.dr-label { margin: 28px 0 12px; font-size: 9px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #1a1a1a; }
+.dr-label:first-child { margin-top: 0; }
+
+.dr-rows { border: 1px solid #ece9e4; border-radius: 4px; }
+.dr-row { display: flex; align-items: flex-start; gap: 14px; padding: 16px 18px; }
+.dr-row + .dr-row { border-top: 1px solid #f0ede8; }
+.dr-icon { flex: 0 0 34px; height: 34px; border-radius: 50%; background: #f4efe6; display: flex; align-items: center; justify-content: center; }
+.dr-icon svg { width: 17px; height: 17px; stroke: #1a1a1a; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.dr-row-title { margin: 0 0 3px; font-size: 13px; font-weight: 600; color: #1a1a1a; line-height: 1.35; }
+.dr-row-sub { margin: 0; font-size: 12px; line-height: 1.5; color: #777; }
+
+.dr-text p, .dr-text li { font-size: 12px; line-height: 1.75; color: #777; }
+.dr-text p { margin: 0 0 10px; }
+.dr-text ul { margin: 0 0 10px; padding-left: 18px; }
+.dr-text a { color: #1a1a1a; text-decoration: underline; text-underline-offset: 2px; }
+
+.dr-footer { padding: 16px 32px; border-top: 1px solid #eee; flex-shrink: 0; }
+.dr-close-btn { width: 100%; background: #1a1a1a; color: #fff; border: none;  font-size: 9px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; padding: 16px; cursor: pointer; transition: background 0.2s; }
+.dr-close-btn:hover { background: #333; }
+a.ethics-btn.tg-dp__sub.tg-dp__link {
+    background: unset;
+    text-align: start;
+    padding: 0;
+    text-transform: capitalize;
+        font-weight: 400;
+        letter-spacing: normal;
+}
+
+
+@media (max-width: 480px) {
+  .dr-panel { top: 0 !important; width: 100%; }
+  .dr-header, .dr-body, .dr-footer { padding-left: 20px; padding-right: 20px; }
+}
+</style>
+
+<script>
+(function () {
+  var panel = document.getElementById('drPanel');
+  var overlay = document.getElementById('drOverlay');
+  if (!panel || !overlay || window.tgDrReady) return;
+  window.tgDrReady = true;
+  // Move to <body> so no theme section (transform/overflow) can trap or hide it
+  document.body.appendChild(overlay);
+  document.body.appendChild(panel);
+  var lastFocus = null;
+
+  function setTop() {
+    if (window.innerWidth <= 480) { panel.style.top = ''; return; }
+    var header = document.querySelector('header') || document.querySelector('.site-header') || document.querySelector('.header');
+    if (header) panel.style.top = header.offsetHeight + 'px';
+  }
+
+  function open() {
+    lastFocus = document.activeElement;
+    setTop();
+    overlay.hidden = false;
+    panel.classList.add('is-open');
+    panel.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    var x = panel.querySelector('.dr-x');
+    if (x) setTimeout(function () { x.focus(); }, 50);
+  }
+
+  function close() {
+    if (!panel.classList.contains('is-open')) return;
+    panel.classList.remove('is-open');
+    panel.setAttribute('aria-hidden', 'true');
+    overlay.hidden = true;
+    document.body.style.overflow = '';
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  // Capture phase: runs before the theme's own click code on the link,
+  // and stops that code so only this panel opens.
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('[data-dr-open]')) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      open();
+      return;
+    }
+    if (e.target.closest('[data-dr-close]') || e.target === overlay) close();
+  }, true);
+  window.tgOpenDelivery = open;
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+  window.addEventListener('resize', setTop);
+})();
+</script>
+
+
+
+{%- endif -%}
+
+{% stylesheet %}
+  .tg-dp {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    margin-top: 16px;
+    color: #1A1A1A;
+    letter-spacing: 0;
+  }
+
+  .tg-dp__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid #DCD6CC;
+    border-radius: 10px;
+    background: #FFFFFF;
+    overflow: hidden;
+  }
+
+  .tg-dp__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 0;
+    padding: 12px 16px;
+  }
+
+  .tg-dp__row + .tg-dp__row {
+    border-top: 1px solid #ECE7DE;
+  }
+
+  .tg-dp__icon {
+    flex: none;
+    display: inline-flex;
+    width: 20px;
+    height: 20px;
+    margin-top: 1px;
+    color: #4F4A43;
+  }
+
+  .tg-dp__text {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .tg-dp__title {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .tg-dp__sub {
+    font-size: 12px;
+    line-height: 1.4;
+    color: #6B665E;
+    overflow-wrap: anywhere;
+  }
+
+  .tg-dp__link {
+    color: #6B665E;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: rgba(0, 0, 0, 0.25);
+  }
+
+  .tg-dp__link:hover {
+    color: #1A1A1A;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Delivery promise",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Use the same approved wording here, in the cart and in Delivery & returns. Leave a row's title empty to hide it."
+    },
+    {
+      "type": "header",
+      "content": "Row 1 · Delivery window"
+    },
+    {
+      "type": "text",
+      "id": "row1_title",
+      "label": "Title",
+      "default": "Arrives [approved delivery window]"
+    },
+    {
+      "type": "text",
+      "id": "row1_text",
+      "label": "Text",
+      "default": "Order today · dispatched [approved dispatch promise]"
+    },
+    {
+      "type": "header",
+      "content": "Row 2 · Delivery cost"
+    },
+    {
+      "type": "text",
+      "id": "row2_title",
+      "label": "Title",
+      "default": "Free UK delivery"
+    },
+    {
+      "type": "text",
+      "id": "row2_text",
+      "label": "Text",
+      "default": "On every order"
+    },
+    {
+      "type": "header",
+      "content": "Row 3 · Returns"
+    },
+    {
+      "type": "text",
+      "id": "row3_title",
+      "label": "Title",
+      "default": "[Approved returns rule]"
+    },
+    {
+      "type": "text",
+      "id": "row3_text",
+      "label": "Text",
+      "default": "Full details in Delivery & returns"
+    },
+    {
+      "type": "url",
+      "id": "row3_link",
+      "label": "Link for the text",
+      "info": "Optional, e.g. your Delivery & returns page."
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom",
+      "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-start",
+      "label": "Left",
+      "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-end",
+      "label": "Right",
+      "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "Delivery promise"
+    }
+  ]
+}
+{% endschema %}

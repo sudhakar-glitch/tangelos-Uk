@@ -1,0 +1,3377 @@
+{% liquid
+  assign product_resource = closest.product
+  if request.visual_preview_mode and product_resource == blank
+    assign product_resource = collections.all.products.first
+  endif
+-%}
+
+{%- comment -%}
+  ============================================================================
+  TANGELOS · VARIANT PICKER BLOCK (merged version)
+
+  Merged from:
+    A) the current live block (colour swatches, size guide popup, feature grid,
+       upsell "Add Now" rows, Build The Full Set, comparison table scripts)
+    B) the V1 redesign block (size chips with dimensions #4, calm stock line #6)
+
+  Fixes in this version
+   1. Colour swatches are no longer wrapped in a Liquid product form. That form
+      used undefined variables from an old theme (product_form_id, class_frm,
+      isProductDefault, pr_variants) and added a second /cart/add form.
+   2. Swatch markup is now <ul><li><a> (was <ul><a><li>, invalid HTML).
+   3. Size guide close button: removed onclick="closePopup()" (closePopup is
+      not global, so it threw an error). jQuery handles the close.
+   4. Size guide link: opens the popup only (it also opened the URL in a new
+      tab at the same time).
+   5. `assign page = pages['size-guide']` renamed to sg_page so it no longer
+      overwrites Shopify's global `page` object.
+   6. Removed the ?size= URL rewrite on every size click.
+   7. Removed the duplicated gift-text / Percale-badge timers (the gift line
+      was inserted twice) and the duplicated <style> block.
+   8. jQuery and vanilla click handlers are delegated, so they keep working
+      after Horizon re-renders the variant picker on a variant change.
+   9. Size click now reads the radio's value, not the label text. The V1 size
+      chips add dimensions inside the label, which broke .new_section_price.
+  10. Build The Full Set auto_add = false: tiles only select, everything goes
+      in on Add to cart (matches the intended behaviour).
+  11. V1 size chips with dimensions (#4) and calm stock line (#6) added.
+  12. Stock line now shows the quantity left for the selected variant
+      ("In stock · 12 left · King") and updates on every size/colour change.
+  ============================================================================
+{%- endcomment -%}
+
+{%- comment -%} ---------- feature grid: one block, data driven ---------- {%- endcomment -%}
+{%- liquid
+  assign fg_icons = ''
+  assign fg_labels = ''
+
+  if product.title contains 'Muslin'
+    assign fg_icons = 'Soft_Breathable.svg?v=1787906052,Class_I_Baby_safe.svg?v=1787906052,100__Organic_Cotton.svg?v=1787906052,365_Days_retruns.svg?v=1787906051'
+    assign fg_labels = 'Soft &amp; Breathable,Class I Baby Safe,100% Organic Cotton,365-Day Returns'
+  elsif product.title contains 'Percale'
+    assign fg_icons = 'Crisp_Cool.svg?v=1787906052,Class_I_Baby_safe.svg?v=1787906052,100__Organic_Cotton.svg?v=1787906052,365_Days_retruns.svg?v=1787906051'
+    assign fg_labels = 'Crisp &amp; Cool,Class I Baby Safe,100% Organic Cotton,365-Day Returns'
+  elsif product.title contains 'Sateen'
+    assign fg_icons = 'Soft_Smooth.svg?v=1787906052,Class_I_Baby_safe.svg?v=1787906052,100__Organic_Cotton.svg?v=1787906052,365_Days_retruns.svg?v=1787906051'
+    assign fg_labels = 'Soft &amp; Smooth,Class I Baby Safe,100% Organic Cotton,365-Day Returns'
+  elsif product.title contains 'Linen'
+    assign fg_icons = 'Naturally_Breathable.svg?v=1787906051,Soften_with_Every_wash.svg?v=1787906052,European_Flax_Linen.svg?v=1787906052,365_Days_retruns.svg?v=1787906051'
+    assign fg_labels = 'Naturally Breathable,Softens with Every Wash,European Flax Linen,365-Day Returns'
+  endif
+-%}
+
+{% comment %} {%- if fg_icons != blank -%}
+  {%- assign fg_icon_list = fg_icons | split: ',' -%}
+  {%- assign fg_label_list = fg_labels | split: ',' -%}
+  <div class="feature-grid">
+    {%- for icon in fg_icon_list -%}
+      <div class="feature-item">
+        <img src="https://cdn.shopify.com/s/files/1/0647/5930/0256/files/{{ icon }}"
+             width="24" height="24" loading="lazy" alt="" class="feature-item__icon">
+        <span class="feature-item__text">{{ fg_label_list[forloop.index0] }}</span>
+      </div>
+    {%- endfor -%}
+  </div>
+{%- endif -%} {% endcomment %}
+
+<style>
+/* ============================ feature grid ============================ */
+.feature-grid{margin-bottom:10px;display:grid;grid-template-columns:repeat(2,1fr);gap:14px 24px}
+.feature-item{display:flex;align-items:center;gap:10px}
+.feature-item__icon{width:22px;height:22px;object-fit:contain;flex-shrink:0}
+.feature-item__text{font-size:14px;line-height:1.3}
+@media screen and (max-width:749px){
+  .feature-grid{gap:10px 16px}
+  .feature-item__text{font-size:13px}
+}
+
+/* ============================ colour swatches ============================ */
+ul.swatch-view.swatch-view-custom-image {
+  display: flex;
+  list-style: none;
+  gap: 10px;
+  padding-left: 0;
+}
+ul.swatch-view.swatch-view-custom-image li.swatch-view-item .swatch-custom-image.swatch-group-selector .star-set-image {
+  border-radius: 40px;
+}
+.swatch-custom-image.swatch-group-selector.swatch-selected {
+  border: 1px solid #707070;
+  border-radius: 40px;
+}
+.swatch-custom-image.swatch-group-selector img {
+  border-radius: 40px;
+}
+.swatch-view-link {
+  display: block;
+}
+a.open-sizeguide.link.sizeguide.variant-size-guide-link.is-positioned {
+  text-decoration: underline;
+}
+
+/* ============================ comparison table ============================ */
+body .quick_compare table tr th {
+  text-transform: uppercase !important;
+  color: #1a1a1a;
+  border-radius: 4px 4px 0 0;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  font-weight: 500;
+  padding: 15px 15px;
+  text-align: left;
+}
+body .quick_compare table tr td {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  font-weight: 500;
+  text-transform: uppercase;
+  padding: 15px 15px;
+  text-align: start;
+  color: #1a1a1a;
+}
+</style>
+
+{%- comment -%} ---------- colour swatches (links to sibling colour products) ---------- {%- endcomment -%}
+{%- if product.metafields.custom.color_swatches.value != blank -%}
+  <div data-callBackVariant class="tg-colour-swatches">
+    <div class="swatch-single swatch-preset-982014 swatch-view-stack custom_color_switches" data-group-index="0">
+
+      {%- for metaobject in product.metafields.custom.color_swatches.value -%}
+        {%- if metaobject.product.value.handle == product.handle -%}
+          {%- assign sw_parts = metaobject.color_name.value | split: ' - ' -%}
+          <label class="swatch-label swatch-label-custom-image">
+            <span class="swatch-option-name">Colour</span>
+            <span class="swatch-variant-name">
+              <span class="swatch-split-symbol">-</span> {{ sw_parts[1] }}
+            </span>
+          </label>
+        {%- endif -%}
+      {%- endfor -%}
+
+      {%- liquid
+        assign sw_images = ''
+        for sw_img in product.metafields.custom.multi_color_images.value
+          assign sw_images = sw_images | append: sw_img | append: ','
+        endfor
+        assign sw_images = sw_images | split: ','
+      -%}
+
+      <ul class="swatch-view swatch-view-custom-image" aria-label="Colour">
+        {%- for metaobject in product.metafields.custom.color_swatches.value -%}
+          {%- liquid
+            assign sw_product = metaobject.product.value
+            assign sw_label = metaobject.color_name.value | split: ' - ' | last | strip
+            assign sw_current = false
+            if sw_product.handle == product.handle
+              assign sw_current = true
+            endif
+            assign sw_id = metaobject.color_name.value | strip | replace: ' ', '_'
+            assign sw_index = forloop.index0
+          -%}
+          <li class="swatch-view-item" orig-value="{{ sw_label | escape }}">
+            <a href="{{ sw_product.url }}" class="swatch-view-link" aria-label="{{ sw_label | escape }}"{% if sw_current %} aria-current="true"{% endif %}>
+              <div class="swatch-custom-image swatch-group-selector{% if sw_current %} swatch-selected{% endif %}" type="image" data-value="{{ sw_label | escape }}" orig-value="{{ sw_label | escape }}" swatch-url="{{ sw_product.url }}" swatch-option="group4633946" current-product="{{ sw_current }}">
+                {%- if sw_images.size == 0 -%}
+                  <div id="{{ sw_id }}" style="width:25px;height:25px;background-color:{{ metaobject.background_color.value }};" class="star-set-image" swatch-inside="true">
+                    <i class="hidden"></i>
+                  </div>
+                {%- else -%}
+                  <div style="width:25px;height:25px;">
+                    <img
+                      src="https://www.tangelos.co.uk/cdn/shop/{{ sw_images[sw_index] }}"
+                      loading="lazy"
+                      width="25"
+                      height="25"
+                      alt=""
+                      class="product-grid-thumbnail">
+                  </div>
+                {%- endif -%}
+              </div>
+            </a>
+          </li>
+        {%- endfor -%}
+      </ul>
+
+    </div>
+  </div>
+{%- endif -%}
+
+
+{% unless product_resource == blank %}
+
+  {%- comment -%} V1 #6 · stock state of the selected variant {%- endcomment -%}
+  {%- liquid
+    assign tg_has_size = false
+    assign tg_size_pos = 0
+    for option in product_resource.options_with_values
+      assign tg_name = option.name | downcase | strip
+      if tg_name == 'size'
+        assign tg_has_size = true
+        assign tg_size_pos = forloop.index0
+      endif
+    endfor
+
+    assign tg_v = product_resource.selected_or_first_available_variant
+    assign tg_state = 'out'
+    if tg_v.available
+      assign tg_state = 'in'
+      if tg_v.inventory_management == 'shopify' and tg_v.inventory_quantity <= 0
+        assign tg_state = 'order'
+      endif
+    endif
+
+    assign tg_qty = 0
+    if tg_state == 'in' and tg_v.inventory_management == 'shopify' and tg_v.inventory_quantity > 0
+      assign tg_qty = tg_v.inventory_quantity
+    endif
+
+    assign tg_meta = ''
+    if tg_has_size
+      assign tg_meta = tg_v.options[tg_size_pos]
+    endif
+    for opt_value in tg_v.options
+      if tg_has_size and forloop.index0 == tg_size_pos
+        continue
+      endif
+      if tg_meta == ''
+        assign tg_meta = opt_value
+      else
+        assign tg_meta = tg_meta | append: ' · ' | append: opt_value
+      endif
+    endfor
+  -%}
+
+  <div class="variant-picker-wrap{% if block.settings.show_size_guide and block.settings.size_guide_url != blank %} has-size-guide{% endif %}">
+
+    {%- if block.settings.show_size_guide and block.settings.size_guide_url != blank -%}
+      <a href="{{ block.settings.size_guide_url }}" class="open-sizeguide link sizeguide variant-size-guide-link"{% if block.settings.size_guide_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %}>
+        {%- if block.settings.size_guide_icon -%}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 21H3M21 3v18M3 3h18M9 9h.01M15 9h.01M9 15h.01M15 15h.01"/>
+          </svg>
+        {%- endif -%}
+        {{ block.settings.size_guide_label | default: 'Size Guide' }}
+      </a>
+
+      {%- assign sg_page = pages['size-guide'] -%}
+      <div id="page-popup" class="popup-overlay">
+        <div class="popup-inner" role="dialog" aria-modal="true" aria-label="Size guide">
+          <button type="button" class="popup-close" aria-label="Close">&#x2715;</button>
+          <div class="popup-content">{{ sg_page.content }}</div>
+        </div>
+      </div>
+    {%- endif -%}
+
+    {% render 'variant-main-picker', product_resource: product_resource, section: section, product: product %}
+
+    
+
+    {%- unless product_resource.has_only_default_variant -%}
+      <p class="tg-stock tg-stock--{{ tg_state }}" data-tg-stock aria-live="polite">
+        <span class="tg-stock__dot" aria-hidden="true"></span>
+        <span class="tg-stock__status" data-tg-stock-status>
+          {%- case tg_state -%}
+            {%- when 'in' -%}In stock
+            {%- when 'order' -%}Available to order
+            {%- else -%}Out of stock
+          {%- endcase -%}
+        </span>
+        <span class="tg-stock__qty" data-tg-stock-qty{% if tg_qty == 0 %} hidden{% endif %}>{% if tg_qty > 0 %}· {{ tg_qty }} left{% endif %}</span>
+        <span class="tg-stock__meta" data-tg-stock-meta>· {{ tg_meta | escape }}</span>
+      </p>
+
+      <script type="application/json" data-tg-variants>
+        {
+          "sizePos": {% if tg_has_size %}{{ tg_size_pos }}{% else %}-1{% endif %},
+          "variants": [
+            {%- for v in product_resource.variants -%}
+              {%- liquid
+                assign tg_vs = 'out'
+                if v.available
+                  assign tg_vs = 'in'
+                  if v.inventory_management == 'shopify' and v.inventory_quantity <= 0
+                    assign tg_vs = 'order'
+                  endif
+                endif
+              -%}
+              {"id": {{ v.id }}, "state": {{ tg_vs | json }}, "qty": {% if tg_vs == 'in' and v.inventory_management == 'shopify' and v.inventory_quantity > 0 %}{{ v.inventory_quantity }}{% else %}0{% endif %}, "options": {{ v.options | json }}}{% unless forloop.last %},{% endunless %}
+            {%- endfor -%}
+          ]
+        }
+      </script>
+    {%- endunless -%}
+
+  </div>
+
+  {%- comment -%}
+    V1 #4 · Size chips with real dimensions, per fabric and product type.
+    Defaults come from the Size Guide page (pages/size-guide).
+    A variant's metafield custom.dimensions (single line text, e.g. "138 × 198 cm")
+    overrides the default for that size.
+    Sets (duvet set, cover set) show the duvet cover size.
+  {%- endcomment -%}
+  {%- if tg_has_size -%}
+    {%- liquid
+      assign tg_t = product_resource.title | downcase
+
+      # Default: Percale / Sateen / Linen duvet covers and their sets
+      assign tg_dims = '{"single":"140 × 200 cm","double":"200 × 200 cm","king":"225 × 220 cm","super king":"260 × 220 cm","superking":"260 × 220 cm"}'
+
+      if tg_t contains 'muslin'
+        if tg_t contains 'square'
+          assign tg_dims = '{"square":"65 × 65 cm"}'
+        elsif tg_t contains 'pillowcase'
+          assign tg_dims = '{"standard":"50 × 66 cm","king":"50 × 90 cm"}'
+        else
+          assign tg_dims = '{"single":"138 × 198 cm","double":"198 × 198 cm","king":"223 × 218 cm","super king":"258 × 218 cm","superking":"258 × 218 cm"}'
+        endif
+      elsif tg_t contains 'waffle blanket'
+        assign tg_dims = '{"single":"150 × 250 cm","double":"200 × 225 cm","king":"220 × 250 cm"}'
+      elsif tg_t contains 'waffle throw'
+        assign tg_dims = '{"double":"150 × 200 cm"}'
+      elsif tg_t contains 'airy voile quilt'
+        assign tg_dims = '{"single":"190 × 250 cm","double":"220 × 250 cm","king / superking":"270 × 250 cm","king/superking":"270 × 250 cm","king":"270 × 250 cm","super-king":"270 × 250 cm"}'
+      elsif tg_t contains 'linen cotton quilt'
+        assign tg_dims = '{"king/superking":"270 × 250 cm","king / superking":"270 × 250 cm","king":"270 × 250 cm","super king":"270 × 250 cm"}'
+      elsif tg_t contains 'lightweight blanket'
+        assign tg_dims = '{}'
+      elsif tg_t contains 'mattress protector'
+        assign tg_dims = '{"single":"90 × 190 cm · 23 cm","double":"140 × 190 cm · 30 cm","king":"150 × 200 cm · 30 cm","super king":"180 × 200 cm · 30 cm","superking":"180 × 200 cm · 30 cm"}'
+      elsif tg_t contains 'pillow protector'
+        assign tg_dims = '{"standard":"47 × 70 cm","king":"47 × 85 cm"}'
+      elsif tg_t contains 'fitted sheet'
+        assign tg_dims = '{"single":"90 × 190 cm · 40 cm ","double":"140 × 190 cm · 40 cm","king":"150 × 200 cm · 40 cm","super king":"180 × 200 cm · 40 cm","superking":"180 × 200 cm · 40 cm"}'
+      elsif tg_t contains 'flat sheet'
+        assign tg_dims = '{"single":"180 × 275 cm","double":"230 × 275 cm","king":"275 × 275 cm","super king":"305 × 275 cm","superking":"305 × 275 cm"}'
+      elsif tg_t contains 'oxford pillowcase'
+        assign tg_dims = '{"standard":"50 × 75 cm · 7 cm border","king":"50 × 90 cm · 7 cm border"}'
+      elsif tg_t contains 'pillowcase'
+        assign tg_dims = '{"standard":"50 × 75 cm","king":"50 × 90 cm"}'
+      endif
+    -%}
+    <script>
+      window.TangelosSizeDims = Object.assign(
+        {{ tg_dims }},
+        {
+          {%- for variant in product_resource.variants -%}
+            {%- assign tg_dim = variant.metafields.custom.dimensions.value -%}
+            {%- if tg_dim != blank -%}
+              {{ variant.options[tg_size_pos] | downcase | strip | json }}: {{ tg_dim | json }},
+            {%- endif -%}
+          {%- endfor -%}
+        }
+      );
+      window.TangelosSizeOptionName = {{ product_resource.options[tg_size_pos] | downcase | strip | json }};
+    </script>
+  {%- endif -%}
+
+{% endunless %}
+
+
+
+{% for variant in product.variants %}
+      {% assign flavors = variant.metafields.custom.checkbox_products_muslin_duvet_cover %}
+      {% if flavors != blank %}
+        {% if forloop.first %}
+
+<div class="checkbox-products" data-variant-id="{{ variant.id }}" >
+  <!-- Stock badge — updated by JS on size change -->
+   {% comment %} <p class="upsell-stock-badge" id="upsell-stock-badge" style="display:none;">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+    <span id="upsell-stock-text"></span>
+  </p> {% endcomment %}
+
+  {%- comment -%}
+    Stock of the product being viewed (the muslin duvet cover / cover set),
+    one entry per size. The stock badge reads ONLY this list, never the
+    upsell products. "tracked" is false when Shopify isn't tracking stock or
+    the variant can be sold when out of stock; then no badge is shown.
+  {%- endcomment -%}
+  <script type="application/json" id="upsell-main-stock">
+    [
+      {%- for main_variant in product.variants -%}
+        {
+          "id": {{ main_variant.id }},
+          "size": {{ main_variant.option1 | json }},
+          "inventory": {{ main_variant.inventory_quantity | default: 0 }},
+          "available": {{ main_variant.available }},
+          "tracked": {% if main_variant.inventory_management == 'shopify' and main_variant.inventory_policy == 'deny' %}true{% else %}false{% endif %}
+        }{%- unless forloop.last -%},{%- endunless -%}
+      {%- endfor -%}
+    ]
+  </script>
+
+  <ul id="upsell-addon-list" >
+    {% for item_product in flavors.value %}
+      {% assign default_image = item_product.featured_image | image_url: width: 200 %}
+      {% assign variants_json = '[' %}
+      {% for variant in item_product.variants %}
+        {% assign v_image_obj = variant.featured_image | default: item_product.featured_image %}
+        {% assign v_image = v_image_obj | image_url: width: 400 %}
+        {% assign variants_json = variants_json | append: '{"id":' | append: variant.id | append: ',"price":' | append: variant.price | append: ',"compare_at_price":' | append: variant.compare_at_price | append: ',"size":"' | append: variant.option1 | append: '","image":"' | append: v_image | append: '","inventory":' | append: variant.inventory_quantity | append: '}' %}
+        {% unless forloop.last %}{% assign variants_json = variants_json | append: ',' %}{% endunless %}
+      {% endfor %}
+      {% assign variants_json = variants_json | append: ']' %}
+
+      <li
+        class="upsell-addon-item"
+        data-product-title="{{ item_product.title | escape }}"
+        data-variants='{{ variants_json }}'
+      >
+        <div class="upsell-addon-row">
+
+          <!-- Thumbnail with hover magnifier -->
+          <div class="upsell-addon-thumb-wrap">
+            <img
+              class="upsell-addon-image"
+              src="{{ default_image }}"
+              alt="{{ item_product.title | escape }}"
+              width="70"
+              height="70"
+              loading="lazy"
+            >
+            <button type="button" class="upsell-thumb-zoom" aria-label="View image">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Info block -->
+          <div class="upsell-addon-info">
+            <span class="upsell-addon-heading"></span>
+            <span class="upsell-addon-subtitle">{{ item_product.title | escape }}<span class="selected-pill-sizes" hidden></span></span>
+            <div class="upsell-addon-price">
+              <div>
+                <span class="upsell-addon-price-now"></span>
+                <span class="upsell-addon-price-was"></span>
+              </div>
+              <div>
+                <div class="upsell-addon-action">
+                  <input
+                    class="upsell-addon-checkbox"
+                    type="checkbox"
+                    name="product-id"
+                    data-price=""
+                    value=""
+                    data-variant-id=""
+                    style="display:none;"
+                  >
+                  <button type="button" class="upsell-add-btn" aria-pressed="false">
+                    <span class="upsell-add-btn-label">Add Now</span>
+                    <span class="upsell-add-btn-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="9 12 11 14 15 10"/>
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+
+{% comment %} ===== Build The Full Set — variant-aware bundle ===== {% endcomment %}
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign default_tier = 0
+  assign heading      = 'Build The Full Set'
+  assign badge_label  = ''
+  assign auto_add     = false
+
+  assign has_any = false
+  for variant in product.variants
+    if variant.metafields.custom.checkbox_products_muslin_duvet_cover.value.size > 0
+      assign has_any = true
+      break
+    endif
+  endfor
+-%}
+
+{%- if has_any -%}
+<div
+  class="build-full-set"
+  id="BuildFullSet-{{ product.id }}"
+  data-build-full-set
+  data-current-variant="{{ current_variant.id }}"
+  data-default-tier="{{ default_tier }}"
+  data-single-upsell-tier="5"
+  data-multi-upsell-tier="5"
+  data-currency="{{ cart.currency.iso_code }}"
+  data-auto-add="{{ auto_add }}"
+  data-next-tier-template="Add {count} more &amp; save {percent}%"
+  data-all-added-label="You&#39;re saving the max!"
+  hidden
+  style="--bfs-card-bg:#ffffff;--bfs-accent:#33513a;--bfs-badge-bg:#e7f0e7;--bfs-badge-text:#2f5233;"
+>
+  <script type="application/json" data-bfs-map>
+  {
+    "self": {
+      "title": {{ product.title | json }},
+      "image": {{ product.featured_image | image_url: width: 300 | json }},
+      "tier": {{ product.metafields.custom.bundle_tier_percent.value | default: default_tier }}
+    },
+    "variants": {
+      {%- for variant in product.variants -%}
+      "{{ variant.id }}": {
+        "self": {
+          "variantId": {{ variant.id }},
+          "variantTitle": {{ variant.title | json }},
+          "option1": {{ variant.option1 | json }},
+          "price": {{ variant.price }},
+          "compare": {{ variant.compare_at_price | default: variant.price }},
+          "available": {{ variant.available }},
+          "tier": {{ variant.metafields.custom.bundle_tier_percent.value | default: product.metafields.custom.bundle_tier_percent.value | default: default_tier }}
+        },
+        "items": [
+          {%- for p in variant.metafields.custom.checkbox_products_muslin_duvet_cover.value -%}
+            {
+              "title": {{ p.title | json }},
+              "image": {{ p.featured_image | image_url: width: 300 | json }},
+              "variants": [
+                {%- for x in p.variants -%}
+                {
+                  "variantId": {{ x.id }},
+                  "variantTitle": {{ x.title | json }},
+                  "option1": {{ x.option1 | json }},
+                  "price": {{ x.price }},
+                  "compare": {{ x.compare_at_price | default: x.price }},
+                  "available": {{ x.available }}
+                }{%- unless forloop.last -%},{%- endunless -%}
+                {%- endfor -%}
+              ]
+            }{%- unless forloop.last -%},{%- endunless -%}
+          {%- endfor -%}
+        ]
+      }{%- unless forloop.last -%},{%- endunless -%}
+      {%- endfor -%}
+    }
+  }
+  </script>
+
+  <div class="build-full-set__card">
+    <span class="build-full-set__badge" data-bfs-badge
+      {% if badge_label != blank %}data-custom-label="{{ badge_label | escape }}"{% endif %} hidden></span>
+
+    <div class="build-full-set__header">
+      <h3 class="build-full-set__heading">{{ heading }}</h3>
+    </div>
+
+    <div class="build-full-set__items" data-bfs-items></div>
+
+    <div class="build-full-set__progress-wrap" data-bfs-progress-wrap>
+      <div class="build-full-set__progress-row">
+        <span class="build-full-set__progress-label">Total Saved <span data-bfs-achieved>0</span>%</span>
+        <span class="build-full-set__progress-next" data-bfs-next></span>
+      </div>
+      <div class="build-full-set__progress-track-wrap">
+        <div class="build-full-set__progress-track" data-bfs-track></div>
+        <span class="build-full-set__progress-pill" data-bfs-pill hidden>0%</span>
+      </div>
+      <div class="build-full-set__progress-ticks" data-bfs-ticks></div>
+    </div>
+  </div>
+
+  <div class="build-full-set__subtotal">
+    <span class="build-full-set__subtotal-label">Sub total</span>
+    <span class="build-full-set__subtotal-values">
+      <s data-bfs-original hidden></s>
+      <strong data-bfs-final></strong>
+    </span>
+  </div>
+</div>
+
+<style>
+.build-full-set{max-width:560px;margin:24px auto;font-size:14px;box-sizing:border-box}
+.build-full-set[hidden]{display:none}
+.build-full-set *,.build-full-set *::before,.build-full-set *::after{box-sizing:border-box}
+.build-full-set__card{position:relative;background:var(--bfs-card-bg);border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:28px 22px 22px}
+.build-full-set__badge{position:absolute;top:0;right:16px;transform:translateY(-50%);background:var(--bfs-badge-bg);color:var(--bfs-badge-text);font-size:13px;font-weight:600;padding:7px 13px;border-radius:8px}
+.build-full-set__badge[hidden]{display:none}
+.build-full-set__heading{margin:0 0 20px;font-size:22px;font-weight:500;color:var(--bfs-accent)}
+
+.build-full-set__items{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+@media(max-width:600px){.build-full-set__items{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.build-full-set__item{min-width:0}
+.build-full-set__tile{display:flex;flex-direction:column;width:100%;padding:0;border:0;background:none;text-align:left;cursor:pointer;font:inherit;color:inherit}
+.build-full-set__tile:focus-visible{outline:2px solid var(--bfs-accent);outline-offset:3px}
+.build-full-set__tile[disabled]{cursor:wait;opacity:.6}
+.build-full-set__item[data-required="true"] .build-full-set__tile{cursor:default}
+
+.build-full-set__thumb{position:relative;display:block;width:100%;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:#f1f1ef}
+.build-full-set__thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .2s}
+.build-full-set__state-icon{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--bfs-accent);transition:background .2s}
+.build-full-set__item[data-selected="false"] .build-full-set__state-icon{background:rgba(0,0,0,.35)}
+.build-full-set__state-icon svg path{stroke:#fff}
+.build-full-set__item[data-selected="true"] [data-bfs-icon-plus]{display:none}
+.build-full-set__item[data-selected="false"] [data-bfs-icon-check]{display:none}
+
+.build-full-set__meta{display:flex;flex-direction:column;gap:2px;padding-top:12px}
+.build-full-set__title{font-size:14px;font-weight:600;line-height:1.35;color:var(--bfs-accent)}
+.build-full-set__variant{font-size:13px;color:#767676}
+.build-full-set__price{font-size:13px;color:#2b2b2b;margin-top:2px;}
+.build-full-set__price s{opacity:.5;margin-right:5px; text-decoration: auto;}
+.build-full-set__status{margin-top:6px}
+.build-full-set__status span{display:inline-block;font-size:12px;font-weight:500;padding:4px 9px;border-radius:5px;background:var(--bfs-badge-bg);color:var(--bfs-badge-text)}
+.build-full-set__status span[hidden]{display:none}
+
+.build-full-set__progress-wrap{margin-top:26px}
+.build-full-set__progress-wrap[hidden]{display:none}
+.build-full-set__progress-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px;color:var(--bfs-accent)}
+.build-full-set__progress-next{font-weight:700;text-align:right}
+.build-full-set__progress-track-wrap{position:relative}
+.build-full-set__progress-track{display:flex;height:12px;border-radius:3px;background:#dce5dd;overflow:hidden}
+.build-full-set__segment{border-right:2px solid var(--bfs-card-bg);background:transparent;transition:background .25s}
+.build-full-set__segment:last-child{border-right:0}
+.build-full-set__segment.is-filled{background:var(--bfs-accent)}
+.build-full-set__segment.is-alt.is-filled{background:#2b4531}
+.build-full-set__progress-pill{position:absolute;top:50%;transform:translate(-100%,-50%);background:#1f2d24;color:#fff;font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;transition:left .3s}
+.build-full-set__progress-pill[hidden]{display:none}
+.build-full-set__progress-ticks{display:flex;margin-top:7px}
+.build-full-set__tick{font-size:12.5px;color:#2b2b2b;transition:opacity .2s}
+
+.build-full-set__subtotal{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:18px 4px 0;font-size:16px;color:var(--bfs-accent)}
+.build-full-set__subtotal-values s{opacity:.45;margin-right:8px}
+.build-full-set__subtotal-values s[hidden]{display:none}
+.build-full-set__subtotal-values strong{font-size:19px}
+@media(prefers-reduced-motion:reduce){.build-full-set *{transition:none!important}}
+</style>
+<script>
+(function () {
+  'use strict';
+  var root = document.getElementById('BuildFullSet-{{ product.id }}');
+  if (!root || root.dataset.bfsReady) return;
+  root.dataset.bfsReady = '1';
+
+  var DATA        = JSON.parse(root.querySelector('[data-bfs-map]').textContent);
+  var wrap        = root.querySelector('[data-bfs-items]');
+  var badgeEl     = root.querySelector('[data-bfs-badge]');
+  var achievedEl  = root.querySelector('[data-bfs-achieved]');
+  var nextEl      = root.querySelector('[data-bfs-next]');
+  var trackEl     = root.querySelector('[data-bfs-track]');
+  var pillEl      = root.querySelector('[data-bfs-pill]');
+  var ticksEl     = root.querySelector('[data-bfs-ticks]');
+  var origEl      = root.querySelector('[data-bfs-original]');
+  var finalEl     = root.querySelector('[data-bfs-final]');
+  var progressEl  = root.querySelector('[data-bfs-progress-wrap]');
+
+  // Upsell rates. The main product gets no bundle % — its markdown is
+  // already in its own price, so adding one here would double-count it.
+  var singleTier  = parseInt(root.dataset.singleUpsellTier, 10) || 5;
+  var multiTier   = parseInt(root.dataset.multiUpsellTier, 10) || 5;
+
+  // autoAdd true  = tapping a tile writes to the cart immediately
+  // autoAdd false = tiles only select; everything goes in on Add to cart
+  var autoAdd     = root.dataset.autoAdd === 'true';
+  var nextTpl     = root.dataset.nextTierTemplate || 'Add {count} more & save {percent}%';
+  var maxLabel    = root.dataset.allAddedLabel || "You're saving the max!";
+  var routes      = (window.Shopify && window.Shopify.routes && window.Shopify.routes.root) || '/';
+
+  // 'automatic' — an automatic discount / Shopify Function reduces the cart.
+  // 'code'      — attach a discount code per tier via /discount/CODE.
+  var discountMode = root.dataset.discountMode || 'automatic';
+
+  // strictSize true  = drop an upsell when no variant matches the chosen size
+  // strictSize false = fall back to the product's first available variant
+  var strictSize   = root.dataset.strictSize === 'true';
+  var DEBUG        = root.dataset.debug === 'true' || /[?&]bfs_debug=1/.test(window.location.search);
+
+  var fmt = (function () {
+    try {
+      return new Intl.NumberFormat(undefined, {
+        style: 'currency', currency: root.dataset.currency || 'GBP', currencyDisplay: 'narrowSymbol'
+      });
+    } catch (e) { return null; }
+  })();
+  function money(c) { c = c || 0; return fmt ? fmt.format(c / 100) : '£' + (c / 100).toFixed(2); }
+
+  var CHECK = '<svg data-bfs-icon-check width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var PLUS  = '<svg data-bfs-icon-plus width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 1V11M1 6H11" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>';
+
+  var ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ESCAPES[c]; }); }
+
+  var cartIds = [];
+  var tiles = [];
+  var basis = [];
+  var totalPercent = 0;
+  var currentKey = null;
+
+  /* ---------------- variant matching ---------------- */
+
+  // Pillowcases are always Standard, whatever duvet size the shopper picked.
+  // Exception: Percale + Muslin products, King / Super King -> King pillowcases.
+  var ALWAYS_STANDARD = /pillow\s*case/i;
+
+  // Percale and Muslin pages: pillowcases follow the selected size.
+  var PILLOW_FOLLOWS_SIZE = /percale|muslin/i.test(DATA.self.title || '');
+
+  // Duvet sizes fall back to Standard when a product doesn't carry that size.
+  var SIZE_ALIASES = {
+    'single':     ['single', 'standard'],
+    'double':     ['double', 'standard'],
+    'king':       ['king', 'standard'],
+    'super king': ['super king', 'superking', 'standard']
+  };
+
+  function normLabel(s) {
+    return String(s || '').toLowerCase().replace(/[^a-z]/g, ''); // "Super King" -> "superking"
+  }
+
+  function matchVariant(item, wantSize) {
+    var vs = (item.variants || []).filter(function (v) { return v.available; });
+    if (!vs.length) return null;
+
+    function findByLabel(label) {
+      var target = String(label).toLowerCase().trim();
+      return vs.filter(function (v) {
+        return String(v.option1 || v.variantTitle || '').toLowerCase().trim() === target;
+      })[0];
+    }
+
+    // Exact label first, then "starts with" — so "King (50x90cm)" counts as
+    // King, but "Super King" never counts as King.
+    function findBySize(label) {
+      var want = normLabel(label);
+      return vs.filter(function (v) { return normLabel(v.option1 || v.variantTitle) === want; })[0] ||
+             vs.filter(function (v) { return normLabel(v.option1 || v.variantTitle).indexOf(want) === 0; })[0];
+    }
+
+    if (ALWAYS_STANDARD.test(item.title || '')) {
+      var sizeKey = normLabel(wantSize);
+      var isKingSize = sizeKey === 'king' || sizeKey === 'superking';
+      if (PILLOW_FOLLOWS_SIZE && isKingSize) {
+        var king = findBySize('king');
+        if (king) return king;
+      }
+      var std = findByLabel('standard') || findBySize('standard');
+      if (std) return std;
+    }
+
+    var want = String(wantSize || '').toLowerCase().trim();
+    var candidates = SIZE_ALIASES[want] || [want];
+    for (var i = 0; i < candidates.length; i++) {
+      var hit = findByLabel(candidates[i]);
+      if (hit) return hit;
+    }
+
+    // Loose match next: "Single Deep" or "Single (90x190)" still counts as Single.
+    for (var j = 0; j < candidates.length; j++) {
+      var needle = String(candidates[j]).toLowerCase().trim();
+      var loose = vs.filter(function (v) {
+        return String(v.option1 || v.variantTitle || '').toLowerCase().indexOf(needle) > -1;
+      })[0];
+      if (loose) return loose;
+    }
+
+    // Single-variant products (Default Title) always qualify.
+    if (vs.length === 1) return vs[0];
+
+    if (strictSize) {
+      if (DEBUG) console.warn('[build-full-set] no "' + wantSize + '" variant for', item.title);
+      return null;
+    }
+    if (DEBUG) console.info('[build-full-set] falling back to', vs[0].variantTitle, 'for', item.title);
+    return vs[0];
+  }
+
+  /* ---------------- render ---------------- */
+
+  function tileHTML(o, i, required, selected) {
+    var tier  = +o.tier || 0;
+    var label = o.variantTitle === 'Default Title' ? 'Single' : o.variantTitle;
+
+    var noDiscount = tier <= 0;
+    var discounted = noDiscount ? o.price : Math.round(o.price * (1 - tier / 100));
+    var price = '<span class="build-full-set__price">' +
+      (noDiscount
+        ? (o.compare > o.price ? '<s>' + money(o.compare) + '</s>' : '') + '<b>' + money(o.price) + '</b>'
+        : '<s>' + money(o.price) + '</s><b>' + money(discounted) + '</b>'
+      ) + '</span>';
+
+    return '<div class="build-full-set__item' + (selected ? ' is-selected' : '') + '" data-bfs-item' +
+        ' data-item-id="i' + i + '"' +
+        ' data-variant-id="' + o.variantId + '"' +
+        ' data-price-cents="' + o.price + '"' +
+        ' data-compare-cents="' + (o.compare || o.price) + '"' +
+        ' data-tier-percent="' + tier + '"' +
+        ' data-required="' + (required ? 'true' : 'false') + '"' +
+        ' data-no-discount="' + (noDiscount ? 'true' : 'false') + '"' +
+        ' data-selected="' + (selected ? 'true' : 'false') + '">' +
+        '<button type="button" class="build-full-set__tile" data-bfs-toggle aria-pressed="' + !!selected + '" aria-label="Toggle ' + esc(o.title) + ' in bundle">' +
+          '<span class="build-full-set__thumb">' +
+            (o.image ? '<img src="' + o.image + '" alt="' + esc(o.title) + '" width="300" height="300" loading="lazy" decoding="async">' : '') +
+            '<span class="build-full-set__state-icon">' + CHECK + PLUS + '</span>' +
+          '</span>' +
+          '<span class="build-full-set__meta">' +
+            '<span class="build-full-set__title">' + esc(o.title) + '</span>' +
+            '<span class="build-full-set__variant">' + esc(label) + '</span>' +
+            price +
+            '<span class="build-full-set__status">' +
+              '<span data-bfs-in-cart' + (selected ? '' : ' hidden') + '>In your cart</span>' +
+              '<span data-bfs-off' + (selected || noDiscount ? ' hidden' : '') + '>' + tier + '% Off</span>' +
+            '</span>' +
+          '</span>' +
+        '</button>' +
+      '</div>';
+  }
+
+  function build(variantId) {
+    var entry = DATA.variants[String(variantId)];
+    if (!entry) { root.hidden = true; return; }
+    currentKey = String(variantId);
+
+    var wantSize = entry.self.option1 || entry.self.variantTitle;
+
+    var self = {
+      title: DATA.self.title,
+      image: DATA.self.image,
+      tier: 0,
+      variantId: entry.self.variantId,
+      variantTitle: entry.self.variantTitle,
+      price: entry.self.price,
+      compare: entry.self.compare
+    };
+
+    var matched = [];
+    (entry.items || []).forEach(function (o) {
+      var v = matchVariant(o, wantSize);
+      if (v) matched.push({ item: o, variant: v });
+    });
+
+    if (!matched.length) {
+      if (DEBUG) console.warn('[build-full-set] no upsells resolved for variant', variantId);
+      root.hidden = true;
+      return;
+    }
+
+    var upsellTier = matched.length === 1 ? singleTier : multiTier;
+
+    var html = [tileHTML(self, 0, true, true)];
+    matched.forEach(function (m, i) {
+      html.push(tileHTML({
+        title: m.item.title,
+        image: m.item.image,
+        tier: upsellTier,
+        variantId: m.variant.variantId,
+        variantTitle: m.variant.variantTitle,
+        price: m.variant.price,
+        compare: m.variant.compare
+      }, i + 1, false, cartIds.indexOf(m.variant.variantId) > -1));
+    });
+
+    wrap.innerHTML = html.join('');
+    tiles = Array.prototype.slice.call(wrap.querySelectorAll('[data-bfs-item]'));
+
+    totalPercent = tiles.reduce(function (s, t) { return s + (+t.dataset.tierPercent || 0); }, 0);
+    basis = [];
+    var segs = '', ticks = '';
+    tiles.forEach(function (t, i) {
+      var tier = +t.dataset.tierPercent || 0;
+      var b = totalPercent > 0 ? (tier / totalPercent) * 100 : 0;
+      basis.push(b);
+      if (tier <= 0) return;
+      segs  += '<div class="build-full-set__segment" data-seg="' + i + '" style="flex-basis:' + b + '%"></div>';
+      ticks += '<span class="build-full-set__tick" data-tick="' + i + '" style="flex-basis:' + b + '%"></span>';
+    });
+    trackEl.innerHTML = segs;
+    ticksEl.innerHTML = ticks;
+
+    if (badgeEl) {
+      var custom = badgeEl.dataset.customLabel;
+      badgeEl.textContent = custom || ('Save ' + totalPercent + '%');
+      badgeEl.hidden = totalPercent <= 0;
+    }
+    if (progressEl) progressEl.hidden = totalPercent <= 0;
+
+    root.hidden = false;
+    recalc();
+  }
+
+  /* ---------------- totals ---------------- */
+
+  function recalc() {
+    var achieved = 0, net = 0, netFixed = 0, netDiscountable = 0;
+    var selected = 0, remaining = 0;
+
+    tiles.forEach(function (t) {
+      var tier = +t.dataset.tierPercent || 0;
+      if (t.dataset.selected !== 'true') {
+        if (tier > 0) remaining++;
+        return;
+      }
+      var cents = (+t.dataset.priceCents || 0);
+      achieved += tier;
+      net += cents;
+      if (t.dataset.noDiscount === 'true') netFixed += cents;
+      else netDiscountable += cents;
+      selected++;
+    });
+
+    if (achieved > totalPercent) achieved = totalPercent;
+
+    var filledCount = 0;
+    tiles.forEach(function (t) {
+      if ((+t.dataset.tierPercent || 0) > 0 && t.dataset.selected === 'true') filledCount++;
+    });
+
+    var segEls  = trackEl.querySelectorAll('[data-seg]');
+    var tickEls = ticksEl.querySelectorAll('[data-tick]');
+    var pillLeft = 0;
+
+    for (var i = 0; i < segEls.length; i++) {
+      var lit = i < filledCount;
+      segEls[i].classList.toggle('is-filled', lit);
+      var idx = +segEls[i].dataset.seg;
+      if (lit) pillLeft += (basis[idx] || 0);
+      if (tickEls[i]) {
+        var tickIdx = +tickEls[i].dataset.tick;
+        tickEls[i].textContent = lit
+          ? 'Saved ' + (+tiles[tickIdx].dataset.tierPercent || 0) + '%'
+          : '';
+      }
+    }
+
+    var final = netFixed + Math.round(netDiscountable * (1 - achieved / 100));
+
+    achievedEl.textContent = achieved;
+
+    if (achieved > 0) {
+      pillEl.hidden = false;
+      pillEl.style.left = pillLeft + '%';
+      pillEl.textContent = achieved + '%';
+    } else {
+      pillEl.hidden = true;
+    }
+
+    nextEl.textContent = remaining > 0
+      ? nextTpl.replace('{count}', remaining).replace('{percent}', totalPercent)
+      : maxLabel;
+
+    origEl.textContent = money(net);
+    origEl.hidden = !(selected > 0 && net > final);
+    finalEl.textContent = money(final);
+
+    root.dispatchEvent(new CustomEvent('bundle:updated', {
+      bubbles: true,
+      detail: {
+        achievedPercent: achieved, totalPercent: totalPercent,
+        netCents: net, fixedCents: netFixed, discountableCents: netDiscountable,
+        finalCents: final, selectedCount: selected
+      }
+    }));
+  }
+
+  function paint(tile, on) {
+    tile.dataset.selected = on ? 'true' : 'false';
+    tile.classList.toggle('is-selected', on);
+    var btn = tile.querySelector('[data-bfs-toggle]');
+    if (btn) btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    var a = tile.querySelector('[data-bfs-in-cart]');
+    var b = tile.querySelector('[data-bfs-off]');
+    if (a) a.hidden = !on;
+    if (b) b.hidden = on || tile.dataset.noDiscount === 'true';
+  }
+
+  /* ---------------- cart ---------------- */
+
+  var cartQty = {};
+  var PRODUCT_TITLE = DATA.self.title || 'Main Product';
+
+  function readCart() {
+    return fetch(routes + 'cart.js', { headers: { Accept: 'application/json' }, cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (c) {
+        cartIds = [];
+        cartQty = {};
+        c.items.forEach(function (i) {
+          if (cartIds.indexOf(i.variant_id) < 0) cartIds.push(i.variant_id);
+          cartQty[i.variant_id] = (cartQty[i.variant_id] || 0) + i.quantity;
+        });
+        return c;
+      })
+      .catch(function () { return null; });
+  }
+
+  function cartSectionIds() {
+    var ids = [];
+    document.querySelectorAll('cart-items-component[data-section-id]').forEach(function (el) {
+      if (el.dataset.sectionId && ids.indexOf(el.dataset.sectionId) < 0) ids.push(el.dataset.sectionId);
+    });
+    return ids;
+  }
+
+  function postCart(path, body) {
+    var sections = cartSectionIds();
+    if (sections.length) {
+      body.sections = sections.join(',');
+      body.sections_url = window.location.pathname;
+    }
+    return fetch(routes + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      return r.json().then(function (b) {
+        if (!r.ok) throw new Error(b.description || b.message || 'Cart request failed');
+        return b;
+      });
+    });
+  }
+
+  function addLines(items) {
+    return postCart('cart/add.js', { items: items });
+  }
+
+  function removeLine(id) {
+    return fetch(routes + 'cart.js', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (cart) {
+        var line = cart.items.filter(function (l) { return String(l.variant_id) === String(id); })[0];
+        if (!line) return null;
+        return postCart('cart/change.js', { id: line.key, quantity: 0 });
+      });
+  }
+
+  /* ---------------- discount ---------------- */
+
+  var DISCOUNT_CODES = (function () {
+    try { return JSON.parse(root.dataset.discountCodes || '{}'); } catch (e) { return {}; }
+  })();
+
+  function applyDiscount(percent) {
+    if (discountMode !== 'code') return Promise.resolve(null);
+    var code = DISCOUNT_CODES[String(percent)];
+    if (!code) return Promise.resolve(null);
+    return fetch(routes + 'discount/' + encodeURIComponent(code), { credentials: 'same-origin' })
+      .catch(function () { return null; });
+  }
+
+  function verifyDiscount(cart, expectedPercent) {
+    if (!cart || !expectedPercent) return;
+    var applied = (cart.total_discount || 0) > 0 ||
+                  (cart.cart_level_discount_applications || []).length > 0;
+    if (applied) {
+      if (DEBUG) console.info('[build-full-set] cart discount applied:', money(cart.total_discount));
+      return;
+    }
+    console.warn(
+      '[build-full-set] The widget shows ' + expectedPercent + '% off but the cart has no discount.\n' +
+      'Create an automatic discount in Shopify Admin (Discounts > Amount off products > Automatic), ' +
+      'or deploy the bundle-tier-discount Shopify Function that reads the _bundle_tier property.'
+    );
+  }
+
+  /* ---------------- Horizon cart drawer ---------------- */
+
+  var themeEvents = null;
+  function loadThemeEvents() {
+    if (themeEvents) return Promise.resolve(themeEvents);
+    return import('@theme/events')
+      .then(function (m) { themeEvents = m; return m; })
+      .catch(function () { return null; });
+  }
+
+  function announceCart(cart, sections, sourceId) {
+    var data = {
+      source: 'build-full-set',
+      itemCount: cart ? cart.item_count : 0,
+      productId: {{ product.id | json }},
+      sections: sections
+    };
+    return loadThemeEvents().then(function (m) {
+      var evt = (m && m.CartAddEvent)
+        ? new m.CartAddEvent(cart || {}, String(sourceId || ''), data)
+        : new CustomEvent('cart:update', {
+            bubbles: true,
+            detail: { resource: cart || {}, sourceId: String(sourceId || ''), data: data }
+          });
+      document.dispatchEvent(evt);
+    });
+  }
+
+  {% comment %} function openDrawer() {
+    var drawer = document.querySelector('cart-drawer-component');
+    if (!drawer) {
+      window.location.href = routes + 'cart';
+      return;
+    }
+    var dialog = drawer.querySelector('dialog');
+    if (dialog && dialog.open) return;
+    if (typeof drawer.open === 'function') drawer.open();
+  }
+
+  function resetAddNowButtons() {
+    document.querySelectorAll('.upsell-addon-item .upsell-addon-checkbox:checked').forEach(function (cb) {
+      cb.checked = false;
+      var item = cb.closest('.upsell-addon-item');
+      var btn = item && item.querySelector('.upsell-add-btn');
+      if (!btn) return;
+      btn.classList.remove('is-added');
+      btn.setAttribute('aria-pressed', 'false');
+      var label = btn.querySelector('.upsell-add-btn-label');
+      if (label) label.textContent = 'Add Now';
+    });
+  } {% endcomment %}
+
+  /* ---------------- tile toggling ---------------- */
+
+  wrap.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-bfs-toggle]');
+    if (!btn) return;
+    var tile = btn.closest('[data-bfs-item]');
+    if (!tile || tile.dataset.required === 'true' || btn.disabled) return;
+
+    var on = tile.dataset.selected !== 'true';
+    var id = tile.dataset.variantId;
+
+    if (!autoAdd || !id) { paint(tile, on); recalc(); return; }
+
+    btn.disabled = true;
+    (on
+      ? addLines([{ id: +id, quantity: 1, properties: { _bundle_tier: +tile.dataset.tierPercent || 0 } }])
+      : removeLine(id)
+    )
+      .then(function (res) {
+        paint(tile, on);
+        return readCart().then(function (cart) {
+          recalc();
+          return announceCart(cart, res && res.sections, id);
+        });
+      })
+      .catch(function (err) {
+        console.error('[build-full-set]', err);
+        alert(err.message || 'Sorry, your cart could not be updated.');
+      })
+      .then(function () { btn.disabled = false; });
+  });
+
+  /* ---------------- Add to cart integration ---------------- */
+
+  function mainLineFrom(fd) {
+    var line = { id: +fd.get('id'), quantity: parseInt(fd.get('quantity'), 10) || 1 };
+    var sellingPlan = fd.get('selling_plan');
+    if (sellingPlan) line.selling_plan = +sellingPlan;
+    var props = {};
+    fd.forEach(function (value, key) {
+      var m = /^properties\[(.+)\]$/.exec(key);
+      if (m && typeof value === 'string' && value !== '') props[m[1]] = value;
+    });
+    if (Object.keys(props).length) line.properties = props;
+    return line;
+  }
+
+  function bundleAchieved() {
+    var achieved = 0;
+    tiles.forEach(function (t) {
+      if (t.dataset.selected === 'true') achieved += (+t.dataset.tierPercent || 0);
+    });
+    return achieved;
+  }
+
+  function selectedUpsellLines(achieved, parentVariantId) {
+    var parent = String(parentVariantId);
+    var lines = [];
+    var seen = {};
+
+    if (!root.hidden) {
+      tiles.forEach(function (t) {
+        if (t.dataset.required === 'true' || t.dataset.selected !== 'true') return;
+        var vid = +t.dataset.variantId;
+        if (!vid || seen[vid] || cartIds.indexOf(vid) > -1) return;
+        seen[vid] = true;
+        lines.push({
+          id: vid,
+          quantity: 1,
+          properties: {
+            _bundle_id: root.id,
+            _bundle_tier: +t.dataset.tierPercent || 0,
+            _bundle_total: achieved,
+            _parent_variant: parent
+          }
+        });
+      });
+    }
+
+    document.querySelectorAll('.upsell-addon-item .upsell-addon-checkbox:checked').forEach(function (cb) {
+      var vid = +(cb.dataset.variantId || cb.value);
+      if (!vid || seen[vid]) return;
+      seen[vid] = true;
+      lines.push({ id: vid, quantity: 1, properties: { 'Added with': PRODUCT_TITLE, _parent_variant: parent } });
+    });
+
+    return lines;
+  }
+
+  if (!window.__bfsSubmitBound) {
+    window.__bfsSubmitBound = true;
+    var busy = false;
+
+    window.addEventListener('submit', function (e) {
+      var form = e.target;
+      if (!form || form.tagName !== 'FORM') return;
+      if (!/\/cart\/add/.test(form.getAttribute('action') || '')) return;
+
+      var fd = new FormData(form);
+      var mainId = fd.get('id');
+      if (!mainId || !DATA.variants[String(mainId)]) return;
+
+      if (busy) return;
+
+      var achieved, upsells, main;
+      try {
+        achieved = bundleAchieved();
+        upsells = selectedUpsellLines(achieved, mainId);
+        main = mainLineFrom(fd);
+      } catch (err) {
+        console.error('[build-full-set]', err);
+        return;
+      }
+      if (!upsells.length) return;
+
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      busy = true;
+      var release = setTimeout(function () { busy = false; }, 15000);
+
+      var submitBtn = form.querySelector('[type="submit"]');
+      var wasDisabled = submitBtn ? submitBtn.disabled : false;
+      if (submitBtn) { submitBtn.setAttribute('aria-busy', 'true'); submitBtn.disabled = true; }
+
+      var qtyBefore = cartQty[main.id] || 0;
+      var skippedMsg = '';
+
+      if (DEBUG) console.info('[build-full-set] adding', [main].concat(upsells));
+
+      applyDiscount(achieved)
+        .then(function () { return addLines([main].concat(upsells)); })
+        .catch(function (err) {
+          skippedMsg = err.message || '';
+          return readCart().then(function () {
+            if ((cartQty[main.id] || 0) > qtyBefore) return {};
+            return addLines([main]);
+          });
+        })
+        .then(function (res) {
+          return readCart().then(function (cart) {
+            verifyDiscount(cart, achieved);
+            tiles.forEach(function (t) {
+              paint(t, t.dataset.required === 'true' || cartIds.indexOf(+t.dataset.variantId) > -1);
+            });
+            recalc();
+            resetAddNowButtons();
+            return announceCart(cart, res && res.sections, mainId);
+          });
+        })
+        .then(function () {
+          {% comment %} openDrawer(); {% endcomment %}
+          if (skippedMsg) alert(skippedMsg);
+        })
+        .catch(function (err) {
+          console.error('[build-full-set]', err);
+          alert(err.message || 'Sorry, this item could not be added to your cart.');
+        })
+        .then(function () {
+          clearTimeout(release);
+          busy = false;
+          if (submitBtn) { submitBtn.removeAttribute('aria-busy'); submitBtn.disabled = wasDisabled; }
+        });
+    }, true);
+  }
+
+  /* ---------------- variant switching ---------------- */
+
+  function currentVariantId() {
+    var inputs = document.querySelectorAll('form[action*="/cart/add"] [name="id"]');
+    for (var i = 0; i < inputs.length; i++) {
+      if (inputs[i].value && DATA.variants[inputs[i].value]) return inputs[i].value;
+    }
+    var p = new URLSearchParams(window.location.search).get('variant');
+    if (p && DATA.variants[p]) return p;
+    return root.dataset.currentVariant;
+  }
+
+  var queued = false;
+  function check() {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(function () {
+      queued = false;
+      var id = currentVariantId();
+      if (id && String(id) !== currentKey) build(id);
+    });
+  }
+
+  document.addEventListener('change', check, true);
+  ['variant:update', 'variant:change', 'variantChange', 'product:variant-change'].forEach(function (evt) {
+    document.addEventListener(evt, check);
+  });
+  window.addEventListener('popstate', check);
+
+  var productArea = document.querySelector('product-form-component');
+  if (productArea && window.MutationObserver) {
+    new MutationObserver(check).observe(productArea, { attributes: true, childList: true, subtree: true });
+  }
+
+  function onExternalCartChange(e) {
+    var d = e.detail || {};
+    if (d.source === 'build-full-set' || (d.data && d.data.source === 'build-full-set')) return;
+    readCart().then(function () {
+      if (autoAdd) {
+        tiles.forEach(function (t) {
+          paint(t, t.dataset.required === 'true' || cartIds.indexOf(+t.dataset.variantId) > -1);
+        });
+      }
+      recalc();
+    });
+  }
+  document.addEventListener('cart:update', onExternalCartChange);
+  document.addEventListener('cart:updated', onExternalCartChange);
+
+  readCart().then(function () { build(currentVariantId()); });
+})();
+</script>
+{%- endif -%}
+
+
+{% if product.title contains 'Muslin Duvet Cover' %}
+<style>
+  section.shopify-block.section-build-full-set {
+    display: none;
+  }
+</style>
+{%- endif -%}
+{% if product.title contains 'Muslin Cover Set' %}
+<style>
+  .build-full-set__items {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+</style>
+{%- endif -%}
+
+<style>
+  .build-full-set {
+    font-family: inherit;
+    display: none;
+  }
+  .build-full-set__card {
+    position: relative;
+    background: var(--bfs-card-bg, #F7F6F2);
+    border-radius: 1rem;
+    padding: 1.25rem 1.25rem 1.5rem;
+    margin-top: 0.75rem;
+  }
+  .build-full-set__header {
+    margin-bottom: 1rem;
+    padding-right: 4.5rem;
+  }
+  .build-full-set__heading {
+    font-size: 1.25rem;
+    line-height: 1.2;
+    margin: 0;
+    font-weight: 500;
+  }
+  .build-full-set__badge {
+    position: absolute;
+    top: 12px;
+    right: 0;
+    transform: translateY(-45%);
+    background: var(--bfs-badge-bg, #E7F0E7);
+    color: var(--bfs-badge-text, #2F5233);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.3rem 0.7rem;
+    border-radius: 0 10px 0 0;
+    white-space: nowrap;
+    border: 1px solid color-mix(in srgb, var(--bfs-badge-text, #2F5233) 20%, transparent);
+  }
+  .build-full-set__items {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+  .build-full-set__item {
+    display: flex;
+  }
+  .build-full-set__tile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    border: none;
+    padding: 0;
+    margin: 0;
+    background: none;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .build-full-set__tile:focus-visible {
+    outline: 2px solid var(--bfs-accent, #33513A);
+    outline-offset: 2px;
+    border-radius: 0.6rem;
+  }
+  .build-full-set__thumb {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: #DADADA;
+    border-radius: 0.6rem;
+    overflow: hidden;
+  }
+  .build-full-set__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .build-full-set__thumb-placeholder {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: #D9D9D9;
+  }
+  .build-full-set__state-icon {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #111;
+    transition: background-color 0.15s ease;
+  }
+  .build-full-set__state-icon [data-bfs-icon-check] { display: none; }
+  .build-full-set__state-icon [data-bfs-icon-plus] { display: block; }
+  .is-selected .build-full-set__state-icon {
+    background: var(--bfs-accent, #33513A);
+  }
+  .is-selected .build-full-set__state-icon [data-bfs-icon-check] { display: block; }
+  .is-selected .build-full-set__state-icon [data-bfs-icon-plus] { display: none; }
+  .build-full-set__meta {
+    display: block;
+    text-align: left;
+  }
+  .build-full-set__title {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    margin: 0 0 0.15rem;
+    line-height: 1.3;
+  }
+  .build-full-set__variant {
+    display: block;
+    font-size: 0.75rem;
+    color: #8a8a8a;
+    margin: 0 0 0.2rem;
+  }
+  .build-full-set__status {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin: 0;
+    background: #e7f0e7;
+    display: inline-block;
+    padding: 2px 5px;
+  }
+  [data-bfs-status-in-cart] { color: var(--bfs-accent, #33513A); }
+  [data-bfs-status-off] { color: var(--bfs-accent, #33513A); }
+  [data-bfs-item][data-required="true"] .build-full-set__tile {
+    cursor: default;
+  }
+  .build-full-set__progress-wrap {
+    margin-top: 1.25rem;
+  }
+  .build-full-set__progress-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    font-size: 0.75rem;
+  }
+  .build-full-set__progress-next {
+    font-weight: 600;
+  }
+  .build-full-set__progress-track-wrap {
+    position: relative;
+    margin-top: 0.5rem;
+  }
+  .build-full-set__progress-track {
+    display: flex;
+    gap: 0;
+    height: 7px;
+  }
+  .build-full-set__segment {
+    height: 7px;
+    background: #E3E1DB;
+    transition: background-color 0.2s ease;
+  }
+  .build-full-set__segment:first-child {
+    border-top-left-radius: 999px;
+    border-bottom-left-radius: 999px;
+  }
+  .build-full-set__segment:last-child {
+    border-top-right-radius: 999px;
+    border-bottom-right-radius: 999px;
+  }
+  .build-full-set__segment.is-filled {
+    background: var(--bfs-accent, #33513A);
+  }
+  .build-full-set__segment.is-filled.is-alt {
+    background: color-mix(in srgb, var(--bfs-accent, #33513A) 70%, black 30%);
+  }
+  .build-full-set__progress-pill {
+    position: absolute;
+    top: 10px;
+    left: 0;
+    transform: translate(-50%, -50%);
+    background: var(--bfs-accent, #33513A);
+    color: #fff;
+    font-size: .65rem;
+    font-weight: 700;
+    padding: .1rem .3rem;
+    border-radius: 0 0 5px 5px;
+    padding-top: 4px;
+    white-space: nowrap;
+    transition: left .2s ease;
+  }
+  .build-full-set__progress-ticks {
+    display: flex;
+    gap: 0.25rem;
+    margin-top: 0.35rem;
+    font-size: 0.7rem;
+    color: var(--bfs-accent, #33513A);
+    font-weight: 600;
+  }
+  .build-full-set__tick {
+    min-width: 0;
+  }
+  .build-full-set__tick:last-child {
+    text-align: left;
+  }
+  .build-full-set__subtotal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 1.25rem;
+    font-size: 0.9375rem;
+  }
+  .build-full-set__subtotal-values {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .build-full-set__subtotal-values s {
+    color: #8a8a8a;
+    font-weight: 400;
+  }
+  .build-full-set__subtotal-values strong {
+    font-size: 1.0625rem;
+    font-weight: 600;
+  }
+  .build-full-set__subtotal-saved {
+    background: var(--bfs-badge-bg, #E7F0E7);
+    color: var(--bfs-badge-text, #2F5233);
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.2rem 0.45rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  @media screen and (max-width: 480px) {
+    .build-full-set__title { font-size: 0.75rem; }
+    .build-full-set__heading { font-size: 1.05rem; }
+  }
+</style>
+
+  <!-- Image popup lightbox -->
+  <div class="upsell-image-popup" id="upsell-image-popup" aria-hidden="true">
+    <div class="upsell-image-popup-backdrop"></div>
+    <div class="upsell-image-popup-box">
+      <button type="button" class="upsell-image-popup-close" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <img class="upsell-image-popup-img" src="" alt="" />
+    </div>
+  </div>
+</div>
+
+<style>
+  /* ── Stock badge ── */
+  .upsell-stock-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 4px;
+    font-size: 12.5px;
+    color: #4a4a4a;
+    font-weight: 500;
+  }
+  .upsell-stock-badge svg {
+    flex-shrink: 0;
+    color: #5c5c5c;
+  }
+  p#upsell-stock-badge {
+    padding: 10px 3px;
+  }
+  /* ── List reset ── */
+  .checkbox-products ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .upsell-addon-item {
+    margin: 0;
+  }
+  /* ── Row card ── */
+  .upsell-addon-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: #f8f3eb;
+    border-radius: 8px;
+  }
+  /* ── Thumbnail + magnifier ── */
+  .upsell-addon-thumb-wrap {
+    position: relative;
+    width: 70px;
+    height: 70px;
+    flex-shrink: 0;
+  }
+  .upsell-addon-image {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 6px;
+    display: block;
+    background-color: #ddd;
+  }
+  .upsell-thumb-zoom {
+    position: absolute;
+    bottom: 4px;
+    left: 43px;
+    width: 22px;
+    height: 22px;
+    background: rgba(255,255,255,0.92);
+    border: none;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 1;
+    transition: opacity 0.18s ease;
+    padding: 0;
+    color: #1a1a1a;
+  }
+  /* ── Info ── */
+  .upsell-addon-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+  }
+  .upsell-addon-heading {
+    font-weight: 700;
+    font-size: 13.5px;
+    color: #1a1a1a;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .upsell-addon-subtitle {
+    font-size: 11.5px;
+    color: #5c5c5c;
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+  .selected-pill-sizes {
+    display: block;
+    margin-top: 2px;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+  .selected-pill-sizes[hidden] {
+    display: none;
+  }
+  /* ── Price ── */
+  .upsell-addon-price {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: space-between;
+  }
+  .upsell-addon-price-now {
+    font-weight: 600;
+    font-size: 13.5px;
+    color: #1a1a1a;
+  }
+  .upsell-addon-price-was {
+    font-size: 13px;
+    color: #9a9a9a;
+    text-decoration: line-through;
+  }
+  .upsell-addon-price-was:empty {
+    display: none;
+  }
+  /* ── Add Now button ── */
+  .upsell-addon-action {
+    flex-shrink: 0;
+  }
+  .upsell-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 5px 13px;
+    background: #ffffff;
+    border: 1.5px solid #d0d0d0;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #1a1a1a;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    line-height: 1;
+  }
+  .upsell-add-btn-icon {
+    display: flex;
+    align-items: center;
+    color: #3a9e5f;
+    flex-shrink: 0;
+  }
+  .upsell-add-btn:hover {
+    background: #f4f4f4;
+    border-color: #b0b0b0;
+  }
+  .upsell-add-btn.is-added {
+    background: #3a9e5f;
+    border-color: #3a9e5f;
+    color: #ffffff;
+  }
+  .upsell-add-btn.is-added .upsell-add-btn-icon {
+    color: #ffffff;
+  }
+  /* ── Popup lightbox ── */
+  .upsell-image-popup {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    align-items: center;
+    justify-content: center;
+  }
+  .upsell-image-popup.is-open {
+    display: flex;
+  }
+  .upsell-image-popup-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    cursor: pointer;
+  }
+  .upsell-image-popup-box {
+    position: relative;
+    z-index: 1;
+    background: #fff;
+    border-radius: 10px;
+    max-width: min(380px, 90vw);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+  }
+  .upsell-image-popup-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    max-height: 80vh;
+    object-fit: contain;
+    border: 2px solid #fff;
+  }
+  .upsell-image-popup-close {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    width: 28px;
+    height: 28px;
+    background: #1a1a1a;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #fff;
+    padding: 0;
+  }
+</style>
+
+<script>
+(function () {
+  'use strict';
+
+  // Prevent double-binding if this block is rendered more than once on the page
+  if (window.__upsellAddonsInit) return;
+  window.__upsellAddonsInit = true;
+
+  // ── CONFIG ──────────────────────────────────────────────────────────────
+  const SIZE_RADIO_SELECTOR = 'input[type="radio"]';
+  const POPUP_ID            = 'upsell-image-popup';
+  const ZOOM_IMAGE_WIDTH    = 1600;
+
+  // Percale + Muslin products: pillowcases follow the selected size
+  // (King / Super King -> King pillowcases, every other size -> Standard).
+  const PILLOW_FOLLOWS_SIZE = {% if product.title contains 'Percale' or product.title contains 'Muslin' %}true{% else %}false{% endif %};
+
+  // Size of the variant the page opens on — used when no size radio is checked yet.
+  const INITIAL_SIZE = {{ product.selected_or_first_available_variant.option1 | json }};
+  // ────────────────────────────────────────────────────────────────────────
+
+  let _isMuslinDuvet = null;
+  function isMuslinDuvet() {
+    if (_isMuslinDuvet === null) {
+      const h1 = document.querySelector('h1');
+      const t  = (h1 ? h1.textContent : '').toLowerCase();
+      _isMuslinDuvet = t.indexOf('muslin') !== -1 && t.indexOf('duvet') !== -1;
+    }
+    return _isMuslinDuvet;
+  }
+
+  function setText(el, text) {
+    if (el) el.textContent = text;
+  }
+
+  function parseVariants(item) {
+    try {
+      const parsed = JSON.parse(item.dataset.variants || '[]');
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (err) {
+      console.warn('[upsell] Invalid data-variants JSON on', item, err);
+      return [];
+    }
+  }
+
+  function imageUrl(img) {
+    if (!img) return '';
+    if (typeof img === 'string') return img;
+    return img.src || img.url || '';
+  }
+
+  // £25 for whole pounds, £24.99 otherwise
+  function formatMoney(cents) {
+    const n = Number(cents);
+    if (isNaN(n)) return '';
+    return '£' + (n % 100 === 0 ? (n / 100).toFixed(0) : (n / 100).toFixed(2));
+  }
+
+  function buildLabelParts(title, price, compareAtPrice) {
+    let heading = title;
+    if (title.includes('Fitted Sheet')) {
+      heading = 'Complete the Bed';
+    } else if (title.includes('Pillowcase')) {
+      heading = 'Complete the Look';
+    } else if (title.includes('Mattress Protector')) {
+      heading = 'Protect Your Mattress';
+    }
+    return {
+      heading,
+      subtitle: title,
+      priceNow: formatMoney(price),
+      priceWas: Number(compareAtPrice) > Number(price) ? formatMoney(compareAtPrice) : ''
+    };
+  }
+
+  // ── Stock badge (main product, selected size) ───────────────────────────
+  let _mainStock = null;
+  let _lastSize  = null;
+  let _freshReq  = null;
+
+  function getMainStock() {
+    if (_mainStock === null) {
+      try {
+        const el = document.getElementById('upsell-main-stock');
+        _mainStock = el ? JSON.parse(el.textContent) : [];
+      } catch (e) {
+        _mainStock = [];
+      }
+    }
+    return _mainStock;
+  }
+
+  function refreshStock() {
+    if (_freshReq) return _freshReq;
+    const url = window.location.pathname + '?view=stock&_t=' + Date.now();
+    _freshReq = fetch(url, { cache: 'no-store', credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.text() : ''; })
+      .then(function (txt) {
+        const data = JSON.parse(txt);
+        if (Array.isArray(data) && data.length) _mainStock = data;
+      })
+      .catch(function () { /* keep the page's own numbers */ })
+      .then(function () { if (_lastSize !== null) renderStockBadge(_lastSize); });
+    return _freshReq;
+  }
+
+  function renderStockBadge(selectedSize) {
+    const badge     = document.getElementById('upsell-stock-badge');
+    const badgeText = document.getElementById('upsell-stock-text');
+    if (!badge || !badgeText) return;
+
+    const want    = normSize(selectedSize);
+    const matched = getMainStock().find(v => normSize(v.size) === want);
+    badge.dataset.painted = '1';
+
+    if (!matched || !matched.tracked) {
+      badge.style.display = 'none';
+      return;
+    }
+
+    if (matched.inventory > 0) {
+      badgeText.textContent = 'Only ' + matched.inventory + ' left in ' + matched.size;
+      badgeText.style.color = matched.inventory <= 5 ? '#e07000' : '';
+    } else {
+      badgeText.textContent = 'Out of stock in ' + matched.size;
+      badgeText.style.color = '#cc0000';
+    }
+    badge.style.display = 'inline-flex';
+  }
+
+  function updateStockBadge(selectedSize) {
+    _lastSize = selectedSize;
+    renderStockBadge(selectedSize);
+    refreshStock();
+  }
+
+  if (window.MutationObserver) {
+    new MutationObserver(function () {
+      const badge = document.getElementById('upsell-stock-badge');
+      if (badge && !badge.dataset.painted && _lastSize !== null) renderStockBadge(_lastSize);
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+
+  // ── Upsell items ────────────────────────────────────────────────────────
+  function normSize(s) {
+    return String(s || '').toLowerCase().replace(/[^a-z]/g, '');
+  }
+
+  function findBySize(variants, want) {
+    return variants.find(v => normSize(v.size) === want) ||
+           variants.find(v => normSize(v.size).indexOf(want) === 0);
+  }
+
+  function findVariant(variants, title, selectedSize) {
+    const isPillow = /pillow\s*case/i.test(title);
+
+    if (isPillow && PILLOW_FOLLOWS_SIZE) {
+      const size = normSize(selectedSize);
+      const want = (size === 'king' || size === 'superking') ? 'king' : 'standard';
+      return findBySize(variants, want) || findBySize(variants, 'standard') || variants[0];
+    }
+
+    const pillowOnMuslin = isMuslinDuvet() && isPillow;
+    const sizeToMatch    = pillowOnMuslin ? 'Standard' : selectedSize;
+
+    let matched = variants.find(v => v.size === sizeToMatch);
+
+    if (!matched && pillowOnMuslin) {
+      matched = variants.find(v => v.size && String(v.size).toLowerCase().indexOf('standard') !== -1);
+    }
+    return matched || variants[0];
+  }
+
+  function resetAddButton(item) {
+    const btn = item.querySelector('.upsell-add-btn');
+    if (!btn) return;
+    btn.classList.remove('is-added');
+    setText(btn.querySelector('.upsell-add-btn-label'), 'Add Now');
+    btn.setAttribute('aria-pressed', 'false');
+  }
+
+  function updateUpsells(selectedSize) {
+    document.querySelectorAll('.upsell-addon-item').forEach(function (item) {
+      try {
+        const title   = item.dataset.productTitle || '';
+        const matched = findVariant(parseVariants(item), title, selectedSize);
+
+        if (!matched) {
+          item.style.display = 'none';
+          return;
+        }
+
+        const checkbox = item.querySelector('.upsell-addon-checkbox');
+        if (checkbox) {
+          checkbox.value             = matched.id;
+          checkbox.dataset.variantId = matched.id;
+          checkbox.dataset.price     = matched.price;
+          checkbox.checked           = false;
+        }
+        resetAddButton(item);
+
+        const parts = buildLabelParts(title, matched.price, matched.compare_at_price);
+        setText(item.querySelector('.upsell-addon-heading'),   parts.heading);
+        setText(item.querySelector('.upsell-addon-price-now'), parts.priceNow);
+        setText(item.querySelector('.upsell-addon-price-was'), parts.priceWas);
+
+        const sizeEl = item.querySelector('.selected-pill-sizes');
+        if (sizeEl) {
+          const size = matched.size && matched.size !== 'Default Title' ? String(matched.size).trim() : '';
+          sizeEl.textContent = size ? 'Size: ' + size : '';
+          sizeEl.hidden = !size;
+        }
+
+        const image = item.querySelector('.upsell-addon-image');
+        const src   = imageUrl(matched.image);
+        if (image && src) {
+          image.src = src;
+          image.removeAttribute('srcset');
+          image.dataset.fullSrc = src;
+        }
+
+        item.style.display = '';
+      } catch (err) {
+        console.warn('[upsell] Could not update item', item, err);
+      }
+    });
+
+    updateStockBadge(selectedSize);
+  }
+
+  // ── Add Now toggle ──────────────────────────────────────────────────────
+  function toggleAddButton(btn) {
+    const item     = btn.closest('.upsell-addon-item');
+    const checkbox = item && item.querySelector('.upsell-addon-checkbox');
+    if (!checkbox) return;
+
+    const nowAdded = !checkbox.checked;
+    checkbox.checked = nowAdded;
+    btn.classList.toggle('is-added', nowAdded);
+    setText(btn.querySelector('.upsell-add-btn-label'), nowAdded ? 'Added' : 'Add Now');
+    btn.setAttribute('aria-pressed', String(nowAdded));
+  }
+
+  // ── Image zoom ──────────────────────────────────────────────────────────
+  function usable(src) {
+    return src && src.indexOf('data:') !== 0 ? src : '';
+  }
+
+  function largestFromSrcset(srcset) {
+    let best = '';
+    let bestW = 0;
+    (srcset || '').split(',').forEach(function (entry) {
+      const parts = entry.trim().split(/\s+/);
+      if (!parts[0]) return;
+      const w = parseInt(parts[1], 10) || 1;
+      if (w >= bestW) { bestW = w; best = parts[0]; }
+    });
+    return best;
+  }
+
+  function getZoomSource(img) {
+    return usable(img.dataset.fullSrc) ||
+           usable(largestFromSrcset(img.getAttribute('srcset') || img.dataset.srcset)) ||
+           usable(img.currentSrc) ||
+           usable(img.dataset.src) ||
+           usable(img.getAttribute('src')) ||
+           '';
+  }
+
+  function upscaleShopifyUrl(src) {
+    if (!src || !/cdn\.shopify\.com|\/cdn\/shop\//.test(src)) return src;
+    try {
+      const url = new URL(src, window.location.href);
+      url.pathname = url.pathname.replace(
+        /_(\d+x\d*|x\d+|pico|icon|thumb|small|compact|medium|large|grande)(_crop_[a-z]+)?(@\dx)?(?=\.[a-z0-9]+$)/i,
+        ''
+      );
+      url.searchParams.set('width', ZOOM_IMAGE_WIDTH);
+      url.searchParams.delete('height');
+      url.searchParams.delete('crop');
+      return url.toString();
+    } catch (err) {
+      return src;
+    }
+  }
+
+  function injectFallbackStyles() {
+    if (document.getElementById('upsell-popup-fallback-css')) return;
+    const p = '#' + POPUP_ID;
+    const css =
+      ':where(' + p + '){position:fixed;inset:0;z-index:2147483000;display:none;align-items:center;justify-content:center;padding:20px;box-sizing:border-box}' +
+      ':where(' + p + '.is-open){display:flex}' +
+      ':where(' + p + ' .upsell-image-popup-backdrop){position:absolute;inset:0;background:rgba(0,0,0,.75);cursor:zoom-out}' +
+      ':where(' + p + ' .upsell-image-popup-inner){position:relative;z-index:1;max-width:min(92vw,900px);max-height:90vh}' +
+      ':where(' + p + ' .upsell-image-popup-img){position:relative;z-index:1;display:block;max-width:100%;max-height:90vh;width:auto;height:auto;object-fit:contain;background:#fff;border-radius:4px}' +
+      ':where(' + p + ' .upsell-image-popup-close){position:absolute;top:10px;right:10px;z-index:2;width:36px;height:36px;padding:0;border:0;border-radius:50%;background:#fff;color:#000;font-size:22px;line-height:36px;text-align:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25)}' +
+      ':where(html.upsell-popup-lock),:where(html.upsell-popup-lock body){overflow:hidden}';
+    const style = document.createElement('style');
+    style.id = 'upsell-popup-fallback-css';
+    style.textContent = css;
+    document.head.insertBefore(style, document.head.firstChild);
+  }
+
+  function getPopup(createIfMissing) {
+    let popup = document.getElementById(POPUP_ID);
+
+    if (!popup && createIfMissing) {
+      popup = document.createElement('div');
+      popup.id = POPUP_ID;
+      popup.className = 'upsell-image-popup';
+      popup.setAttribute('aria-hidden', 'true');
+      popup.innerHTML =
+        '<div class="upsell-image-popup-backdrop"></div>' +
+        '<div class="upsell-image-popup-inner">' +
+          '<button type="button" class="upsell-image-popup-close" aria-label="Close">&times;</button>' +
+          '<img class="upsell-image-popup-img" alt="">' +
+        '</div>';
+    }
+    if (!popup) return null;
+
+    if (popup.parentNode !== document.body) document.body.appendChild(popup);
+
+    if (!popup.querySelector('.upsell-image-popup-img')) {
+      const img = document.createElement('img');
+      img.className = 'upsell-image-popup-img';
+      popup.appendChild(img);
+    }
+    popup.setAttribute('role', 'dialog');
+    popup.setAttribute('aria-modal', 'true');
+    return popup;
+  }
+
+  let lastFocused = null;
+
+  function openPopup(src, fallbackSrc, alt) {
+    const popup = getPopup(true);
+    if (!popup || !src) return;
+
+    const img = popup.querySelector('.upsell-image-popup-img');
+    img.onerror = function () {
+      img.onerror = null;
+      if (fallbackSrc && fallbackSrc !== src) img.src = fallbackSrc;
+    };
+    img.removeAttribute('srcset');
+    img.removeAttribute('loading');
+    img.alt = alt || '';
+    img.src = src;
+
+    lastFocused = document.activeElement;
+    popup.classList.add('is-open');
+    popup.setAttribute('aria-hidden', 'false');
+    document.documentElement.classList.add('upsell-popup-lock');
+
+    const closeBtn = popup.querySelector('.upsell-image-popup-close');
+    if (closeBtn) closeBtn.focus({ preventScroll: true });
+  }
+
+  function closeImagePopup() {
+    const popup = document.getElementById(POPUP_ID);
+    if (!popup || !popup.classList.contains('is-open')) return;
+
+    if (lastFocused && typeof lastFocused.focus === 'function') {
+      lastFocused.focus({ preventScroll: true });
+    }
+    popup.classList.remove('is-open');
+    popup.setAttribute('aria-hidden', 'true');
+    document.documentElement.classList.remove('upsell-popup-lock');
+  }
+
+  // ── Delegated events ────────────────────────────────────────────────────
+  document.addEventListener('click', function (e) {
+    const zoomBtn = e.target.closest && e.target.closest('.upsell-thumb-zoom');
+    if (!zoomBtn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const item = zoomBtn.closest('.upsell-addon-item');
+    const img  = item && item.querySelector('.upsell-addon-image');
+    if (!img) return;
+
+    const original = getZoomSource(img);
+    openPopup(upscaleShopifyUrl(original), original, img.alt);
+  }, true);
+
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest) return;
+
+    const addBtn = e.target.closest('.upsell-add-btn');
+    if (addBtn) {
+      e.preventDefault();
+      toggleAddButton(addBtn);
+      return;
+    }
+
+    const popup = document.getElementById(POPUP_ID);
+    if (popup && popup.classList.contains('is-open') &&
+        (e.target === popup ||
+         e.target.closest('.upsell-image-popup-backdrop') ||
+         e.target.closest('.upsell-image-popup-close'))) {
+      e.preventDefault();
+      closeImagePopup();
+    }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeImagePopup();
+  });
+
+  document.addEventListener('change', function (e) {
+    const t = e.target;
+    if (t && t.matches && t.matches(SIZE_RADIO_SELECTOR) && t.checked) {
+      updateUpsells(t.value);
+    }
+  });
+
+  // ── Init ────────────────────────────────────────────────────────────────
+  function init() {
+    injectFallbackStyles();
+    getPopup(false);
+
+    const initialRadio = document.querySelector(SIZE_RADIO_SELECTOR + ':checked');
+    updateUpsells(initialRadio ? initialRadio.value : INITIAL_SIZE);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+
+        {% else %}
+         <div class="checkbox-products" data-variant-id="{{ variant.id }}" style="display:none">
+        <ul>
+          {% for item_product in flavors.value %}
+            <li>
+              {% assign fv = item_product.variants.first %}
+              <label class="pretty-checkbox">
+              <input class="upsell-addon-checkbox" type="checkbox" name="product-id" data-price="{{ fv.price }}" value="{{ fv.id }}" data-variant-id="{{ fv.id }}">
+               {% if item_product.title contains 'Fitted Sheet' %}
+              <span> Add {{ item_product.title }}  for {{ fv.compare_at_price | money | split: '.' | first }} & save {{ fv.price | money | split: '.' | first }} with this order</span>
+                {% endif %}
+                {% if item_product.title contains 'Pillowcase' %}
+               <span> Complete the look with a pair of {{ item_product.title }} - {{ fv.price | money | split: '.' | first }} </span>
+                {% endif %}
+                 {% if item_product.title contains 'Mattress Protectors' %}
+               <span>Add {{ item_product.title }} worth for  {{ fv.compare_at_price | money | split: '.' | first }} & save {{ fv.price | money | split: '.' | first }} with this order</span>
+                {% endif %}
+               </label>
+        </li>
+          {% endfor %}
+        </ul>
+        </div>
+        {% endif %}
+      {% endif %}
+{% endfor %}
+
+
+{% stylesheet %}
+  /* ── Size guide popup ── */
+  .popup-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .popup-overlay.active {
+    display: flex;
+  }
+
+  .popup-inner {
+    background: #fff;
+    padding: 40px;
+    max-width: 700px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    border-radius: 8px;
+    position: relative;
+    animation: popupFadeIn 0.3s ease;
+  }
+
+  .popup-close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  @keyframes popupFadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Picker layout ── */
+  .variant-picker-wrap {
+    position: relative;
+  }
+
+  .variant-picker__form {
+    margin-top: 15px;
+  }
+
+  /* Size guide — hidden until JS positions it correctly */
+  .variant-size-guide-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(0,0,0,0.45);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: rgba(0,0,0,0.25);
+    transition: color 0.2s ease;
+    position: absolute;
+    right: 0;
+    z-index: 1;
+    line-height: 1;
+    visibility: hidden;
+  }
+
+  .variant-size-guide-link.is-positioned {
+    visibility: visible;
+  }
+
+  .variant-size-guide-link:hover {
+    color: rgba(0,0,0,0.8);
+    text-decoration-color: rgba(0,0,0,0.5);
+  }
+
+  a.sizeguide.variant-size-guide-link.is-positioned {
+    position: unset;
+    float: right;
+  }
+
+  .variant-option.variant-option--buttons.variant-option--swatches {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 0;
+  }
+
+  /* Top space before size variant */
+  .variant-option + .variant-option {
+    margin-top: 45px;
+  }
+
+  /* ── Color swatch size 30px ── */
+  .variant-picker-wrap [class*="swatch"],
+  .variant-picker-wrap [class*="color-swatch"],
+  .variant-picker-wrap [data-swatch],
+  .variant-picker-wrap input[type="radio"] + label[style*="background"],
+  .variant-picker-wrap .swatch,
+  .variant-picker-wrap .color-swatch {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    min-height: 30px !important;
+    border-radius: 50% !important;
+  }
+
+  /* ── V1 #4 · Size chips with dimensions ── */
+  .variant-picker-wrap .tg-size-fieldset {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .variant-picker-wrap .tg-size-fieldset > legend {
+    grid-column: 1 / -1;
+  }
+
+  .variant-picker-wrap .tg-size-chip {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    gap: 2px;
+    width: auto !important;
+    height: auto !important;
+    min-width: 0 !important;
+    min-height: 56px !important;
+    margin: 0 !important;
+    padding: 10px 40px 10px 14px !important;
+    border: 1px solid #DCD6CC !important;
+    border-radius: 8px !important;
+    background: #FFFFFF !important;
+    color: #1A1A1A !important;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.25;
+    text-align: left;
+    letter-spacing: 0;
+    text-transform: none;
+    box-shadow: none !important;
+    cursor: pointer;
+    transition: border-color 150ms ease, background-color 150ms ease;
+  }
+
+  .variant-picker-wrap .tg-size-chip > *:not(input):not(.tg-dim):not(.tg-check):not(svg) {
+    position: relative;
+    z-index: 1;
+    color: inherit !important;
+    background: transparent !important;
+  }
+
+  /* Theme's radio sits over the chip: keep it clickable but invisible */
+  .variant-picker-wrap .tg-size-chip input[type="radio"] {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    opacity: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    z-index: 2;
+  }
+
+  /* Theme's own selected fill (pseudo-elements) is replaced by ours */
+  .variant-picker-wrap .tg-size-chip.tg-selected::before,
+  .variant-picker-wrap .tg-size-chip.tg-selected::after,
+  .variant-picker-wrap .tg-size-chip:has(input:checked)::before,
+  .variant-picker-wrap .tg-size-chip:has(input:checked)::after {
+    display: none !important;
+  }
+
+  .variant-picker-wrap .tg-size-chip:hover {
+    border-color: #1A1A1A !important;
+  }
+
+  .variant-picker-wrap .tg-size-chip .tg-dim {
+    position: relative;
+    z-index: 1;
+    display: block;
+    font-size: 12px;
+    font-weight: 400;
+    color: #6B665E;
+  }
+
+  .variant-picker-wrap .tg-size-chip .tg-check {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    display: none;
+    width: 18px;
+    height: 18px;
+    margin-top: -9px;
+    border-radius: 50%;
+    background: #1A1A1A;
+    color: #FFFFFF;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .variant-picker-wrap .tg-size-chip.tg-selected,
+  .variant-picker-wrap .tg-size-chip:has(input:checked) {
+    background: #F4EFE6 !important;
+    border: 1.5px solid #1A1A1A !important;
+    color: #1A1A1A !important;
+  }
+
+  .variant-picker-wrap .tg-size-chip.tg-selected .tg-dim,
+  .variant-picker-wrap .tg-size-chip:has(input:checked) .tg-dim {
+    color: #4F4A43;
+  }
+
+  .variant-picker-wrap .tg-size-chip.tg-selected .tg-check,
+  .variant-picker-wrap .tg-size-chip:has(input:checked) .tg-check {
+    display: inline-flex;
+  }
+
+  .variant-picker-wrap .tg-size-chip.tg-unavailable {
+    opacity: 0.45;
+  }
+
+  .variant-picker-wrap .tg-size-chip:has(input:focus-visible) {
+    outline: 2px solid #1A1A1A;
+    outline-offset: 2px;
+  }
+
+  /* ── V1 #6 · Calm, honest availability ── */
+  .variant-picker-wrap .tg-stock {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 14px 0 0;
+    font-size: 13px;
+    line-height: 1.4;
+    letter-spacing: 0;
+    color: #6B665E;
+  }
+
+  .variant-picker-wrap .tg-stock__dot {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .variant-picker-wrap .tg-stock__status {
+    font-weight: 500;
+  }
+
+  .variant-picker-wrap .tg-stock--in .tg-stock__dot,
+  .variant-picker-wrap .tg-stock--in .tg-stock__status {
+    color: #2F6B45;
+  }
+
+  .variant-picker-wrap .tg-stock--order .tg-stock__dot,
+  .variant-picker-wrap .tg-stock--order .tg-stock__status {
+    color: #8A5A1F;
+  }
+
+  .variant-picker-wrap .tg-stock--out .tg-stock__dot,
+  .variant-picker-wrap .tg-stock--out .tg-stock__status {
+    color: #6B665E;
+  }
+
+  /* ── Size guide tables ── */
+  .size-guide table {
+    margin-top: 35px;
+    width: 100%;
+    border-collapse: collapse;
+    border-style: hidden;
+    box-shadow: 0 0 0 1px #666;
+  }
+  .size-guide tbody tr td {
+    text-align: center;
+    border: unset;
+  }
+  .size-guide table tbody tr td {
+    padding: 10px;
+  }
+  .size-guide table tbody tr td.first {
+    background: #cccccc42;
+  }
+  .size-guide tbody td.secound {
+    background: #cccccc85;
+    text-align: center;
+  }
+  .size-guide tbody td.third {
+    background: #ccccccbf;
+    text-align: center;
+  }
+  .size-guide tbody tr td.nocolor {
+    background: #cccccc38;
+    border-top: 1px solid #ccc;
+  }
+  .size-guide tbody tr td.color {
+    border-top: 1px solid #ccc;
+    background: #cccccc59;
+  }
+
+  /* ── Comparison table ── */
+  span.dot.dot--brand {
+    background: #4a7c59 !important;
+  }
+  .vc-wrap .dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #999;
+  }
+  .mark-x {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 12px;
+    height: 12px;
+    font-size: 12px;
+    line-height: 1;
+    color: #999;
+  }
+  body .quick_compare table tr td:nth-child(2),
+  body .quick_compare table tr th:nth-child(2) {
+    background: color-mix(in srgb, #abb698 35%, white) !important;
+  }
+  body .quick_compare table tr td:nth-child(2) span.dot {
+    background: #4a7c59 !important;
+  }
+  body .quick_compare table tr td:not(:nth-child(2)) span.dot.dot--brand {
+    background: #999 !important;
+  }
+  body .quick_compare table tr td:nth-child(2) {
+    font-size: 13px;
+    line-height: 1.3;
+    letter-spacing: normal;
+    text-transform: none;
+    color: #1a1a1a;
+    padding: 20px 12px;
+    text-align: center;
+    vertical-align: middle;
+  }
+  body .quick_compare table tr td,
+  body .quick_compare table tr th {
+    text-align: center !important;
+    vertical-align: middle !important;
+    border: none;
+    border-bottom: 1px solid #e7e5e1 !important;
+  }
+  body .quick_compare table tr {
+    border: unset;
+    border-bottom: unset !important;
+  }
+  body .quick_compare table tr:last-child td {
+    border-bottom: unset !important;
+  }
+  body .quick_compare table tr td:first-child {
+    text-align: start !important;
+    text-transform: uppercase;
+    color: #000;
+    font-weight: 600;
+  }
+  body .quick_compare table tr th {
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+  }
+  body .quick_compare table tr td img {
+    text-align: center !important;
+    margin: auto !important;
+  }
+  .details-content.new-cnt ul.metafield-single_line_text_field-array {
+    list-style: disc !important;
+    padding: 0px 33px;
+  }
+{% endstylesheet %}
+
+
+<script>
+  // ── jQuery helpers (loaded once) ──────────────────────────────────────────
+  (function () {
+    function start() {
+      if (window.__tgJqInit) return;
+      window.__tgJqInit = true;
+      tgJqCode(window.jQuery);
+    }
+    if (window.jQuery) {
+      start();
+    } else {
+      var script = document.createElement('script');
+      script.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
+      script.integrity = 'sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=';
+      script.crossOrigin = 'anonymous';
+      script.onload = start;
+      document.head.appendChild(script);
+    }
+  })();
+
+  function tgJqCode($) {
+    // Size guide sections to show, checked in this order (last match wins,
+    // exactly like the old if-chain).
+    var SIZE_GUIDES = [
+      ['Organic Cotton Percale Flat Sheet',      ['percale_flatsheet']],
+      ['Percale Extra Deep Fitted Sheet',        ['percale_fittedsheet']],
+      ['Organic Cotton Percale Duvet Cover',     ['percale_duvet_cover']],
+      ['Percale Pillowcase',                     ['percale_pillowcase']],
+      ['Percale Oxford Pillowcase',              ['percale_oxfordpillowcase']],
+      ['Luxury Cotton Sateen Flat Sheet',        ['sateen_flatsheet']],
+      ['Luxury Cotton Sateen Fitted Sheet',      ['sateen_fittedsheet']],
+      ['Cotton Sateen Duvet Cover',              ['sateen_duvet_cover']],
+      ['Luxury Cotton Sateen Pillowcase',        ['sateen_pillowcase']],
+      ['Luxury Cotton Sateen Oxford Pillowcase', ['sateen_oxford_pillowcase']],
+      ['Piped Percale Flat Sheet',               ['percale_piped_flatsheet']],
+      ['Piped Percale Duvet',                    ['percale_piped_duvet_cover']],
+      ['Piped Percale Pillowcase',               ['percale_piped_pillowcase']],
+      ['Piped Percale Oxford Pillowcase',        ['percale_piped_oxford_pillowcase']],
+      ['Embroidered Sateen Flat Sheet',          ['sateen_embroidered_flatsheet']],
+      ['Embroidered Sateen Duvet Cover',         ['sateen_embroidered_duvet_cover']],
+      ['Embroidered Sateen Pillowcase',          ['sateen_embroidered_pillowcase']],
+      ['Embroidered Sateen Oxford Pillowcase',   ['sateen_embroidered_oxford_pillowcase']],
+      ['Linen Flat Sheet',                       ['linen_chambray_flat_sheet']],
+      ['Linen Fitted Sheet',                     ['linen_chambray_fitted_sheet']],
+      ['Linen Duvet Cover',                      ['linen_chambray_duvet_cover']],
+      ['Linen Pillowcase',                       ['linen_chambray_pillowcase']],
+      ['European Linen Oxford Pillowcases',      ['linen_chambray_oxford_pillowcase']],
+      ['Border Sateen Flat Sheet',               ['sateen_border_flat_sheet']],
+      ['Border Sateen Duvet Cover',              ['sateen_border_duvet_cover']],
+      ['Border Sateen Pillowcases',              ['sateen_border_pillowcase']],
+      ['Border Sateen Oxford Pillowcases',       ['sateen_Border_oxford_pillowcases']],
+      ['Waffle Blanket',                         ['waffle_blanket']],
+      ['Waffle Throw',                           ['waffle_throw']],
+      ['Muslin Duvet Cover',                     ['muslin_duvet_cover']],
+      ['Muslin Pillowcases',                     ['muslin_pillowcases']],
+      ['Muslin Square Pillowcases',              ['muslin_square_pillowcases']],
+      ['Airy Voile Quilt',                       ['airy_voile_quilt']],
+      ['Lightweight Blanket',                    ['light_weight_bed_blankets']],
+      ['Linen Cotton Quilt',                     ['linen_cotton_quilt']],
+      ['Percale Duvet Set',                      ['percale_cover_set']],
+      ['Percale Cover Set',                      ['percale_cover_set']],
+      ['Percale Piped Duvet Set',                ['percale_piped_flatsheet', 'percale_piped_duvet_cover', 'percale_piped_pillowcase']],
+      ['Percale Piped Cover Set',                ['percale_piped_duvet_cover', 'percale_piped_pillowcase']],
+      ['Sateen Embroidered Duvet Set',           ['sateen_embroidered_duvet_set']],
+      ['Sateen Border Duvet Set',                ['sateen_border_duvet_set']],
+      ['Silky Soft Sateen Duvet Set',            ['silky_soft_sateen_duvet_set']],
+      ['Linen Duvet Set',                        ['breathable_linen_duvet_set']],
+      ['White Cotton Mattress Protector',        ['mattress_protectors']],
+      ['White Cotton Pillow Protector',          ['pillow_protectors']],
+      ['Muslin Cover Set',                       ['muslin_duvet_set']]
+    ];
+
+    // Size value of a clicked size label. Reads the radio's value, because the
+    // V1 chips add the dimensions text inside the label.
+    function sizeFromLabel(label) {
+      var input = label.querySelector('input');
+      if (input && input.value) return String(input.value).trim();
+      var clone = label.cloneNode(true);
+      $(clone).find('.tg-dim, .tg-check').remove();
+      return $(clone).text().trim();
+    }
+
+    function closeSizeGuide() {
+      $('#page-popup').removeClass('active');
+      $('body').css('overflow', '');
+    }
+
+    $(function () {
+      // Comparison table icon swaps
+      var tickOld = 'https://cdn.shopify.com/s/files/1/0647/5930/0256/files/Ellipse_87.svg?v=1766555523';
+      var tickNew = 'https://cdn.shopify.com/s/files/1/0647/5930/0256/files/tangelos-correct.svg?v=1786687491';
+      var crossOld = 'https://cdn.shopify.com/s/files/1/0647/5930/0256/files/Page-1.svg?v=1766555524';
+      $('img[src="' + tickOld + '"]').replaceWith('<img src="' + tickNew + '">');
+      $('img[src="' + crossOld + '"]').replaceWith('<img style="width: 12px; height: 12px;" src="https://cdn.shopify.com/s/files/1/0647/5930/0256/files/no.svg?v=1786687487">');
+      $('body .quick_compare table tr td:not(:nth-child(2))').find('img[src="' + tickNew + '"]').attr('src', 'https://cdn.shopify.com/s/files/1/0647/5930/0256/files/yes.svg?v=1786687488');
+
+      // Percale badge (once). The free-gift line above Add to cart was removed (trust audit, 29 Oct 2026).
+      setTimeout(function () {
+        if ($('h1').text().includes('Percale')) {
+          $('.d-inline-block.product-tag.product-tag-sale.product-tag--absolute.percent').text('Save 40%');
+        }
+      }, 1000);
+
+      // Accordion headings
+      $('.product-single__meta .accordion + .accordion strong').each(function () {
+        if ($(this).text().includes('Additional Information:')) {
+          $(this).css({ display: 'block', padding: '10px 0px', 'font-size': '16px' });
+        }
+        if ($(this).text().includes('Product Highlights:')) {
+          $(this).css({ display: 'block', padding: '16px 0px', 'font-size': '16px' });
+        }
+      });
+
+      // Thumbnail strip with 3 images
+      if ($('.photos-thumb-right .product-single__thumbnails .slick-track .item.product-single__thumbnail-item').length == 3) {
+        $('body .photos-thumb-right .product-single__thumbnails .slick-list.draggable').css('overflow-y', 'hidden');
+      }
+
+      // Highlight this fabric's column in the comparison table
+      var h1Text = $('h1').text();
+      if (h1Text.includes('Linen')) {
+        $('.fabric-comparison-table tbody td:nth-child(3)').css('background', '#f1f2f2');
+        $('.fabric-comparison-table tr:first-child th:nth-child(3)').css('background', '#bf9885');
+      }
+      if (h1Text.includes('Percale')) {
+        $('.fabric-comparison-table tbody td:nth-child(2)').css('background', '#f1f2f2');
+        $('.fabric-comparison-table tr:first-child th:nth-child(2)').css('background', '#bf9885');
+      }
+      if (h1Text.includes('Luxury')) {
+        $('.fabric-comparison-table tbody td:nth-child(6)').css('background', '#f1f2f2');
+        $('.fabric-comparison-table tr:first-child th:nth-child(6)').css('background', '#bf9885');
+      }
+    });
+
+    // ── Delegated handlers: survive Horizon re-rendering the picker ──
+
+    // Reviews stars -> reviews tab
+    $(document).on('click', 'span.jdgm-prev-badge__stars', function () {
+      $('#click_reviews').click();
+    });
+
+    // Size click -> show the matching .new_section_price
+    $(document).on('click', 'label.variant-option__button-label', function () {
+      var clicksized = sizeFromLabel(this);
+      $('.new_section_price').each(function () {
+        $(this).css('display', $(this).attr('data-variant-ctm') == clicksized ? 'flex' : 'none');
+      });
+    });
+
+    // Size guide popup
+    $(document).on('click', 'a.open-sizeguide', function (e) {
+      if (!$('#page-popup').length) return;   // no popup: let the link open normally
+      e.preventDefault();
+
+      $('#page-popup').addClass('active');
+      $('body').css('overflow', 'hidden');
+
+      var title = $('h1').text();
+      SIZE_GUIDES.forEach(function (row) {
+        if (title.includes(row[0])) {
+          $('.size-guide').css('display', 'none');
+          row[1].forEach(function (cls) {
+            $('.size-guide.' + cls).css('display', 'block');
+          });
+        }
+      });
+    });
+
+    $(document).on('click', '#page-popup .popup-close', closeSizeGuide);
+    $(document).on('click', '#page-popup', function (e) {
+      if ($(e.target).is('#page-popup')) closeSizeGuide();
+    });
+    $(document).on('keydown', function (e) {
+      if (e.key === 'Escape') closeSizeGuide();
+    });
+  }
+</script>
+
+
+<script>
+  // Comparison table (.quick_compare) follows the selected variant.
+  //
+  // Each .quick_compare is tagged data-variant-id="<variant id>". Horizon's size
+  // buttons have value="King" (the size name) and data-variant-id="<variant id>",
+  // so we match on the variant id. A table tagged with the size name instead
+  // (data-variant-id="King") also works.
+  //
+  // Sources of the selected variant, in order:
+  //   1. Horizon's 'variant:update' event (fires after every variant change)
+  //   2. the size button that changed (its data-variant-id)
+  //   3. on page load: the buy form's id, ?variant= in the URL, or the checked buttons
+  // The last choice is re-applied when Horizon re-renders the page.
+  (function () {
+    if (window.__tgCompareInit) return;
+    window.__tgCompareInit = true;
+
+    var current = { id: null, size: null };
+
+    function key(v) { return String(v == null ? '' : v).toLowerCase().replace(/\s+/g, ' ').trim(); }
+
+    function apply() {
+      var boxes = document.querySelectorAll('.quick_compare');
+      if (!boxes.length || (!current.id && !current.size)) return;
+
+      function matches(box) {
+        var tag = box.getAttribute('data-variant-id');
+        if (tag == null) return false;
+        if (current.id && String(tag) === String(current.id)) return true;
+        return !!current.size && key(tag) === key(current.size);
+      }
+
+      // No table for this variant: leave the current one showing instead of hiding all
+      var any = false;
+      for (var i = 0; i < boxes.length; i++) if (matches(boxes[i])) { any = true; break; }
+      if (!any) return;
+
+      for (var j = 0; j < boxes.length; j++) {
+        var want = matches(boxes[j]) ? 'block' : 'none';
+        if (boxes[j].style.display !== want) boxes[j].style.display = want;
+      }
+    }
+
+    function sizeFromPicker() {
+      var picker = document.querySelector('variant-picker[data-template-product-match="true"]') ||
+                   document.querySelector('.variant-picker-wrap variant-picker');
+      if (!picker) return null;
+      var sets = picker.querySelectorAll('fieldset');
+      for (var i = 0; i < sets.length; i++) {
+        var legend = sets[i].querySelector('legend');
+        if (legend && key(legend.textContent).indexOf('size') === 0) {
+          var c = sets[i].querySelector('input[type="radio"]:checked');
+          return c ? c.value : null;
+        }
+      }
+      return null;
+    }
+
+    function variantFromPage() {
+      var form = document.querySelector('form[id^="BuyButtons-ProductForm"] input[name="id"]') ||
+                 document.querySelector('form[action*="/cart/add"] input[name="id"]');
+      if (form && form.value) return form.value;
+      var p = new URLSearchParams(window.location.search).get('variant');
+      if (p) return p;
+      var picker = document.querySelector('variant-picker[data-template-product-match="true"]') ||
+                   document.querySelector('.variant-picker-wrap variant-picker');
+      var json = picker && picker.querySelector('script[type="application/json"]');
+      if (json) {
+        try { return JSON.parse(json.textContent).id; } catch (e) {}
+      }
+      return null;
+    }
+
+    function set(id, size) {
+      if (id) current.id = String(id);
+      current.size = size || sizeFromPicker();
+      apply();
+    }
+
+    // 1. Horizon announces the new variant after every change
+    document.addEventListener('variant:update', function (e) {
+      var v = e.detail && e.detail.resource;
+      if (v && v.id) set(v.id, null);
+    });
+
+    // 2. A size (or other option) button was chosen
+    document.addEventListener('change', function (e) {
+      var input = e.target;
+      if (!input || input.type !== 'radio' || !input.closest('label.variant-option__button-label')) return;
+
+      document.querySelectorAll('.size-option').forEach(function (btn) {
+        btn.classList.remove('selected');
+      });
+      input.classList.add('selected');
+
+      set(input.getAttribute('data-variant-id'), null);
+    });
+
+    // 3. Page load
+    function init() { set(variantFromPage(), null); }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+    window.addEventListener('load', init);
+
+    // Horizon swaps page sections on a variant change: put the right table back
+    var queued = false;
+    new MutationObserver(function () {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(function () { queued = false; apply(); });
+    }).observe(document.body, { childList: true, subtree: true });
+  })();
+</script>
+
+
+<script>
+(function() {
+  function positionSizeGuide() {
+    var link = document.querySelector('.variant-size-guide-link');
+    if (!link) return;
+    var wrap = link.closest('.variant-picker-wrap');
+    if (!wrap) return;
+
+    var sizeLabel = null;
+    var allEls = wrap.querySelectorAll('*');
+
+    // Find exact "size" label
+    for (var i = 0; i < allEls.length; i++) {
+      var el = allEls[i];
+      if (el.children.length > 0) continue;
+      var txt = el.textContent.trim().toLowerCase();
+      if (txt === 'size') {
+        sizeLabel = el;
+        break;
+      }
+    }
+
+    // Fallback — partial match
+    if (!sizeLabel) {
+      for (var j = 0; j < allEls.length; j++) {
+        var el2 = allEls[j];
+        if (el2.children.length > 0) continue;
+        var txt2 = el2.textContent.trim().toLowerCase();
+        if (txt2.includes('size') && txt2.length < 20) {
+          sizeLabel = el2;
+          break;
+        }
+      }
+    }
+
+    if (!sizeLabel) return;
+
+    var wrapRect  = wrap.getBoundingClientRect();
+    var labelRect = sizeLabel.getBoundingClientRect();
+    var linkRect  = link.getBoundingClientRect();
+
+    var top = labelRect.top - wrapRect.top + (labelRect.height / 2) - (linkRect.height / 2);
+
+    link.style.top = Math.round(top) + 'px';
+    link.classList.add('is-positioned');
+  }
+
+  function run() {
+    setTimeout(positionSizeGuide, 100);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', run);
+  } else {
+    run();
+  }
+
+  window.addEventListener('load', positionSizeGuide);
+
+  document.addEventListener('change', function(e) {
+    if (e.target && e.target.type === 'radio' && e.target.closest('.variant-picker-wrap')) {
+      setTimeout(positionSizeGuide, 100);
+    }
+  });
+
+  var observer = new MutationObserver(function() {
+    setTimeout(positionSizeGuide, 100);
+  });
+
+  function watch() {
+    var wrap = document.querySelector('.variant-picker-wrap');
+    if (wrap) observer.observe(wrap, { childList: true, subtree: true });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watch);
+  } else {
+    watch();
+  }
+})();
+</script>
+
+
+<script>
+/* ── V1 #4 size chips with dimensions + #6 calm stock line ── */
+(function() {
+  if (window.__tgChipsInit) return;
+  window.__tgChipsInit = true;
+
+  var CHECK_SVG = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+  function key(v) { return String(v || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
+
+  function dims() { return window.TangelosSizeDims || {}; }
+
+  function isSizeFieldset(fs) {
+    var name = window.TangelosSizeOptionName || 'size';
+    var legend = fs.querySelector('legend');
+    if (legend && key(legend.textContent).indexOf(name) === 0) return true;
+    var radios = fs.querySelectorAll('input[type="radio"]');
+    for (var i = 0; i < radios.length; i++) {
+      if (dims()[key(radios[i].value)]) return true;
+    }
+    return false;
+  }
+
+  function labelFor(input, fs) {
+    var label = input.closest('label');
+    if (!label && input.id) label = fs.querySelector('label[for="' + input.id + '"]');
+    if (!label && input.nextElementSibling && input.nextElementSibling.tagName === 'LABEL') label = input.nextElementSibling;
+    return label;
+  }
+
+  var STOCK_TEXT = { 'in': 'In stock', 'order': 'Available to order', 'out': 'Out of stock' };
+
+  function updateStock(wrap) {
+    var line = wrap.querySelector('[data-tg-stock]');
+    var dataEl = wrap.querySelector('[data-tg-variants]');
+    if (!line || !dataEl) return;
+
+    var data;
+    try { data = JSON.parse(dataEl.textContent); } catch (e) { return; }
+
+    var selected = [];
+    var groups = wrap.querySelectorAll('fieldset, select');
+    for (var g = 0; g < groups.length; g++) {
+      var grp = groups[g];
+      if (grp.tagName === 'SELECT') {
+        if (grp.closest('fieldset')) continue;
+        selected.push(grp.value);
+      } else {
+        var checked = grp.querySelector('input[type="radio"]:checked');
+        if (checked) {
+          selected.push(checked.value);
+        } else {
+          var sel = grp.querySelector('select');
+          if (sel) selected.push(sel.value);
+        }
+      }
+    }
+
+    var match = null;
+    for (var i = 0; i < data.variants.length && !match; i++) {
+      var opts = data.variants[i].options;
+      if (opts.length !== selected.length) continue;
+      var same = true;
+      for (var o = 0; o < opts.length; o++) {
+        if (String(opts[o]) !== String(selected[o])) { same = false; break; }
+      }
+      if (same) match = data.variants[i];
+    }
+
+    var state = match ? match.state : 'out';
+    var parts = [];
+    if (data.sizePos > -1 && selected[data.sizePos] != null) parts.push(selected[data.sizePos]);
+    for (var p = 0; p < selected.length; p++) {
+      if (p !== data.sizePos) parts.push(selected[p]);
+    }
+
+    var statusEl = line.querySelector('[data-tg-stock-status]');
+    var metaEl = line.querySelector('[data-tg-stock-meta]');
+    var statusText = match ? STOCK_TEXT[state] : 'Unavailable';
+    var metaText = parts.length ? '· ' + parts.join(' · ') : '';
+    var cls = 'tg-stock tg-stock--' + (match ? state : 'out');
+
+    var qtyEl = line.querySelector('[data-tg-stock-qty]');
+    var qtyText = (match && state === 'in' && match.qty > 0) ? '· ' + match.qty + ' left' : '';
+
+    if (line.className !== cls) line.className = cls;
+    if (statusEl && statusEl.textContent !== statusText) statusEl.textContent = statusText;
+    if (qtyEl) {
+      if (qtyEl.textContent !== qtyText) qtyEl.textContent = qtyText;
+      if (qtyEl.hidden !== !qtyText) qtyEl.hidden = !qtyText;
+    }
+    if (metaEl && metaEl.textContent !== metaText) metaEl.textContent = metaText;
+  }
+
+  function upgrade() {
+    var allWraps = document.querySelectorAll('.variant-picker-wrap');
+    for (var aw = 0; aw < allWraps.length; aw++) updateStock(allWraps[aw]);
+
+    if (!window.TangelosSizeDims) return;
+    for (var w = 0; w < allWraps.length; w++) {
+      var sets = allWraps[w].querySelectorAll('fieldset');
+      for (var s = 0; s < sets.length; s++) {
+        var fs = sets[s];
+        if (!fs.querySelector('input[type="radio"]') || !isSizeFieldset(fs)) continue;
+        if (!fs.classList.contains('tg-size-fieldset')) fs.classList.add('tg-size-fieldset');
+
+        var radios = fs.querySelectorAll('input[type="radio"]');
+        for (var r = 0; r < radios.length; r++) {
+          var input = radios[r];
+          var label = labelFor(input, fs);
+          if (!label) continue;
+
+          if (!label.classList.contains('tg-size-chip')) label.classList.add('tg-size-chip');
+          label.classList.toggle('tg-selected', input.checked);
+          label.classList.toggle('tg-unavailable',
+            input.disabled ||
+            input.classList.contains('disabled') ||
+            input.getAttribute('data-option-available') === 'false');
+
+          var d = dims()[key(input.value)];
+          if (d && !label.querySelector('.tg-dim')) {
+            var span = document.createElement('span');
+            span.className = 'tg-dim';
+            span.textContent = d;
+            label.appendChild(span);
+          }
+          if (!label.querySelector('.tg-check')) {
+            var check = document.createElement('span');
+            check.className = 'tg-check';
+            check.setAttribute('aria-hidden', 'true');
+            check.innerHTML = CHECK_SVG;
+            label.appendChild(check);
+          }
+        }
+      }
+    }
+  }
+
+  var queued = false;
+  function queue() {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(function() { queued = false; upgrade(); });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', upgrade);
+  } else {
+    upgrade();
+  }
+
+  // Horizon re-renders the picker on each variant change, so re-apply after every change.
+  document.addEventListener('change', function(e) {
+    if (e.target && e.target.type === 'radio' && e.target.closest('.variant-picker-wrap')) queue();
+  });
+  new MutationObserver(queue).observe(document.documentElement, { childList: true, subtree: true });
+})();
+</script>
+
+
+<style>
+  .main-descriptions .descriptions .des ul {
+    display: block !important;
+    line-height: 2.75;
+  }
+  .descriptions p {
+    display: none;
+  }
+  .descriptions p:first-child {
+    display: block;
+    font-size: 13px;
+    line-height: 1.75;
+  }
+  .informations ul {
+    list-style: none;
+    padding-left: 0px;
+  }
+  .informations ul li {
+    line-height: 23px;
+    padding-bottom: 12px;
+  }
+  .informations ul li strong {
+    text-transform: uppercase !important;
+    font-weight: 400 !important;
+  }
+  body .main-descriptions .descriptions .ph-text-images .text b {
+    font-size: 13px !important;
+    font-weight: 400 !important;
+    text-transform: capitalize !important;
+    line-height: 22px;
+  }
+  .main-descriptions .descriptions .ph-text-images .text {
+    padding: 21px;
+    display: grid;
+  }
+  body .main-descriptions .descriptions .ph-text-images .text {
+    font-size: 13px !important;
+    color: #000000a3 !important;
+    line-height: 22px !important;
+    padding-bottom: 0;
+  }
+  .main-descriptions .highlights .image {
+    display: flex;
+  }
+  .main-descriptions .highlights .image .image {
+    display: inline-block;
+  }
+  .main-descriptions .descriptions .ph-text-images .image img {
+    max-width: fit-content;
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin: auto;
+    margin-top: 15px;
+  }
+  .checkbox-products
+  {
+  display:none !important
+  }
+</style>
+
+{% schema %}
+{
+  "name": "t:names.product_variant_picker",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "t:content.resource_reference_product_variant_picker"
+    },
+    {
+      "type": "paragraph",
+      "content": "t:content.edit_variants_in_theme_settings"
+    },
+    {
+      "type": "select",
+      "id": "variant_style",
+      "label": "t:settings.style",
+      "options": [
+        { "value": "dropdowns", "label": "t:options.dropdowns" },
+        { "value": "buttons",   "label": "t:options.buttons" }
+      ],
+      "default": "buttons"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_swatches",
+      "label": "t:settings.swatches",
+      "default": true
+    },
+    {
+      "type": "text_alignment",
+      "id": "alignment",
+      "label": "t:settings.alignment",
+      "default": "left"
+    },
+    {
+      "type": "header",
+      "content": "Size Guide"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_size_guide",
+      "label": "Show Size Guide Link",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "size_guide_label",
+      "label": "Link Text",
+      "default": "Size Guide"
+    },
+    {
+      "type": "url",
+      "id": "size_guide_url",
+      "label": "Size Guide URL"
+    },
+    {
+      "type": "checkbox",
+      "id": "size_guide_new_tab",
+      "label": "Open in New Tab",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "size_guide_icon",
+      "label": "Show Icon",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0, "max": 100, "step": 1, "unit": "px", "default": 8
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-start",
+      "label": "t:settings.left",
+      "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-end",
+      "label": "t:settings.right",
+      "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.product_variant_picker",
+      "category": "t:categories.product"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,525 @@
+{%- comment -%}
+  Show this section only on the fabrics ticked in the theme editor
+  ("Show on" settings). It checks the product title and handle.
+{%- endcomment -%}
+{%- liquid
+  assign ff_show = false
+  if product
+    assign ff_name = product.title | append: ' ' | append: product.handle | downcase
+    if section.settings.show_muslin and ff_name contains 'muslin'
+      assign ff_show = true
+    endif
+    if section.settings.show_percale and ff_name contains 'percale'
+      assign ff_show = true
+    endif
+    if section.settings.show_sateen and ff_name contains 'sateen'
+      assign ff_show = true
+    endif
+    if section.settings.show_linen and ff_name contains 'linen'
+      assign ff_show = true
+    endif
+  endif
+-%}
+
+{%- if ff_show -%}
+<div
+  id="fabric-feature-{{ section.id }}"
+  class="fabric-feature"
+  style="
+    min-height: {{ section.settings.min_height }}px;
+    padding: {{ section.settings.pad_top }}px {{ section.settings.pad_x }}px {{ section.settings.pad_bottom }}px;
+    {%- if section.settings.image != blank -%}
+      background-image: url('{{ section.settings.image | image_url: width: 2000 }}');
+    {%- else -%}
+      background-color: {{ section.settings.bg_color }};
+    {%- endif -%}
+  "
+>
+  
+
+
+  {%- comment -%} Optional overlay on top of background image {%- endcomment -%}
+  {%- if section.settings.show_overlay -%}
+    <div class="fabric-feature__overlay" style="background: {{ section.settings.overlay_color }}; opacity: {{ section.settings.overlay_opacity | divided_by: 100.0 }};"></div>
+  {%- endif -%}
+
+  {%- comment -%} Content sits on top of background {%- endcomment -%}
+  <div class="fabric-feature__content">
+
+    {%- if section.settings.heading != blank -%}
+      <h2 class="fabric-feature__heading">{{ section.settings.heading }}</h2>
+    {%- endif -%}
+
+    {%- if section.settings.divider -%}
+      <div class="fabric-feature__divider"></div>
+    {%- endif -%}
+
+    {%- if section.settings.description != blank -%}
+      <p class="fabric-feature__desc">{{ section.settings.description }}</p>
+    {%- endif -%}
+
+    {%- if section.blocks.size > 0 -%}
+      <div class="fabric-feature__icons">
+        {%- for block in section.blocks -%}
+          <div class="fabric-feature__icon-item" {{ block.shopify_attributes }}>
+            <div class="fabric-feature__icon-circle">
+              {%- if block.settings.icon_image != blank -%}
+                {{
+                  block.settings.icon_image
+                  | image_url: width: 80
+                  | image_tag:
+                    class: 'fabric-feature__icon-img',
+                    loading: 'lazy',
+                    alt: block.settings.label
+                }}
+              {%- else -%}
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="16"/>
+                  <line x1="8" y1="12" x2="16" y2="12"/>
+                </svg>
+              {%- endif -%}
+            </div>
+            {%- if block.settings.label != blank -%}
+              <span class="fabric-feature__icon-label">{{ block.settings.label }}</span>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+  </div>
+
+</div>
+
+<style>
+  
+  #fabric-feature-{{ section.id }} {
+    --ff-text: {{ section.settings.text_color }};
+    --ff-icon-border: {{ section.settings.icon_border_color }};
+
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+    background-size: cover;
+    background-position: {{ section.settings.bg_position }};
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  /* ── Overlay ── */
+  #fabric-feature-{{ section.id }} .fabric-feature__overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* ── Content ── */
+  #fabric-feature-{{ section.id }} .fabric-feature__content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    max-width: {{ section.settings.content_max_width }}px;
+  }
+
+  /* ── Heading ── */
+  #fabric-feature-{{ section.id }} .fabric-feature__heading {
+    font-family: {{ section.settings.heading_font }}, Georgia, serif;
+    font-size: {{ section.settings.heading_size }}px;
+    font-weight: {{ section.settings.heading_weight }};
+    line-height: 1.1;
+    color: var(--ff-text);
+    margin: 0 0 20px 0;
+    letter-spacing: -0.02em;
+    white-space: pre-line;
+  }
+
+  /* ── Divider ── */
+  #fabric-feature-{{ section.id }} .fabric-feature__divider {
+    width: 40px;
+    height: 1px;
+    background: var(--ff-text);
+    opacity: 0.5;
+    margin-bottom: 20px;
+  }
+
+  /* ── Description ── */
+  #fabric-feature-{{ section.id }} .fabric-feature__desc {
+    font-size: {{ section.settings.desc_size }}px;
+    line-height: 1.6;
+    color: var(--ff-text);
+    opacity: 0.85;
+    margin: 0 0 40px 0;
+  }
+
+  /* ── Icons ── */
+  #fabric-feature-{{ section.id }} .fabric-feature__icons {
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  #fabric-feature-{{ section.id }} .fabric-feature__icon-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+  }
+
+  #fabric-feature-{{ section.id }} .fabric-feature__icon-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 0px solid var(--ff-icon-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ff-text);
+    overflow: hidden;
+    transition: background 0.3s ease;
+    flex-shrink: 0;
+  }
+
+  #fabric-feature-{{ section.id }} .fabric-feature__icon-circle:hover {
+    background: rgba(255,255,255,0.1);
+  }
+
+  #fabric-feature-{{ section.id }} .fabric-feature__icon-img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    filter: {{ section.settings.icon_filter }};
+  }
+
+  #fabric-feature-{{ section.id }} .fabric-feature__icon-label {
+    font-size: 11px;
+    color: var(--ff-text);
+    opacity: 0.85;
+    line-height: 1.3;
+    text-align: center;
+    max-width: 72px;
+  }
+
+  /* ── Mobile ── */
+  @media screen and (max-width: 749px) {
+    #fabric-feature-{{ section.id }} {
+      min-height: {{ section.settings.min_height_mobile }}px;
+      padding: 40px 24px;
+    }
+
+    #fabric-feature-{{ section.id }} .fabric-feature__heading {
+      font-size: {{ section.settings.heading_size | times: 0.65 | round }}px;
+    }
+
+    #fabric-feature-{{ section.id }} .fabric-feature__desc {
+      font-size: 14px;
+    }
+
+    #fabric-feature-{{ section.id }} .fabric-feature__icons {
+      gap: 18px;
+    }
+
+    #fabric-feature-{{ section.id }} .fabric-feature__icon-circle {
+      width: 50px;
+      height: 50px;
+    }
+  }
+</style>
+{%- else -%}
+  {%- comment -%} Not a matching product: hide the whole section wrapper {%- endcomment -%}
+  <style>#shopify-section-{{ section.id }} { display: none; }</style>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Fabric Feature",
+  "tag": "section",
+  "class": "fabric-feature-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Show on products"
+    },
+    {
+      "type": "paragraph",
+      "content": "The section only appears on products whose title or handle contains a ticked fabric."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_muslin",
+      "label": "Muslin",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_percale",
+      "label": "Percale",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sateen",
+      "label": "Sateen",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_linen",
+      "label": "Linen",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "textarea",
+      "id": "heading",
+      "label": "Heading",
+      "default": "No\nUnexpected\nShrink"
+    },
+    {
+      "type": "checkbox",
+      "id": "divider",
+      "label": "Show Divider Line",
+      "default": true
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "Pre-treated to control shrinkage — so your sheets don't end up smaller, tighter, or harder to use."
+    },
+    {
+      "type": "header",
+      "content": "Background Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Full Section Background Image"
+    },
+    {
+      "type": "select",
+      "id": "bg_position",
+      "label": "Image Position",
+      "options": [
+        { "value": "center center", "label": "Center" },
+        { "value": "center top", "label": "Top" },
+        { "value": "center bottom", "label": "Bottom" },
+        { "value": "left center", "label": "Left" },
+        { "value": "right center", "label": "Right" }
+      ],
+      "default": "center center"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Fallback Background Color",
+      "info": "Shown when no image is uploaded",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "header",
+      "content": "Overlay"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_overlay",
+      "label": "Show Overlay",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay Color",
+      "default": "#000000",
+      "visible_if": "{{ section.settings.show_overlay }}"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay Opacity",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "default": 30,
+      "unit": "%",
+      "visible_if": "{{ section.settings.show_overlay }}"
+    },
+    {
+      "type": "header",
+      "content": "Text Colors"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "icon_border_color",
+      "label": "Icon Border Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "select",
+      "id": "icon_filter",
+      "label": "Icon Image Color Filter",
+      "options": [
+        { "value": "none", "label": "Original" },
+        { "value": "invert(1)", "label": "Invert (dark to white)" },
+        { "value": "brightness(0) invert(1)", "label": "Force White" },
+        { "value": "brightness(0)", "label": "Force Black" }
+      ],
+      "default": "brightness(0) invert(1)"
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "text",
+      "id": "heading_font",
+      "label": "Heading Font Family",
+      "default": "Cormorant Garamond",
+      "info": "Enter any Google Font name"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Heading Font Size",
+      "min": 32,
+      "max": 96,
+      "step": 2,
+      "default": 64,
+      "unit": "px"
+    },
+    {
+      "type": "select",
+      "id": "heading_weight",
+      "label": "Heading Font Weight",
+      "options": [
+        { "value": "300", "label": "Light" },
+        { "value": "400", "label": "Regular" },
+        { "value": "500", "label": "Medium" },
+        { "value": "600", "label": "Semibold" }
+      ],
+      "default": "300"
+    },
+    {
+      "type": "range",
+      "id": "desc_size",
+      "label": "Description Font Size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "default": 15,
+      "unit": "px"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "content_max_width",
+      "label": "Content Max Width",
+      "min": 200,
+      "max": 700,
+      "step": 20,
+      "default": 380,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "min_height",
+      "label": "Min Height (Desktop)",
+      "min": 300,
+      "max": 900,
+      "step": 20,
+      "default": 560,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "min_height_mobile",
+      "label": "Min Height (Mobile)",
+      "min": 300,
+      "max": 700,
+      "step": 20,
+      "default": 480,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "pad_top",
+      "label": "Padding Top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "default": 60,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "pad_bottom",
+      "label": "Padding Bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "default": 60,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "pad_x",
+      "label": "Side Padding",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "default": 48,
+      "unit": "px"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "icon_feature",
+      "name": "Feature Icon",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "icon_image",
+          "label": "Icon Image",
+          "info": "Upload from gallery. PNG transparent background recommended, 80x80px"
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "Feature"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Fabric Feature",
+      "blocks": [
+        { "type": "icon_feature", "settings": { "label": "Pre-treated" } },
+        { "type": "icon_feature", "settings": { "label": "Shape Retention" } },
+        { "type": "icon_feature", "settings": { "label": "Naturally Textured" } }
+      ]
+    }
+  ],
+  "max_blocks": 6
+}
+{% endschema %}

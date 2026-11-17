@@ -1,0 +1,340 @@
+{%- doc -%}
+  Renders an "Add to cart" button with dynamic text and state. It shows different text based on whether the product can be added to the cart and provides visual feedback when an item is added.
+
+  @param {boolean} can_add_to_cart - Whether the product can be added to the cart.
+  @param {string} add_to_cart_text - The text to display on the button.
+  @param {object} product - The product object to be added to the cart.
+  @param {boolean} [icon_only_on_mobile] - If `true`, only the icon is shown on mobile devices.
+  @param {string} [class] - Additional CSS classes to apply to the button.
+  @param {string} [id] - The ID attribute for the button.
+  @param {string} [data_testid] - The data-testid attribute for testing.
+{%- enddoc -%}
+
+
+
+{% liquid
+  assign target_handle = 'white-organic-cotton-percale-pillowcase'
+  assign in_cart = false
+  if product.handle == target_handle
+    for item in cart.items
+      if item.product.handle == target_handle
+        assign in_cart = true
+        break
+      endif
+    endfor
+  endif
+%}
+
+<button type="submit" name="add" id="add-to-cart-{{ product.id }}"
+  class="btn product-form__submit white-organic-cotton-percale-pillowcase"
+  {% if in_cart %}disabled{% endif %}>
+  <span class="add-to-cart-text">
+      
+        <span aria-hidden="true" class="svg-wrapper add-to-cart-icon"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" d="M16.608 9.421V6.906H3.392v8.016c0 .567.224 1.112.624 1.513.4.402.941.627 1.506.627H8.63M8.818 3h2.333c.618 0 1.212.247 1.649.686a2.35 2.35 0 0 1 .683 1.658v1.562H6.486V5.344c0-.622.246-1.218.683-1.658A2.33 2.33 0 0 1 8.82 3"></path><path stroke="currentColor" stroke-linecap="round" stroke-width="var(--icon-stroke-width)" d="M14.608 12.563v5m2.5-2.5h-5"></path></svg>
+</span>
+      
+      <span class="add-to-cart-text__content">
+        <span>
+          {% if in_cart %}Already in cart{% else %}Add to cart{% endif %}
+        </span>
+      </span>
+    </span>
+  
+</button>
+
+{% if product.handle == target_handle %}
+  <span style="text-align: center;
+    display: block;
+    padding: 10px;
+    color: #7d0909;"> This product is not eligible for returns  </span>
+
+<script>
+  document.getElementById('add-to-cart-{{ product.id }}')
+    .closest('form')
+    .addEventListener('submit', function () {
+      var btn = this.querySelector('[name="add"]');
+      btn.disabled = true;
+      btn.textContent = 'Already in cart';
+    });
+</script>
+
+<style>
+ button.btn.product-form__submit.white-organic-cotton-percale-pillowcase {
+    background: #000;
+    color: #fff;
+}
+.product-form-buttons.spacing-style.product-form-buttons--stacked {
+    margin: 0;
+    padding: 0;
+}
+.size-guide.percale_pillowcase table tbody tr:last-child {
+    display: none;
+}
+.feature-grid {
+    display: none;
+}
+  add-to-cart-component, .returns-callout{
+  display:none;}
+</style>
+{% else %}
+<style>
+  button.btn.product-form__submit.white-organic-cotton-percale-pillowcase{
+  display:none;}
+</style>
+  {% endif %}
+
+
+
+{%- liquid
+  assign default_add_to_cart_text = 'actions.add_to_cart' | t
+  assign atc_variant = product.selected_or_first_available_variant
+  assign product_variant_media = product.selected_or_first_available_variant.featured_media.preview_image | image_url: width: 100
+  if product.selected_or_first_available_variant.featured_media.preview_image == blank
+    assign product_variant_media = product.featured_media.preview_image | image_url: width: 100
+  endif
+-%}
+<add-to-cart-component
+  ref="addToCartButtonContainer"
+  data-product-variant-media="{{ product_variant_media }}"
+  data-add-to-cart-animation="{{ settings.add_to_cart_animation }}"
+>
+  <button
+    {% if id != blank %}
+      id="{{ id }}"
+    {% endif %}
+    type="submit"
+    name="add"
+    ref="addToCartButton"
+    on:click="/handleClick"
+    class="button {{ class }}"
+    {% if data_testid %}
+      data-testid="{{ data_testid }}"
+    {% endif %}
+    {% unless can_add_to_cart %}
+      disabled
+    {% endunless %}
+  >
+    <span
+      class="add-to-cart-text"
+    >
+      {% if can_add_to_cart %}
+        <span
+          aria-hidden="true"
+          class="svg-wrapper add-to-cart-icon"
+        >
+          {{- 'icon-add-to-cart.svg' | inline_asset_content -}}
+        </span>
+      {% endif %}
+      <span class="add-to-cart-text__content{% if icon_only_on_mobile %} is-visually-hidden-mobile{% endif %}">
+        <span>
+          <span>
+            {{- add_to_cart_text | default: default_add_to_cart_text -}}
+          </span>
+          {%- comment -%}
+            Price of the selected variant × quantity, plus any add-ons switched on in the
+            "Complete the bed" block (it sets data-atc-extra). Re-rendered by the theme on
+            every size change.
+          {%- endcomment -%}
+          {%- if can_add_to_cart and atc_variant -%}
+            <span
+              class="atc-price"
+              data-atc-price
+              data-unit-price="{{ atc_variant.price }}"
+              data-unit-compare="{{ atc_variant.compare_at_price | default: 0 }}"
+            >
+              <span class="atc-price__sep" aria-hidden="true">·</span>
+              <span class="atc-price__now" data-atc-price-now>{{ atc_variant.price | money_without_trailing_zeros }}</span>
+              
+            </span>
+          {%- endif -%}
+        </span>
+      </span>
+    </span>
+    {% comment %} checkmark burst markup {% endcomment %}
+    <span class="add-to-cart__added">
+      <span class="svg-wrapper add-to-cart__added-icon">
+        {{- 'icon-checkmark-burst.svg' | inline_asset_content -}}
+      </span>
+    </span>
+  </button>
+</add-to-cart-component>
+
+<style>
+  .atc-price {
+    margin-inline-start: 0.35em;
+    white-space: nowrap;
+  }
+  .atc-price__sep { margin-inline-end: 0.35em; }
+  .atc-price__was {
+    margin-inline-start: 0.4em;
+    font-weight: 400;
+    opacity: 0.6;
+  }
+  .atc-price__was[hidden] { display: none; }
+</style>
+
+<script>
+  // Button price = unit price × quantity + switched-on add-ons (data-atc-extra,
+  // set by the "Complete the bed" block). The was-price follows the same sum.
+  (function () {
+    if (window.__atcPriceInit) return;
+    window.__atcPriceInit = true;
+
+    var FORMAT = {{ shop.money_format | json }};
+
+    function money(cents) {
+      var t = document.createElement('textarea');
+      t.innerHTML = String(FORMAT || '£{{amount}}').replace(/<[^>]*>/g, '');
+      var f = t.value;
+      var n = cents / 100;
+      var out = f.replace(/\{\{\s*(\w+)\s*\}\}/, function (_, k) {
+        if (k === 'amount_no_decimals') return Math.round(n).toLocaleString('en-GB');
+        if (k === 'amount_with_comma_separator') return n.toFixed(2).replace('.', ',');
+        if (k === 'amount_no_decimals_with_comma_separator') return Math.round(n).toLocaleString('de-DE');
+        return n.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      });
+      return out.replace(/([.,])00(?!\d)/, '');   // same as money_without_trailing_zeros
+    }
+
+    function quantityFor(el) {
+      var scope = el.closest('product-form-component') || el.closest('form') || document;
+      var q = scope.querySelector('quantity-selector-component input, input[name="quantity"]');
+      var n = q ? parseInt(q.value, 10) : 1;
+      return n > 0 ? n : 1;
+    }
+
+    function update() {
+      var prices = document.querySelectorAll('[data-atc-price]');
+      for (var i = 0; i < prices.length; i++) {
+        var el = prices[i];
+        var qty = quantityFor(el);
+        var unit = +el.getAttribute('data-unit-price') || 0;
+        var cmp = +el.getAttribute('data-unit-compare') || 0;
+        var extra = +el.getAttribute('data-atc-extra') || 0;
+        var extraAttr = el.getAttribute('data-atc-extra-compare');
+        var extraCmp = extraAttr == null ? extra : (+extraAttr || 0);
+
+        var nowCents = unit * qty + extra;
+        var wasCents = Math.max(cmp, unit) * qty + extraCmp;
+
+        var now = el.querySelector('[data-atc-price-now]');
+        var was = el.querySelector('[data-atc-price-was]');
+        var nowText = money(nowCents);
+        if (now && now.textContent !== nowText) now.textContent = nowText;
+        if (was) {
+          var showWas = wasCents > nowCents;
+          if (was.hidden === showWas) was.hidden = !showWas;
+          var wasText = money(wasCents);
+          if (showWas && was.textContent !== wasText) was.textContent = wasText;
+        }
+      }
+    }
+
+    var queued = false;
+    function queue() {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(function () { queued = false; update(); });
+    }
+
+    document.addEventListener('input', queue);
+    document.addEventListener('change', queue);
+    // Quantity +/- buttons change the value without a key press
+    document.addEventListener('click', function () { setTimeout(queue, 0); });
+    // The theme re-renders the button on a size change
+    new MutationObserver(queue).observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['data-atc-extra', 'data-atc-extra-compare']
+    });
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', update);
+    else update();
+  })();
+</script>
+
+
+
+{% if template == 'product' %}
+       {% render 'returns-callout' %}
+
+  {% render 'product-trust-badges' %}
+{% endif %}
+
+
+
+<script>
+(function() {
+  const { fetch: originalFetch } = window;
+
+  window.fetch = async (...args) => {
+    let [resource, config] = args;
+    const isAddToCart = resource.includes('/cart/add.js') || resource.includes('/cart/add');
+
+    if (isAddToCart && config.body) {
+      const upsellCheckbox = document.querySelector('.upsell-addon-checkbox');
+      
+      if (upsellCheckbox && upsellCheckbox.checked) {
+        const upsellId = upsellCheckbox.dataset.variantId || upsellCheckbox.value;
+
+        try {
+          // --- FORMDATA HANDLING (Most Common) ---
+          if (config.body instanceof FormData) {
+            // If the theme is sending a single "id", we convert the whole thing to a bundle
+            if (config.body.has('id') && !config.body.has('items[0][id]')) {
+              const mainId = config.body.get('id');
+              const mainQty = config.body.get('quantity') || 1;
+              
+              // Add items as a bundle array
+              {% comment %} config.body.append('items[0][id]', mainId);
+              config.body.append('items[0][quantity]', mainQty); {% endcomment %}
+              config.body.append('items[1][id]', upsellId);
+              config.body.append('items[1][quantity]', '1');
+              
+              // CRITICAL: We KEEP the original 'id' so the theme doesn't throw the "Form ID required" error
+              // but Shopify will prioritize the "items" array for the actual add.
+            }
+            config.body.append('sections', 'cart-drawer,cart-icon-bubble');
+          } 
+          // --- JSON HANDLING ---
+          else {
+            let bodyData = JSON.parse(config.body);
+            if (bodyData.id && !bodyData.items) {
+              bodyData.items = [
+                { id: parseInt(bodyData.id), quantity: parseInt(bodyData.quantity || 1) },
+                { id: parseInt(upsellId), quantity: 1 }
+              ];
+              bodyData.sections = "cart-drawer,cart-icon-bubble";
+              config.body = JSON.stringify(bodyData);
+            }
+          }
+        } catch (e) {
+          console.error("Upsell injection error:", e);
+        }
+      }
+    }
+
+    const response = await originalFetch(resource, config);
+
+    // If successful, open the drawer
+    if (isAddToCart && response.ok) {
+      const clonedResponse = response.clone();
+      const result = await clonedResponse.json();
+
+      // Trigger the minicart refresh
+      const cartDrawer = document.querySelector('cart-drawer');
+      if (cartDrawer && typeof cartDrawer.renderContents === 'function') {
+        cartDrawer.renderContents(result);
+      } else {
+        // Force open logic
+        document.documentElement.dispatchEvent(new CustomEvent('cart:refresh', { bubbles: true }));
+        const cartIcon = document.querySelector('#cart-icon-bubble, .header__icon--cart');
+        if (cartIcon) cartIcon.click();
+      }
+    }
+
+    return response;
+  };
+})();
+</script>

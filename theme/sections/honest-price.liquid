@@ -1,0 +1,326 @@
+{%- if section.settings.background_image != blank -%}
+  <link rel="preload" as="image" href="{{ section.settings.background_image | img_url: '1600x' }}" fetchpriority="high">
+{%- endif -%}
+
+<section class="hp" id="hp-{{ section.id }}">
+
+  {%- comment %} ── DESKTOP ── {%- endcomment %}
+  <div class="hp__desktop">
+    {%- if section.settings.background_image != blank -%}
+      <img
+        class="hp__bg"
+        src="{{ section.settings.background_image | img_url: '1600x' }}"
+        alt=""
+        loading="eager"
+        fetchpriority="high"
+        width="1600"
+        height="600"
+        aria-hidden="true"
+      >
+    {%- else -%}
+      <div class="hp__bg-fallback"></div>
+    {%- endif -%}
+
+    <div class="hp__overlay"></div>
+
+    <div class="hp__content">
+      <h2 class="hp__heading">{{ section.settings.heading }}</h2>
+      <p class="hp__body">{{ section.settings.body_text }}</p>
+      {%- if section.settings.button_label != blank -%}
+        <a href="{{ section.settings.button_url }}" class="hp__btn">{{ section.settings.button_label }}</a>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- comment %} ── MOBILE ── {%- endcomment %}
+  <div class="hp__mobile">
+    <div class="hp__mobile-text">
+      <h2 class="hp__heading">{{ section.settings.heading }}</h2>
+      <p class="hp__body">{{ section.settings.body_text }}</p>
+      {%- if section.settings.button_label != blank -%}
+        <a href="{{ section.settings.button_url }}" class="hp__btn hp__btn--dark">{{ section.settings.button_label }}</a>
+      {%- endif -%}
+    </div>
+    <div class="hp__mobile-img">
+      {%- assign mob_img = section.settings.mobile_image | default: section.settings.background_image -%}
+      {%- if mob_img != blank -%}
+        <img
+          src="{{ mob_img | img_url: '800x' }}"
+          alt=""
+          loading="lazy"
+          width="800"
+          height="400"
+        >
+      {%- else -%}
+        <div class="hp__bg-fallback"></div>
+      {%- endif -%}
+    </div>
+  </div>
+
+</section>
+
+<style>
+{% comment %} #hp-{{ section.id }} {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+} {% endcomment %}
+
+/* ── DESKTOP ── */
+#hp-{{ section.id }} .hp__mobile { display: none; }
+
+#hp-{{ section.id }} .hp__desktop {
+  position: relative;
+  width: 100%;
+  min-height: {{ section.settings.section_height }}px;
+  overflow: hidden;
+}
+
+#hp-{{ section.id }} .hp__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+#hp-{{ section.id }} .hp__bg-fallback {
+  position: absolute;
+  inset: 0;
+  background: #c8c0b5;
+}
+
+#hp-{{ section.id }} .hp__overlay {
+  position: absolute;
+  inset: 0;
+  background: {{ section.settings.overlay_color }};
+  opacity: {{ section.settings.overlay_opacity | divided_by: 100.0 }};
+  pointer-events: none;
+}
+
+/* Left content sits on top of image */
+#hp-{{ section.id }} .hp__content {
+  position: relative;
+  z-index: 2;
+  width: 40%;
+  max-width: 480px;
+  min-height: {{ section.settings.section_height }}px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px 0 60px 60px;
+  box-sizing: border-box;
+}
+
+#hp-{{ section.id }} .hp__heading {
+  {% comment %} font-family: Georgia, 'Times New Roman', serif; {% endcomment %}
+  font-size: clamp(24px, 2.6vw, 40px);
+  font-weight: 400;
+  line-height: 1.15;
+  color: {{ section.settings.heading_color }};
+  margin: 0 0 20px;
+  letter-spacing: -0.01em;
+}
+
+#hp-{{ section.id }} .hp__body {
+  font-size: clamp(13px, 1vw, 15px);
+  line-height: 1.75;
+  color: {{ section.settings.body_color }};
+  margin: 0 0 28px;
+}
+
+#hp-{{ section.id }} .hp__btn {
+  display: inline-block;
+  padding: 11px 26px;
+  border: 1px solid {{ section.settings.heading_color }};
+  color: {{ section.settings.heading_color }};
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  background: transparent;
+  transition: background 0.2s, color 0.2s;
+  align-self: flex-start;
+}
+#hp-{{ section.id }} .hp__btn:hover {
+  background: {{ section.settings.heading_color }};
+  color: #2e2b27;
+}
+
+/* ── MOBILE ── */
+@media (max-width: 767px) {
+  #hp-{{ section.id }} .hp__desktop { display: none; }
+
+  #hp-{{ section.id }} .hp__mobile {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* TOP: text */
+  #hp-{{ section.id }} .hp__mobile-text {
+    background: {{ section.settings.mobile_content_bg }};
+    padding: 36px 20px 32px;
+  }
+
+  #hp-{{ section.id }} .hp__mobile-text .hp__heading {
+    {% comment %} font-family: Georgia, 'Times New Roman', serif; {% endcomment %}
+    font-size: clamp(22px, 6vw, 28px);
+    font-weight: 400;
+    line-height: 1.2;
+    color: #2e2b27;
+    margin: 0 0 16px;
+  }
+
+  #hp-{{ section.id }} .hp__mobile-text .hp__body {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #5a5550;
+    margin: 0 0 24px;
+  }
+
+  #hp-{{ section.id }} .hp__btn--dark {
+    display: inline-block;
+    padding: 11px 26px;
+    border: 1px solid #2e2b27;
+    color: #2e2b27;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    background: transparent;
+    transition: background 0.2s, color 0.2s;
+  }
+  #hp-{{ section.id }} .hp__btn--dark:hover {
+    background: #2e2b27;
+    color: #fff;
+  }
+
+  /* BOTTOM: image */
+  #hp-{{ section.id }} .hp__mobile-img {
+    width: 100%;
+    height: 280px;
+    overflow: hidden;
+  }
+
+  #hp-{{ section.id }} .hp__mobile-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  #hp-{{ section.id }} .hp__mobile-img .hp__bg-fallback {
+    width: 100%;
+    height: 100%;
+    background: #c8c0b5;
+  }
+}
+</style>
+
+{% schema %}
+{
+  "name": "Honest Price Banner",
+  "tag": "section",
+  "class": "honest-price-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "The Honest Price. Fully Explained."
+    },
+    {
+      "type": "textarea",
+      "id": "body_text",
+      "label": "Body Text",
+      "default": "The breakdown on the left is real — cotton, production, certification, and what we keep. We don't add a margin for the name on the label. The gap between what organic bedding costs to make and what most brands charge for it — that is not quality. It is layers. We removed them."
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button Label"
+    },
+    {
+      "type": "url",
+      "id": "button_url",
+      "label": "Button URL"
+    },
+    {
+      "type": "header",
+      "content": "Background Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background Image",
+      "info": "Upload the full image including the stacked blocks on the right. Recommended: 1600x600px."
+    },
+    {
+      "type": "range",
+      "id": "section_height",
+      "label": "Section Height (px)",
+      "min": 300,
+      "max": 800,
+      "step": 10,
+      "default": 500
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay Color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay Opacity (%)",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Text Colors"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "body_color",
+      "label": "Body Text Color",
+      "default": "#f0ece6"
+    },
+    {
+      "type": "header",
+      "content": "Mobile"
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_image",
+      "label": "Mobile Image",
+      "info": "Optional — upload a separate image for mobile. If left empty, the desktop background image is used."
+    },
+    {
+      "type": "color",
+      "id": "mobile_content_bg",
+      "label": "Mobile Text Background Color",
+      "default": "#f5f1ec"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Honest Price Banner"
+    }
+  ]
+}
+{% endschema %}

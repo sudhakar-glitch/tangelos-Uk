@@ -1,0 +1,368 @@
+<section
+  id="info-home-{{ section.id }}"
+  class="info-home{% if section.settings.layout == 'image_left' %} info-home--image-left{% endif %}"
+  style="
+    --ih-bg:      {{ section.settings.background_color }};
+    --ih-heading: {{ section.settings.text_color }};
+    --ih-body:    {{ section.settings.body_text_color }};
+    --ih-link:    {{ section.settings.link_color }};
+    --ih-height:  {{ section.settings.min_height }}px;
+    --ih-pt:      {{ section.settings.content_padding_top }}px;
+    --ih-pb:      {{ section.settings.content_padding_bottom }}px;
+    --ih-hd:      {{ section.settings.heading_size_desktop }}px;
+    --ih-hm:      {{ section.settings.heading_size_mobile }}px;
+    --ih-bs:      {{ section.settings.body_font_size }}px;
+    --ih-mimg:    {{ section.settings.mobile_image_height }}px;
+  "
+  aria-label="{{ section.settings.heading | escape }}"
+>
+
+  <div class="info-home__content">
+    <div class="info-home__text">
+
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="info-home__eyebrow">{{ section.settings.eyebrow }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.heading != blank -%}
+        <h2 class="info-home__heading">{{ section.settings.heading }}</h2>
+      {%- endif -%}
+
+      {%- if section.settings.body_text != blank -%}
+        <div class="info-home__body">{{ section.settings.body_text }}</div>
+      {%- endif -%}
+
+      {%- if section.settings.link_label != blank and section.settings.link_url != blank -%}
+        <a
+          href="{{ section.settings.link_url }}"
+          class="info-home__link{% if section.settings.link_style == 'button' %} info-home__link--btn{% endif %}"
+          {% if section.settings.link_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+        >{{ section.settings.link_label }}</a>
+      {%- endif -%}
+
+    </div>
+  </div>
+
+  <div class="info-home__media">
+    {%- if section.settings.image != blank -%}
+      {{
+        section.settings.image
+        | image_url: width: 1400
+        | image_tag:
+          loading: 'eager',
+          fetchpriority: 'high',
+          widths: '600, 800, 1000, 1200, 1400',
+          sizes: '(max-width: 767px) 100vw, 50vw',
+          class: 'info-home__img',
+          alt: section.settings.image.alt | default: section.settings.heading | escape
+      }}
+    {%- else -%}
+      {{ 'image' | placeholder_svg_tag: 'info-home__img info-home__img--ph' }}
+    {%- endif -%}
+  </div>
+
+</section>
+
+<style>
+  #info-home-{{ section.id }} {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: var(--ih-height, 640px);
+    background-color: var(--ih-bg, #F5F0EA);
+    overflow: hidden;
+  }
+
+  /* Image-left swap */
+  #info-home-{{ section.id }}.info-home--image-left { direction: rtl; }
+  #info-home-{{ section.id }}.info-home--image-left > * { direction: ltr; }
+
+  /* Content */
+  #info-home-{{ section.id }} .info-home__content {
+    display: flex;
+    align-items: center;
+    padding: var(--ih-pt, 80px) clamp(28px, 6vw, 80px) var(--ih-pb, 80px);
+  }
+  #info-home-{{ section.id }} .info-home__text { max-width: 520px; }
+
+  /* Eyebrow */
+  #info-home-{{ section.id }} .info-home__eyebrow {
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ih-body);
+    margin: 0 0 16px;
+  }
+
+  /* Heading — inherits theme heading font */
+  #info-home-{{ section.id }} .info-home__heading {
+    font-size: clamp(var(--ih-hm, 28px), 4vw, var(--ih-hd, 42px));
+    font-weight: 400;
+    line-height: 1.15;
+    color: var(--ih-heading);
+    margin: 0 0 clamp(28px, 4vw, 60px);
+  }
+
+  /* Body — inherits theme body font */
+  #info-home-{{ section.id }} .info-home__body {
+    font-size: clamp(13px, 1.1vw, var(--ih-bs, 15px));
+    line-height: 1.75;
+    color: var(--ih-body);
+    margin: 0 0 26px;
+  }
+  #info-home-{{ section.id }} .info-home__body p { margin: 0; }
+
+  /* Link – underline */
+  #info-home-{{ section.id }} .info-home__link {
+    display: inline-block;
+    font-size: 13px;
+    color: var(--ih-link);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: opacity .2s;
+  }
+  #info-home-{{ section.id }} .info-home__link:hover { opacity: .55; }
+
+  /* Link – outlined button */
+  #info-home-{{ section.id }} .info-home__link--btn {
+    text-decoration: none;
+    border: 1px solid var(--ih-link);
+    padding: 11px 26px;
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    transition: background .2s, color .2s;
+  }
+  #info-home-{{ section.id }} .info-home__link--btn:hover {
+    background: var(--ih-link);
+    color: var(--ih-bg);
+    opacity: 1;
+  }
+
+  /* Image */
+  #info-home-{{ section.id }} .info-home__media { overflow: hidden; }
+  #info-home-{{ section.id }} .info-home__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+  #info-home-{{ section.id }} .info-home__img--ph {
+    min-height: 320px;
+    background: #e8e0d8;
+  }
+
+  /* Mobile */
+  @media (max-width: 767px) {
+    #info-home-{{ section.id }} {
+      grid-template-columns: 1fr;
+      direction: ltr;
+    }
+    #info-home .info-home__content { order: 1; }
+#info-home .info-home__media   { order: 2; }
+    #info-home-{{ section.id }} .info-home__media { min-height: var(--ih-mimg, 360px); }
+    #info-home-{{ section.id }} .info-home__content { padding: 40px 20px 48px; }
+    #info-home-{{ section.id }} .info-home__text { max-width: 100%; }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Info Home",
+  "tag": "section",
+  "class": "section-info-home",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Image position",
+      "options": [
+        { "value": "image_right", "label": "Right (default)" },
+        { "value": "image_left",  "label": "Left" }
+      ],
+      "default": "image_right"
+    },
+    {
+      "type": "range",
+      "id": "min_height",
+      "label": "Section height (desktop)",
+      "min": 300,
+      "max": 900,
+      "step": 20,
+      "unit": "px",
+      "default": 640
+    },
+    {
+      "type": "range",
+      "id": "content_padding_top",
+      "label": "Content padding top",
+      "min": 20,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "content_padding_bottom",
+      "label": "Content padding bottom",
+      "min": 20,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 80
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#F5F0EA"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Heading color",
+      "default": "#1A1814"
+    },
+    {
+      "type": "color",
+      "id": "body_text_color",
+      "label": "Body text color",
+      "default": "#5C5750"
+    },
+    {
+      "type": "color",
+      "id": "link_color",
+      "label": "Link / button color",
+      "default": "#1A1814"
+    },
+    {
+      "type": "header",
+      "content": "Text sizes"
+    },
+    {
+      "type": "range",
+      "id": "heading_size_desktop",
+      "label": "Heading size — desktop",
+      "min": 24,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 42
+    },
+    {
+      "type": "range",
+      "id": "heading_size_mobile",
+      "label": "Heading size — mobile",
+      "min": 18,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "body_font_size",
+      "label": "Body text size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 15
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow label (optional)",
+      "placeholder": "Our Philosophy"
+    },
+    {
+      "type": "textarea",
+      "id": "heading",
+      "label": "Heading",
+      "default": "What We Practise,\nNot Just Promise."
+    },
+    {
+      "type": "richtext",
+      "id": "body_text",
+      "label": "Body text",
+      "default": "<p>We live on this planet and we live off it. The way something is made is not a detail — it is the product. Organic because the alternative harms the soil, the water, and the people who grow it. Priced honestly because luxury should not require a margin you cannot see. Made to last because we were not interested in making anything else.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Link"
+    },
+    {
+      "type": "text",
+      "id": "link_label",
+      "label": "Label",
+      "default": "Read Their Stories"
+    },
+    {
+      "type": "url",
+      "id": "link_url",
+      "label": "URL"
+    },
+    {
+      "type": "select",
+      "id": "link_style",
+      "label": "Style",
+      "options": [
+        { "value": "underline", "label": "Underline text" },
+        { "value": "button",    "label": "Outlined button" }
+      ],
+      "default": "underline"
+    },
+    {
+      "type": "checkbox",
+      "id": "link_new_tab",
+      "label": "Open in new tab",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "range",
+      "id": "mobile_image_height",
+      "label": "Image height on mobile",
+      "min": 200,
+      "max": 600,
+      "step": 20,
+      "unit": "px",
+      "default": 360
+    }
+  ],
+  "presets": [
+    {
+      "name": "Info Home",
+      "settings": {
+        "layout": "image_right",
+        "background_color": "#F5F0EA",
+        "heading": "What We Practise,\nNot Just Promise.",
+        "body_text": "<p>We live on this planet and we live off it. The way something is made is not a detail — it is the product. Organic because the alternative harms the soil, the water, and the people who grow it. Priced honestly because luxury should not require a margin you cannot see. Made to last because we were not interested in making anything else.</p>",
+        "link_label": "Read Their Stories",
+        "link_style": "underline"
+      }
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,660 @@
+{%- assign sid = 'igm-' | append: section.id -%}
+
+<section id="{{ sid }}">
+
+  {%- comment %} ── HEADER ── {% endcomment %}
+  {%- if section.settings.brand_name != blank or section.settings.logo != blank -%}
+  <div class="igm-header">
+    {%- if section.settings.logo != blank -%}
+      <img loading="lazy"
+        src="{{ section.settings.logo | image_url: width: 320 }}"
+        alt="{{ section.settings.brand_name | escape }}"
+        class="igm-logo"
+        width="160" height="160"
+        loading="eager" decoding="async">
+    {%- else -%}
+      <p class="igm-brand">{{ section.settings.brand_name | escape | upcase }}</p>
+    {%- endif -%}
+    {%- if section.settings.tagline != blank -%}
+      <p class="igm-tagline">{{ section.settings.tagline | escape | upcase }}</p>
+    {%- endif -%}
+  </div>
+  {%- endif -%}
+
+  {%- comment %} ── FILTERS ── {% endcomment %}
+  {%- if section.settings.show_filters and section.blocks.size > 0 -%}
+  <div class="igm-filters" role="tablist">
+    <button class="igm-fbtn active" data-filter="all" role="tab" aria-selected="true">{{ section.settings.label_all | default: 'All' }}</button>
+    <button class="igm-fbtn" data-filter="photo" role="tab" aria-selected="false">{{ section.settings.label_photo | default: 'Photos' }}</button>
+    <button class="igm-fbtn" data-filter="video" role="tab" aria-selected="false">{{ section.settings.label_video | default: 'Videos' }}</button>
+    <button class="igm-fbtn" data-filter="album" role="tab" aria-selected="false">{{ section.settings.label_album | default: 'Albums' }}</button>
+  </div>
+  {%- endif -%}
+
+  {%- if section.blocks.size > 0 -%}
+
+    {%- comment %} ── DESKTOP GRID ── {% endcomment %}
+    <div class="igm-grid" id="{{ sid }}-grid">
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'post' -%}
+          <div class="igm-card" data-type="{{ block.settings.post_type }}" {{ block.shopify_attributes }}>
+            {%- if block.settings.post_url != blank -%}
+              <a href="{{ block.settings.post_url }}" target="_blank" rel="noopener noreferrer" class="igm-card-link" aria-label="View on Instagram">
+            {%- endif -%}
+            {%- if block.settings.image != blank -%}
+              <img loading="lazy"
+                src="{{ block.settings.image | image_url: width: 800 }}"
+                alt="{{ block.settings.image.alt | escape | default: 'Instagram post' }}"
+                width="800" height="800"
+                loading="{%- if forloop.index <= 6 -%}eager{%- else -%}lazy{%- endif -%}"
+                decoding="async">
+            {%- else -%}
+              <div class="igm-placeholder">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                <span>Upload image</span>
+              </div>
+            {%- endif -%}
+            {%- if section.settings.show_badge -%}
+              {%- if block.settings.post_type == 'video' -%}<span class="igm-badge">▶ Video</span>
+              {%- elsif block.settings.post_type == 'album' -%}<span class="igm-badge">⊞ Album</span>
+              {%- endif -%}
+            {%- endif -%}
+            {%- if section.settings.show_hover -%}
+              <div class="igm-overlay" aria-hidden="true">
+                <svg class="igm-hover-icon" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+              </div>
+            {%- endif -%}
+            {%- if block.settings.post_url != blank -%}</a>{%- endif -%}
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+
+    {%- comment %} ── MOBILE SLIDER ── {% endcomment %}
+    <div class="igm-mob-slider" data-igm-slider="{{ section.id }}">
+      <div class="igm-mob-track" data-igm-track>
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'post' -%}
+            <div class="igm-mob-slide" data-igm-slide data-type="{{ block.settings.post_type }}" {{ block.shopify_attributes }}>
+              {%- if block.settings.post_url != blank -%}
+                <a href="{{ block.settings.post_url }}" target="_blank" rel="noopener noreferrer" class="igm-card-link" aria-label="View on Instagram">
+              {%- endif -%}
+              {%- if block.settings.image != blank -%}
+                <img loading="lazy"
+                  src="{{ block.settings.image | image_url: width: 800 }}"
+                  alt="{{ block.settings.image.alt | escape | default: 'Instagram post' }}"
+                  width="800" height="800"
+                  loading="lazy" decoding="async">
+              {%- else -%}
+                <div class="igm-placeholder">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                </div>
+              {%- endif -%}
+              {%- if section.settings.show_badge -%}
+                {%- if block.settings.post_type == 'video' -%}<span class="igm-badge">▶ Video</span>
+                {%- elsif block.settings.post_type == 'album' -%}<span class="igm-badge">⊞ Album</span>
+                {%- endif -%}
+              {%- endif -%}
+              {%- if block.settings.post_url != blank -%}</a>{%- endif -%}
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+
+      {%- comment %} Dots {%- endcomment -%}
+      {%- if section.settings.mob_show_dots -%}
+        <div class="igm-mob-dots" data-igm-dots>
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'post' -%}
+              <button
+                class="igm-mob-dot{% if forloop.first %} is-active{% endif %}"
+                data-igm-dot="{{ forloop.index0 }}"
+                aria-label="Go to slide {{ forloop.index }}">
+              </button>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+  {%- else -%}
+    <div class="igm-empty">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+      <p>No posts yet.</p>
+      <small>Click <strong>"+ Add block"</strong> → <strong>"Post"</strong> to add your Instagram photos.</small>
+    </div>
+  {%- endif -%}
+
+  {%- comment %} ── FOLLOW CTA ── {% endcomment %}
+  {%- if section.settings.show_cta and section.settings.instagram_url != blank -%}
+  <div class="igm-cta-wrap">
+    <a class="igm-cta" href="{{ section.settings.instagram_url }}" target="_blank" rel="noopener noreferrer">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+      {{ section.settings.cta_label | default: 'Follow on Instagram' }}
+    </a>
+  </div>
+  {%- endif -%}
+
+</section>
+
+<style>
+#{{ sid }} {
+  --bg:       {{ section.settings.bg_color }};
+  --txt:      {{ section.settings.text_color }};
+  --fab:      {{ section.settings.filter_bg }};
+  --fac:      {{ section.settings.filter_active }};
+  --fat:      {{ section.settings.filter_active_text }};
+  --gap:      {{ section.settings.grid_gap }}px;
+  --rad:      {{ section.settings.card_radius }}px;
+  --rat:      {{ section.settings.image_ratio }};
+  --cd:       {{ section.settings.cols_desktop }};
+  --ct:       {{ section.settings.cols_tablet }};
+  --cm:       {{ section.settings.cols_mobile }};
+  --mob-gap:  {{ section.settings.mob_slide_gap }}px;
+  --mob-peek: {{ section.settings.mob_peek_width }}vw;
+  --dot-c:    {{ section.settings.mob_dot_color }};
+  background: var(--bg);
+  padding: {{ section.settings.pad_v }}px {{ section.settings.pad_h }}px;
+  box-sizing: border-box;
+}
+
+/* ── Header ── */
+#{{ sid }} .igm-header { text-align: center; margin-bottom: 28px; }
+#{{ sid }} .igm-logo   { max-height: 48px; width: auto; display: block; margin: 0 auto 8px; }
+#{{ sid }} .igm-brand  { margin: 0 0 6px;  font-size: {{ section.settings.brand_size }}px; letter-spacing: .22em; color: var(--txt); font-weight: 400; }
+#{{ sid }} .igm-tagline{ margin: 0; font-size: 10px; letter-spacing: .22em; color: var(--txt); opacity: .5; }
+
+/* ── Filters ── */
+#{{ sid }} .igm-filters { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+#{{ sid }} .igm-fbtn {
+  background: var(--fab); border: 1px solid transparent; border-radius: 100px;
+  padding: 7px 22px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  cursor: pointer; color: var(--txt); 
+  transition: background .2s, color .2s, border-color .2s;
+}
+#{{ sid }} .igm-fbtn.active,
+#{{ sid }} .igm-fbtn:hover { background: var(--fac); color: var(--fat); border-color: var(--fac); }
+
+/* ── Desktop Grid ── */
+#{{ sid }} .igm-mob-slider { display: none; }
+
+#{{ sid }} .igm-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cd), 1fr);
+  gap: var(--gap);
+}
+
+/* ── Card (shared) ── */
+#{{ sid }} .igm-card,
+#{{ sid }} .igm-mob-slide {
+  position: relative; overflow: hidden;
+  border-radius: var(--rad); background: #e8e4df; display: block;
+}
+#{{ sid }} .igm-card-link { display: block; text-decoration: none; }
+#{{ sid }} .igm-card img,
+#{{ sid }} .igm-mob-slide img {
+  width: 100%; aspect-ratio: var(--rat);
+  object-fit: cover; display: block;
+  transition: transform .5s ease;
+}
+#{{ sid }} .igm-card:hover img,
+#{{ sid }} .igm-mob-slide:hover img { transform: scale(1.04); }
+
+/* Placeholder */
+#{{ sid }} .igm-placeholder {
+  width: 100%; aspect-ratio: var(--rat);
+  background: #e8e4df;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 10px; color: #aaa; font-size: 11px; letter-spacing: .1em;
+}
+
+/* Badge */
+#{{ sid }} .igm-badge {
+  position: absolute; top: 8px; right: 8px;
+  background: rgba(0,0,0,.45); color: #fff;
+  border-radius: 4px; padding: 3px 8px;
+  font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase; pointer-events: none; line-height: 1.4;
+}
+
+/* Hover overlay */
+#{{ sid }} .igm-overlay {
+  position: absolute; inset: 0; background: rgba(0,0,0,0);
+  display: flex; align-items: center; justify-content: center;
+  transition: background .3s; pointer-events: none;
+}
+#{{ sid }} .igm-card:hover .igm-overlay { background: rgba(0,0,0,.28); }
+#{{ sid }} .igm-hover-icon { color: #fff; opacity: 0; transform: scale(.85); transition: opacity .25s, transform .25s; }
+#{{ sid }} .igm-card:hover .igm-hover-icon { opacity: 1; transform: scale(1); }
+
+/* Hidden by filter */
+#{{ sid }} .igm-card[data-hidden] { display: none; }
+
+/* Empty */
+#{{ sid }} .igm-empty {
+  text-align: center; padding: 60px 24px; color: #aaa;
+  border: 2px dashed #e0dbd5; border-radius: 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+#{{ sid }} .igm-empty p     { margin: 0; font-size: 15px; color: #888; }
+#{{ sid }} .igm-empty small { font-size: 12px; }
+
+/* CTA */
+#{{ sid }} .igm-cta-wrap { text-align: center; margin-top: 28px; }
+#{{ sid }} .igm-cta {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--txt); color: var(--txt);
+  text-decoration: none; padding: 11px 30px;
+  font-size: 11px; letter-spacing: .15em; text-transform: uppercase;
+  border-radius: 100px; transition: background .2s, color .2s; 
+}
+#{{ sid }} .igm-cta:hover { background: var(--txt); color: var(--bg); }
+
+/* ── Tablet ── */
+@media (max-width: 1023px) {
+  #{{ sid }} .igm-grid { grid-template-columns: repeat(var(--ct), 1fr); }
+}
+
+/* ── Mobile: hide grid, show slider ── */
+@media (max-width: 639px) {
+  #{{ sid }} { padding-left: 0 !important; padding-right: 0 !important; }
+  #{{ sid }} .igm-header,
+  #{{ sid }} .igm-filters,
+  #{{ sid }} .igm-cta-wrap { padding-left: 16px; padding-right: 16px; }
+
+  #{{ sid }} .igm-grid     { display: none; }
+  #{{ sid }} .igm-mob-slider { display: block; }
+
+  /* Scrollable track */
+  #{{ sid }} .igm-mob-track {
+    display: flex;
+    overflow-x: scroll;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: var(--mob-gap);
+    padding: 0 15px;
+    scroll-padding-left: 15px;
+  }
+  #{{ sid }} .igm-mob-slide:last-child { margin-right: 15px; }
+  #{{ sid }} .igm-mob-track::-webkit-scrollbar { display: none; }
+
+  /* Each slide — peek amount controlled by setting */
+  #{{ sid }} .igm-mob-slide {
+    flex: 0 0 calc(var(--mob-peek) - var(--mob-gap));
+    width: calc(var(--mob-peek) - var(--mob-gap));
+    scroll-snap-align: start;
+  }
+
+  /* Dots */
+  #{{ sid }} .igm-mob-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 0 16px;
+  }
+  #{{ sid }} .igm-mob-dot {
+    width: {{ section.settings.mob_dot_size }}px;
+    height: {{ section.settings.mob_dot_size }}px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.18);
+    border: none; padding: 0; cursor: pointer;
+    transition: background 0.3s ease, transform 0.3s ease;
+    flex-shrink: 0;
+  }
+  #{{ sid }} .igm-mob-dot.is-active {
+    background: var(--dot-c, #111);
+    transform: scale(1.5);
+  }
+}
+</style>
+
+<script>
+(function () {
+  var SID = {{ sid | json }};
+
+  /* ── Desktop filter ── */
+  var btns = document.querySelectorAll('#' + SID + ' .igm-fbtn');
+  var grid = document.getElementById(SID + '-grid');
+  if (grid && btns.length) {
+    btns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        btns.forEach(function (b) { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
+        var f = btn.dataset.filter;
+        grid.querySelectorAll('.igm-card').forEach(function (card) {
+          if (f === 'all' || card.dataset.type === f) { delete card.dataset.hidden; }
+          else { card.dataset.hidden = '1'; }
+        });
+      });
+    });
+  }
+
+  /* ── Mobile slider dots ── */
+  var sliderEl = document.querySelector('[data-igm-slider="{{ section.id }}"]');
+  if (!sliderEl) return;
+
+  var track  = sliderEl.querySelector('[data-igm-track]');
+  var slides = sliderEl.querySelectorAll('[data-igm-slide]');
+  var dots   = sliderEl.querySelectorAll('[data-igm-dot]');
+
+  if (!track || !slides.length || !dots.length) return;
+
+  function setActive(idx) {
+    dots.forEach(function (d, i) {
+      d.classList.toggle('is-active', i === idx);
+    });
+  }
+
+  /* Sync dots on scroll */
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        var idx = Array.from(slides).indexOf(entry.target);
+        if (idx > -1) setActive(idx);
+      }
+    });
+  }, { root: track, threshold: 0.55 });
+
+  slides.forEach(function (slide) { observer.observe(slide); });
+
+  /* Dot click scrolls to slide */
+  dots.forEach(function (dot) {
+    dot.addEventListener('click', function () {
+      var idx = parseInt(dot.getAttribute('data-igm-dot'), 10);
+      var slide = slides[idx];
+      if (!slide) return;
+      track.scrollTo({
+        left: slide.offsetLeft - track.offsetLeft - 15,
+        behavior: 'smooth'
+      });
+    });
+  });
+}());
+</script>
+
+{% schema %}
+{
+  "name": "Instagram Feed",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Branding"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Logo (replaces brand name)"
+    },
+    {
+      "type": "text",
+      "id": "brand_name",
+      "label": "Brand Name",
+      "default": "@TANGELOS"
+    },
+    {
+      "type": "range",
+      "id": "brand_size",
+      "label": "Brand Name Size (px)",
+      "min": 14, "max": 60, "step": 1, "default": 28
+    },
+    {
+      "type": "text",
+      "id": "tagline",
+      "label": "Tagline",
+      "default": "Shared Sanctuary"
+    },
+    {
+      "type": "header",
+      "content": "Filter Tabs"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_filters",
+      "label": "Show Filter Tabs",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "label_all",
+      "label": "All label",
+      "default": "All"
+    },
+    {
+      "type": "text",
+      "id": "label_photo",
+      "label": "Photos label",
+      "default": "Photos"
+    },
+    {
+      "type": "text",
+      "id": "label_video",
+      "label": "Videos label",
+      "default": "Videos"
+    },
+    {
+      "type": "text",
+      "id": "label_album",
+      "label": "Albums label",
+      "default": "Albums"
+    },
+    {
+      "type": "header",
+      "content": "Card Style"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_badge",
+      "label": "Show Video / Album Badge",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_hover",
+      "label": "Show Hover Overlay",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Image Ratio",
+      "options": [
+        { "value": "1 / 1",  "label": "Square (1:1)" },
+        { "value": "4 / 5",  "label": "Portrait (4:5)" },
+        { "value": "3 / 2",  "label": "Landscape (3:2)" },
+        { "value": "16 / 9", "label": "Widescreen (16:9)" }
+      ],
+      "default": "1 / 1"
+    },
+    {
+      "type": "range",
+      "id": "card_radius",
+      "label": "Corner Radius (px)",
+      "min": 0, "max": 24, "step": 1, "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Follow Button"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cta",
+      "label": "Show Follow Button",
+      "default": true
+    },
+    {
+      "type": "url",
+      "id": "instagram_url",
+      "label": "Instagram Page URL"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Button Label",
+      "default": "Follow on Instagram"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#1a1a18"
+    },
+    {
+      "type": "color",
+      "id": "filter_bg",
+      "label": "Filter Button Background",
+      "default": "#f0ede8"
+    },
+    {
+      "type": "color",
+      "id": "filter_active",
+      "label": "Active Filter Background",
+      "default": "#3a3a3a"
+    },
+    {
+      "type": "color",
+      "id": "filter_active_text",
+      "label": "Active Filter Text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "pad_v",
+      "label": "Vertical Padding (px)",
+      "min": 0, "max": 120, "step": 4, "default": 48
+    },
+    {
+      "type": "range",
+      "id": "pad_h",
+      "label": "Horizontal Padding (px)",
+      "min": 0, "max": 120, "step": 4, "default": 0
+    },
+    {
+      "type": "range",
+      "id": "grid_gap",
+      "label": "Gap Between Posts (px)",
+      "min": 0, "max": 40, "step": 1, "default": 4
+    },
+    {
+      "type": "header",
+      "content": "Desktop / Tablet Columns"
+    },
+    {
+      "type": "range",
+      "id": "cols_desktop",
+      "label": "Desktop Columns",
+      "min": 1, "max": 8, "step": 1, "default": 6
+    },
+    {
+      "type": "range",
+      "id": "cols_tablet",
+      "label": "Tablet Columns",
+      "min": 1, "max": 6, "step": 1, "default": 4
+    },
+    {
+      "type": "range",
+      "id": "cols_mobile",
+      "label": "Mobile Grid Columns (if slider off)",
+      "min": 1, "max": 4, "step": 1, "default": 2
+    },
+    {
+      "type": "header",
+      "content": "📱 Mobile Slider"
+    },
+    {
+      "type": "range",
+      "id": "mob_peek_width",
+      "label": "Slide Width (vw)",
+      "info": "How wide each card is. Lower = more cards peek in from side.",
+      "min": 50, "max": 95, "step": 5, "default": 75
+    },
+    {
+      "type": "range",
+      "id": "mob_slide_gap",
+      "label": "Gap Between Slides (px)",
+      "min": 4, "max": 24, "step": 2, "default": 12
+    },
+    {
+      "type": "checkbox",
+      "id": "mob_show_dots",
+      "label": "Show Dot Indicators",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "mob_dot_size",
+      "label": "Dot Size (px)",
+      "min": 4, "max": 12, "step": 1, "default": 6
+    },
+    {
+      "type": "color",
+      "id": "mob_dot_color",
+      "label": "Active Dot Color",
+      "default": "#1a1a18"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "post",
+      "name": "Post",
+      "limit": 20,
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Post Image",
+          "info": "Upload a photo from your Instagram post."
+        },
+        {
+          "type": "select",
+          "id": "post_type",
+          "label": "Post Type",
+          "options": [
+            { "value": "photo", "label": "Photo" },
+            { "value": "video", "label": "Video" },
+            { "value": "album", "label": "Album / Carousel" }
+          ],
+          "default": "photo"
+        },
+        {
+          "type": "url",
+          "id": "post_url",
+          "label": "Instagram Post URL (optional)"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Instagram Feed",
+      "blocks": [
+        { "type": "post", "settings": { "post_type": "photo" } },
+        { "type": "post", "settings": { "post_type": "photo" } },
+        { "type": "post", "settings": { "post_type": "photo" } },
+        { "type": "post", "settings": { "post_type": "photo" } },
+        { "type": "post", "settings": { "post_type": "photo" } },
+        { "type": "post", "settings": { "post_type": "photo" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

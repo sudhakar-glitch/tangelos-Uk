@@ -1,0 +1,694 @@
+
+{%- liquid
+  assign block_settings = block.settings
+  assign product_resource = closest.product
+  assign selected_variant = product_resource.selected_or_first_available_variant
+-%}
+
+{% liquid
+  if block_settings.type_preset == 'rte' or block_settings.type_preset == 'paragraph'
+    assign is_rte = true
+  endif
+
+  capture text_block_classes
+    if block_settings.width == '100%'
+      echo 'text-block--align-' | append: block_settings.alignment
+      if block_settings.max_width == 'none'
+        echo ' text-block--full-width'
+      endif
+    endif
+    if block_settings.type_preset == 'custom'
+      echo ' custom-typography'
+      if block_settings.font_size != ''
+        echo ' custom-font-size'
+      endif
+      if block_settings.color != ''
+        echo ' custom-color'
+      endif
+    endif
+    if block_settings.background
+      echo ' text-block--background'
+    endif
+    if is_rte
+      echo ' rte'
+    endif
+  endcapture
+%}
+
+<div class="price-row-wrap">
+
+  <product-price
+    class="text-block {{ text_block_classes }} text-{{ block_settings.alignment }} {{ block_settings.type_preset | default: 'paragraph' }} spacing-style"
+    data-block-id="{{ block.id }}"
+    data-product-id="{{ product_resource.id }}"
+    style="
+      {% render 'typography-style', settings: block_settings %}
+      {% render 'spacing-style', settings: block_settings %}
+      --width: {{ block_settings.width }};
+    "
+    {{ block.shopify_attributes }}
+  >
+    <div class="price-with-save">
+      {% render 'price',
+        show_unit_price: true,
+        product_resource: product_resource,
+        show_sale_price_first: block_settings.show_sale_price_first
+      %}
+      {%- if block_settings.show_save_badge and request.page_type == 'product' -%}
+  {%- assign cp = product_resource.selected_or_first_available_variant.compare_at_price -%}
+  {%- assign pp = product_resource.selected_or_first_available_variant.price -%}
+  {%- if cp > pp -%}
+    {%- assign save_pct = cp | minus: pp | times: 100 | divided_by: cp -%}
+     {%- assign save_amount = cp | minus: pp -%}
+    {% comment %} <span class="price-save-badge" id="price-save-badge-{{ block.id }}">SAVE {{ save_pct }}%</span> {% endcomment %}
+            <span class="price-save-badge" id="price-save-badge-{{ block.id }}">SAVE {{ save_pct }}%</span> 
+      {%- else -%}
+    <span class="price-save-badge" id="price-save-badge-{{ block.id }}" style="display:none;"></span>
+  {%- endif -%}
+{%- endif -%}
+    </div>
+
+    {% if block_settings.show_tax_info %}
+      <div class="tax-note">
+        {%- if cart.duties_included and cart.taxes_included -%}
+          {{ 'content.duties_and_taxes_included' | t }}
+        {%- elsif cart.taxes_included -%}
+          {{ 'content.taxes_included' | t }}
+        {%- elsif cart.duties_included -%}
+          {{ 'content.duties_included' | t }}
+        {%- endif -%}
+        {%- if shop.shipping_policy.body != blank -%}
+          {{ 'content.shipping_policy' | t }}
+        {%- endif -%}
+      </div>
+    {% endif %}
+
+    {%- if selected_variant != blank and block_settings.show_installments -%}
+      <div class="installments">
+        {%- assign product_form_installment_id = 'product-form-installment-' | append: block.id -%}
+        {%- form 'product', product_resource, id: product_form_installment_id, class: 'payment-terms' -%}
+          <input type="hidden" name="id" value="{{ selected_variant.id }}">
+          {{ form | payment_terms }}
+        {%- endform -%}
+      </div>
+    {%- endif -%}
+  </product-price>
+
+  {%- comment -%} Static competitor prices — product page only {%- endcomment -%}
+  {%- if request.page_type == 'product' -%}
+    {% comment %} <div class="price-row__competitors">
+      <div class="price-row__comp">
+        <span class="price-row__comp-name">TEKLA</span>
+        <span class="price-row__comp-price">£190</span>
+      </div>
+      <div class="price-row__comp">
+        <span class="price-row__comp-name">FRETTE</span>
+        <span class="price-row__comp-price">£400</span>
+      </div>
+    </div> {% endcomment %}
+
+  {% comment %} 
+   
+<div class="mobiledevices">             
+<div class="price-replace-deisigns">
+{% for variant in product.variants %}
+{% assign table_content =  variant.metafields.custom.quick_compare.value  %}
+{% assign rows = table_content  %}
+<div class="quick_compare"  value="{{ variant.id }}"
+       data-variant-id="{{ variant.id }}"
+       {% if variant.id != product.selected_or_first_available_variant.id %}style="display:none"{% endif %}>
+  {{ table_content }}
+ </div>
+{% endfor %}
+ </div>
+ </div>
+ 
+ {% endcomment %}
+  {%- endif -%}
+
+</div>
+
+{% stylesheet %}
+.mobiledevices {
+    width: 100%;
+}
+.nearly-price-table ul li span {
+    display: block;
+}
+.nearly-price-table ul li span:last-child {
+    font-size: 18px;
+    font-weight: 400;
+    color: #00000080;
+    line-height: 1.1;
+}
+.nearly-price-table ul li span:first-child {
+    font-size: 9px;
+    letter-spacing: .16em;
+    color: #00000061;
+    font-weight: 400;
+    line-height: 1;
+        text-transform: uppercase;
+}
+body .price-replace-deisigns .quick_compare table {
+    display: none;
+}
+.nearly-price-table ul {
+    list-style: none;
+    display: flex;
+    gap: 30px;
+}
+  .price-with-save {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+span.price-item--sale.price, span.price-item--regular.compare-at-price {
+    font-size: 18px !important;
+}
+body div#shopify-section-template--28867865575584__product_list_FTqNxC span.price-item--sale.price, body div#shopify-section-template--28867865575584__product_list_FTqNxC span.price-item--regular.compare-at-price {
+    font-size: 16px !important;
+}
+
+
+  .price-save-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #0fb981;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    padding: 3px 8px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  .price-row-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .price-row__competitors {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    flex-shrink: 0;
+  }
+
+  .price-row__comp {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1px;
+  }
+
+  .price-row__comp-name {
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    color: rgba(0,0,0,0.38);
+    font-weight: 400;
+    line-height: 1;
+  }
+
+  .price-row__comp-price {
+    font-size: 18px;
+    font-weight: 400;
+    color: rgba(0,0,0,0.5);
+    line-height: 1.1;
+  }
+
+  /* Hide .00 trailing zeros via CSS on bdi elements that end in .00 */
+  product-price bdi {
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 749px) {
+    .price-row__comp-price { font-size: 15px; }
+    .price-row__competitors { gap: 12px; }
+  }
+{% endstylesheet %}
+
+<script>
+(function() {
+  /* Walk every text node inside an element and strip .00 */
+  function stripEl(el) {
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+    var node;
+    while ((node = walker.nextNode())) {
+      if (node.textContent.indexOf('.00') !== -1) {
+        node.textContent = node.textContent.replace(/\.00/g, '');
+      }
+    }
+  }
+
+  function stripAll() {
+    var wrap = document.querySelector('.price-row-wrap');
+    if (wrap) stripEl(wrap);
+  }
+
+  /* Run immediately + after DOM ready */
+  stripAll();
+  document.addEventListener('DOMContentLoaded', stripAll);
+
+  /* Listen for all variant change events themes use */
+  ['variant:changed', 'variantSelected', 'on:variant:change'].forEach(function(evt) {
+    document.addEventListener(evt, function() { setTimeout(stripAll, 0); });
+  });
+
+  /* MutationObserver — fires on every price DOM update */
+  var observer = new MutationObserver(function() { stripAll(); });
+
+  function startObserver() {
+    var wrap = document.querySelector('.price-row-wrap');
+    if (wrap) {
+      observer.observe(wrap, { childList: true, subtree: true, characterData: true });
+    } else {
+      setTimeout(startObserver, 200);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startObserver);
+  } else {
+    startObserver();
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "t:names.product_price",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "t:content.resource_reference_product_price"
+    },
+    {
+      "type": "paragraph",
+      "content": "t:content.edit_price_in_theme_settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sale_price_first",
+      "label": "t:settings.show_sale_price_first",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_installments",
+      "label": "t:settings.installments",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_tax_info",
+      "label": "t:settings.show_tax_info",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_save_badge",
+      "label": "Show Save % Badge",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "t:content.typography"
+    },
+    {
+      "type": "select",
+      "id": "type_preset",
+      "label": "t:settings.preset",
+      "options": [
+        { "value": "", "label": "t:options.default" },
+        { "value": "paragraph", "label": "t:options.paragraph" },
+        { "value": "h1", "label": "t:options.h1" },
+        { "value": "h2", "label": "t:options.h2" },
+        { "value": "h3", "label": "t:options.h3" },
+        { "value": "h4", "label": "t:options.h4" },
+        { "value": "h5", "label": "t:options.h5" },
+        { "value": "h6", "label": "t:options.h6" },
+        { "value": "custom", "label": "t:options.custom" }
+      ],
+      "info": "t:info.edit_presets_in_theme_settings"
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "t:settings.width",
+      "options": [
+        { "value": "fit-content", "label": "t:options.fit_content" },
+        { "value": "100%", "label": "t:options.fill" }
+      ],
+      "default": "100%"
+    },
+    {
+      "type": "text_alignment",
+      "id": "alignment",
+      "label": "t:settings.alignment",
+      "default": "left",
+      "visible_if": "{{ block.settings.width != 'fit-content' }}"
+    },
+    {
+      "type": "select",
+      "id": "font",
+      "label": "t:settings.font",
+      "options": [
+        { "value": "var(--font-body--family)", "label": "t:options.body" },
+        { "value": "var(--font-subheading--family)", "label": "t:options.subheading" },
+        { "value": "var(--font-heading--family)", "label": "t:options.heading" },
+        { "value": "var(--font-accent--family)", "label": "t:options.accent" }
+      ],
+      "default": "var(--font-body--family)",
+      "visible_if": "{{ block.settings.type_preset == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "font_size",
+      "label": "t:settings.size",
+      "options": [
+        { "value": "", "label": "t:options.default" },
+        { "value": "0.625rem", "label": "10px" },
+        { "value": "0.75rem", "label": "12px" },
+        { "value": "0.875rem", "label": "14px" },
+        { "value": "1rem", "label": "16px" },
+        { "value": "1.125rem", "label": "18px" },
+        { "value": "1.25rem", "label": "20px" },
+        { "value": "1.5rem", "label": "24px" },
+        { "value": "2rem", "label": "32px" },
+        { "value": "2.5rem", "label": "40px" },
+        { "value": "3rem", "label": "48px" },
+        { "value": "3.5rem", "label": "56px" },
+        { "value": "4.5rem", "label": "72px" },
+        { "value": "5.5rem", "label": "88px" },
+        { "value": "7.5rem", "label": "120px" },
+        { "value": "9.5rem", "label": "152px" },
+        { "value": "11.5rem", "label": "184px" }
+      ],
+      "default": "1rem",
+      "visible_if": "{{ block.settings.type_preset == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "line_height",
+      "label": "t:settings.line_height",
+      "options": [
+        { "value": "tight", "label": "t:options.tight" },
+        { "value": "normal", "label": "t:options.normal" },
+        { "value": "loose", "label": "t:options.loose" }
+      ],
+      "default": "normal",
+      "visible_if": "{{ block.settings.type_preset == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "letter_spacing",
+      "label": "t:settings.letter_spacing",
+      "options": [
+        { "value": "tight", "label": "t:options.tight" },
+        { "value": "normal", "label": "t:options.normal" },
+        { "value": "loose", "label": "t:options.loose" }
+      ],
+      "default": "normal",
+      "visible_if": "{{ block.settings.type_preset == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "case",
+      "label": "t:settings.case",
+      "options": [
+        { "value": "none", "label": "t:options.default" },
+        { "value": "uppercase", "label": "t:options.uppercase" }
+      ],
+      "default": "none",
+      "visible_if": "{{ block.settings.type_preset == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "color",
+      "label": "t:settings.color",
+      "options": [
+        { "value": "var(--color-foreground)", "label": "t:options.text" },
+        { "value": "var(--color-foreground-heading)", "label": "t:options.heading" },
+        { "value": "var(--color-primary)", "label": "t:options.link" }
+      ],
+      "default": "var(--color-foreground)",
+      "visible_if": "{{ block.settings.type_preset != 'rte' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-start",
+      "label": "t:settings.left",
+      "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-end",
+      "label": "t:settings.right",
+      "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.product_price",
+      "category": "t:categories.product"
+    }
+  ]
+}
+{% endschema %}
+<script>
+  window.__SaveBadgeVariants = window.__SaveBadgeVariants || {};
+  window.__SaveBadgeVariants['{{ product_resource.id }}'] = [
+    {%- for variant in product_resource.variants -%}
+      {
+        "id": {{ variant.id }},
+        "price": {{ variant.price | default: 0 }},
+        "compare_at_price": {{ variant.compare_at_price | default: 0 }}
+      }{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  ];
+</script>
+
+<script>
+(function () {
+  var BLOCK_ID   = '{{ block.id }}';
+  var PRODUCT_ID = '{{ product_resource.id }}';
+
+  function updateBadge(variantId) {
+{% comment %} var pct_ampunt =0; {% endcomment %}
+
+    var badge = document.getElementById('price-save-badge-' + BLOCK_ID);
+    if (!badge) return;
+    var variants = window.__SaveBadgeVariants[PRODUCT_ID];
+    if (!variants) return;
+    var variant = variants.find(function(v) { return v.id === variantId; });
+    if (!variant) return;
+    if (variant.compare_at_price > variant.price) {
+      var pct = Math.floor((variant.compare_at_price - variant.price) * 100 / variant.compare_at_price);
+
+      badge.textContent = 'SAVE ' + pct + '%';
+      badge.style.display = '';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  function currentVariantId() {
+    var urlId = parseInt(new URLSearchParams(window.location.search).get('variant'), 10);
+    if (urlId) return urlId;
+    var input = document.querySelector('form[action*="/cart/add"] input[name="id"]');
+    if (input) return parseInt(input.value, 10);
+    return null;
+  }
+
+  /* Listen for variant changes */
+  ['variant:change', 'variant:changed', 'variantSelected'].forEach(function(evt) {
+    document.addEventListener(evt, function(e) {
+      var id = e.detail && (e.detail.id || (e.detail.variant && e.detail.variant.id));
+      updateBadge(id || currentVariantId());
+    });
+  });
+
+  /* Fallback: poll URL every 200ms */
+  var _last = null;
+  setInterval(function() {
+    var id = currentVariantId();
+    if (id && id !== _last) { _last = id; updateBadge(id); }
+  }, 200);
+
+  /* Init on load */
+  var id = currentVariantId();
+  if (id) updateBadge(id);
+})();
+</script>
+
+
+
+<script>
+  window.__VariantPrices = window.__VariantPrices || {};
+  window.__VariantPrices['{{ product_resource.id }}'] = [
+    {%- for variant in product_resource.variants -%}
+      {
+        "id": {{ variant.id }},
+        "price": {{ variant.price | default: 0 }},
+        "compare_at_price": {{ variant.compare_at_price | default: 0 }}
+      }{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  ];
+</script>
+
+<script>
+(function () {
+  var PRODUCT_ID = '{{ product_resource.id }}';
+  var BLOCK_ID   = '{{ block.id }}';
+
+  function formatMoney(cents) {
+    var amount = (cents / 100).toFixed(2).replace('.00', '');
+    return '£' + amount;
+  }
+
+  function updatePrice(variantId) {
+    var variants = window.__VariantPrices[PRODUCT_ID];
+    if (!variants) return;
+    var variant = variants.find(function(v) { return v.id === variantId; });
+    if (!variant) return;
+
+    var priceEl = document.querySelector('product-price[data-block-id="' + BLOCK_ID + '"]');
+    if (!priceEl) return;
+
+    var isOnSale = variant.compare_at_price > variant.price;
+
+    /* ── Sale containers ── */
+    var saleContainer    = priceEl.querySelector('.price__sale');
+    var regularContainer = priceEl.querySelector('.price__regular');
+
+    /* ── Price elements ── */
+    var salePriceEl  = priceEl.querySelector('.price-item--sale');
+    var regularEl    = priceEl.querySelector('.price__regular .price-item--regular');
+    var compareEl    = priceEl.querySelector('.price-item--regular:not(.price__regular .price-item--regular), s .price-item--regular, .price__compare .price-item--regular');
+
+    if (isOnSale) {
+      /* Show sale layout */
+      if (saleContainer)    saleContainer.style.display    = '';
+      if (regularContainer) regularContainer.style.display = 'none';
+
+      /* Update sale price */
+      if (salePriceEl) {
+        salePriceEl.innerHTML = formatMoney(variant.price);
+      }
+
+      /* Update compare-at price — strip GBP currency code */
+      if (compareEl) {
+        compareEl.innerHTML = formatMoney(variant.compare_at_price);
+      }
+
+      /* Fallback: find any <s> strikethrough element */
+      var strikeEl = priceEl.querySelector('s');
+      if (strikeEl) {
+        var bdi = strikeEl.querySelector('bdi');
+        if (bdi) {
+          bdi.textContent = formatMoney(variant.compare_at_price);
+        } else {
+          strikeEl.textContent = formatMoney(variant.compare_at_price);
+        }
+      }
+
+    } else {
+      /* Show regular layout */
+      if (saleContainer)    saleContainer.style.display    = 'none';
+      if (regularContainer) regularContainer.style.display = '';
+
+      /* Update regular price */
+      if (regularEl) {
+        var bdi = regularEl.querySelector('bdi');
+        if (bdi) {
+          bdi.textContent = formatMoney(variant.price);
+        } else {
+          regularEl.textContent = formatMoney(variant.price);
+        }
+      }
+    }
+
+    /* ── Update save badge ── */
+    var badge = document.getElementById('price-save-badge-' + BLOCK_ID);
+    if (badge) {
+      if (isOnSale) {
+        var pct = Math.floor((variant.compare_at_price - variant.price) * 100 / variant.compare_at_price);
+
+        badge.textContent = 'SAVE ' + pct + '%';
+        badge.style.display = '';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    /* ── Strip GBP currency code anywhere in price block ── */
+    setTimeout(function() {
+      var walker = document.createTreeWalker(priceEl, NodeFilter.SHOW_TEXT, null, false);
+      var node;
+      while ((node = walker.nextNode())) {
+        if (/\s?GBP/i.test(node.textContent)) {
+          node.textContent = node.textContent.replace(/\s?GBP/gi, '').trim();
+        }
+      }
+    }, 10);
+  }
+
+  function currentVariantId() {
+    var urlId = parseInt(new URLSearchParams(window.location.search).get('variant'), 10);
+    if (urlId) return urlId;
+    var input = document.querySelector('form[action*="/cart/add"] input[name="id"]');
+    if (input) return parseInt(input.value, 10);
+    return null;
+  }
+
+  /* ── Variant change events ── */
+  ['variant:change', 'variant:changed', 'variantSelected', 'on:variant:change'].forEach(function(evt) {
+    document.addEventListener(evt, function(e) {
+      var id = e.detail && (e.detail.id || (e.detail.variant && e.detail.variant.id));
+      updatePrice(id || currentVariantId());
+    });
+  });
+
+  /* ── Radio / select change ── */
+  document.addEventListener('change', function(e) {
+    var form = e.target.closest('form[action*="/cart/add"]');
+    if (!form) return;
+    var input = form.querySelector('input[name="id"]:checked, input[name="id"]:not([type="radio"]), select[name="id"]');
+    if (input) updatePrice(parseInt(input.value, 10));
+  });
+
+  /* ── URL polling fallback every 200ms ── */
+  var _last = null;
+  setInterval(function() {
+    var id = currentVariantId();
+    if (id && id !== _last) { _last = id; updatePrice(id); }
+  }, 200);
+
+  /* ── Init on load ── */
+  var id = currentVariantId();
+  if (id) { _last = id; updatePrice(id); }
+
+})();
+</script>

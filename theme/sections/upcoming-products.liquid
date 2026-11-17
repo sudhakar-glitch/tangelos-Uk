@@ -1,0 +1,848 @@
+{%- assign section_id = 'fh-' | append: section.id -%}
+
+<section
+  id="{{ section_id }}"
+  class="fh-section"
+  style="
+    --fh-bg: {{ section.settings.bg_color }};
+    --fh-panel: {{ section.settings.panel_color }};
+    --fh-accent: {{ section.settings.accent_color }};
+    --fh-text: {{ section.settings.text_color }};
+    --fh-subtext: {{ section.settings.subtext_color }};
+    --fh-btn-bg: {{ section.settings.btn_bg }};
+    --fh-btn-text: {{ section.settings.btn_text_color }};
+    --fh-bottom-title: {{ section.settings.bottom_title_color }};
+    --fh-overlay: {{ section.settings.overlay_opacity | divided_by: 100.0 }};
+    --fh-slide-duration: {{ section.settings.slide_duration }}ms;
+    --fh-section-height: {{ section.settings.section_height }}vh;
+    --fh-split: {{ section.settings.split_ratio }}%;
+    --fh-panel-pad-top: {{ section.settings.panel_pad_top }}px;
+    --fh-panel-pad-right: {{ section.settings.panel_pad_right }}px;
+    --fh-panel-pad-bottom: {{ section.settings.panel_pad_bottom }}px;
+    --fh-panel-pad-left: {{ section.settings.panel_pad_left }}px;
+    --fh-title-pos: {{ section.settings.bottom_title_position }};
+  "
+  data-autoplay="{{ section.settings.autoplay }}"
+  aria-label="{{ section.settings.heading | escape }}"
+>
+
+  {%- comment %} ── LEFT: SOLID CONTENT PANEL ── {% endcomment -%}
+  <div class="fh-content-panel">
+
+    {%- comment %} ── ROTATING BADGE ── {% endcomment -%}
+    {%- if section.settings.show_badge -%}
+      <div class="fh-badge" aria-hidden="true">
+        <svg viewBox="0 0 120 120" class="fh-badge__ring">
+          <defs>
+            <path id="fh-circle-{{ section_id }}" d="M 60,60 m -45,0 a 45,45 0 1,1 90,0 a 45,45 0 1,1 -90,0"/>
+          </defs>
+          <text class="fh-badge__text">
+            <textPath href="#fh-circle-{{ section_id }}" startOffset="0%">
+              {{ section.settings.badge_text }}
+            </textPath>
+          </text>
+        </svg>
+        <span class="fh-badge__dot"></span>
+      </div>
+    {%- endif -%}
+
+    <div class="fh-content">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="fh-eyebrow">{{ section.settings.eyebrow }}</p>
+      {%- endif -%}
+
+      <h2 class="fh-heading">{{ section.settings.heading }}</h2>
+
+      {%- if section.settings.subtext != blank -%}
+        <p class="fh-subtext">{{ section.settings.subtext }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.btn_label != blank -%}
+        <a
+          href="{{ section.settings.btn_url }}"
+          class="fh-btn"
+          {% if section.settings.btn_url == blank %}aria-disabled="true"{% endif %}
+        >
+          {{- section.settings.btn_label -}}
+        </a>
+      {%- endif -%}
+    </div>
+
+    {%- comment %} ── SCROLL CTA ── {% endcomment -%}
+    {%- if section.settings.show_scroll_cta -%}
+      <div class="fh-scroll-cta" aria-hidden="true">
+        <span class="fh-scroll-cta__label">{{ section.settings.scroll_label | default: 'SCROLL' }}</span>
+        <span class="fh-scroll-cta__icon">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7 1v12M2 8l5 5 5-5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </div>
+    {%- endif -%}
+
+  </div>{%- comment %} /.fh-content-panel {% endcomment -%}
+
+  {%- comment %} ── RIGHT: IMAGE PANEL ── {% endcomment -%}
+  <div class="fh-image-panel">
+
+    {%- comment %} ── SLIDES ── {% endcomment -%}
+    <div class="fh-slides" role="list" aria-live="polite">
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'slide' -%}
+          {%- assign is_first = forloop.first -%}
+          <div
+            class="fh-slide{% if is_first %} is-active{% endif %}"
+            role="listitem"
+            data-index="{{ forloop.index0 }}"
+            {{ block.shopify_attributes }}
+          >
+            {%- if block.settings.image != blank -%}
+              {%- if is_first -%}
+                {{
+                  block.settings.image
+                  | image_url: width: 1400
+                  | image_tag:
+                    loading: 'eager',
+                    fetchpriority: 'high',
+                    width: 1400,
+                    height: 1000,
+                    sizes: '60vw',
+                    class: 'fh-slide__img',
+                    alt: block.settings.image.alt | default: section.settings.heading
+                }}
+              {%- else -%}
+                {{
+                  block.settings.image
+                  | image_url: width: 1400
+                  | image_tag:
+                    loading: 'lazy',
+                    fetchpriority: 'auto',
+                    width: 1400,
+                    height: 1000,
+                    sizes: '60vw',
+                    class: 'fh-slide__img',
+                    alt: block.settings.image.alt | default: section.settings.heading
+                }}
+              {%- endif -%}
+            {%- else -%}
+              <div class="fh-slide__placeholder">
+                {{ 'lifestyle-1' | placeholder_svg_tag: 'fh-slide__svg' }}
+              </div>
+            {%- endif -%}
+            <div class="fh-slide__overlay"></div>
+            {%- if block.settings.slide_name != blank -%}
+              {%- assign title_pos = section.settings.bottom_title_position -%}
+              {%- if title_pos == 'top' -%}
+                {%- assign title_style = 'top:5%;bottom:auto;' -%}
+              {%- elsif title_pos == 'center' -%}
+                {%- assign title_style = 'top:50%;bottom:auto;transform:translateY(-50%);' -%}
+              {%- else -%}
+                {%- assign title_style = 'bottom:16px;top:auto;' -%}
+              {%- endif -%}
+              <div class="fh-bottom-title" aria-hidden="true" style="{{ title_style }}">
+                <span>{{ block.settings.slide_name }}</span>
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+
+    {%- comment %} ── SLIDE DOTS ── {% endcomment -%}
+    {%- assign slide_blocks = section.blocks | where: 'type', 'slide' -%}
+    {%- assign slide_count = slide_blocks | size -%}
+    {%- if slide_count > 1 -%}
+      <div class="fh-dots" role="tablist" aria-label="Slides">
+        {%- for slide_block in slide_blocks -%}
+          {%- assign dot_label = slide_block.settings.slide_name | default: forloop.index -%}
+          <button
+            class="fh-dot{% if forloop.first %} is-active{% endif %}"
+            role="tab"
+            aria-selected="{{ forloop.first }}"
+            aria-label="{{ dot_label }}"
+            data-slide="{{ forloop.index0 }}"
+            title="{{ dot_label }}"
+          ></button>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+  </div>{%- comment %} /.fh-image-panel {% endcomment -%}
+
+</section>
+
+{%- comment %} ════════════ STYLES ════════════ {% endcomment -%}
+<style>
+  /* ── Reset scoped ── */
+  #{{ section_id }} *,
+  #{{ section_id }} *::before,
+  #{{ section_id }} *::after {
+    box-sizing: border-box;
+    margin: 0;
+  }
+
+  /* ── Section shell: horizontal split ── */
+  #{{ section_id }}.fh-section {
+    position: relative;
+    width: 100%;
+    height: var(--fh-section-height, 90vh);
+    min-height: 520px;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+    contain: layout style;
+  }
+
+  /* ════ LEFT CONTENT PANEL ════ */
+  .fh-content-panel {
+    position: relative;
+    width: calc(100% - var(--fh-split, 58%));
+    flex-shrink: 0;
+    background: var(--fh-panel, #2b0f0f);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    padding: var(--fh-panel-pad-top, 48px) var(--fh-panel-pad-right, 40px) var(--fh-panel-pad-bottom, 80px) var(--fh-panel-pad-left, 40px);
+    overflow: hidden;
+  }
+
+  /* ════ RIGHT IMAGE PANEL ════ */
+  .fh-image-panel {
+    position: relative;
+    width: var(--fh-split, 58%);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  /* ── Slides ── */
+  .fh-slides {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  .fh-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 1.1s cubic-bezier(.4,0,.2,1);
+    will-change: opacity;
+  }
+  .fh-slide.is-active { opacity: 1; z-index: 1; }
+  .fh-slide__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+  .fh-slide__placeholder,
+  .fh-slide__svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .fh-slide__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0) 30%,
+      rgba(0,0,0,var(--fh-overlay,0.40)) 100%
+    );
+    z-index: 2;
+  }
+
+  /* ── Big bottom title over image ── */
+  .fh-bottom-title {
+    position: absolute;
+    top: var(--fh-title-top, auto);
+    bottom: var(--fh-title-bottom, 16px);
+    left: 0;
+    right: 0;
+    z-index: 3;
+    pointer-events: none;
+    overflow: hidden;
+    display: flex;
+    align-items: var(--fh-title-align, flex-end);
+  }
+  .fh-bottom-title span {
+    display: block;
+    font-size: clamp(60px, 10vw, 140px);
+    font-weight: 800;
+    letter-spacing: -.02em;
+    text-transform: uppercase;
+    color: var(--fh-bottom-title, rgba(240,230,220,0.15));
+    white-space: nowrap;
+    line-height: .9;
+    padding-left: 4%;
+  }
+
+  /* ── Slide dots ── */
+  .fh-dots {
+    position: absolute;
+    bottom: 20px;
+    left: 5%;
+    z-index: 10;
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+  }
+  .fh-dot {
+    width: 20px;
+    height: 4px;
+    border-radius: 4px;
+    background: rgba(255,255,255,.30);
+    border: none;
+    cursor: pointer;
+    transition: background .25s, width .25s;
+    padding: 0;
+  }
+  .fh-dot.is-active {
+    background: #fff;
+    width: 36px;
+  }
+
+  /* ── Rotating badge — top-left of content panel ── */
+  .fh-badge {
+    position: absolute;
+    top: 7%;
+    left: 8%;
+    width: 110px;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fhSpin 18s linear infinite;
+    z-index: 10;
+  }
+  .fh-badge__ring {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .fh-badge__text {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .22em;
+    fill: var(--fh-accent, #d4b8a8);
+    text-transform: uppercase;
+  }
+  .fh-badge__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--fh-accent, #d4b8a8);
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ── Content stack ── */
+  .fh-content {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-width: 80%;
+    animation: fhFadeUp .7s .1s both cubic-bezier(.4,0,.2,1);
+  }
+  .fh-eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    color: var(--fh-accent, #d4b8a8);
+    opacity: .85;
+  }
+  .fh-heading {
+    font-size: clamp(26px, 2.8vw, 42px);
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--fh-text, #f0e6dc);
+    letter-spacing: .01em;
+    white-space: pre-line;
+  }
+  .fh-subtext {
+    font-size: clamp(12px, 1vw, 14px);
+    line-height: 1.8;
+    color: var(--fh-subtext, #d4b8a8);
+    font-weight: 300;
+    max-width: 75%;
+  }
+  .fh-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    padding: 13px 32px;
+    border-radius: 100px;
+    background: var(--fh-btn-bg, #f0e6dc);
+    color: var(--fh-btn-text, #2b0f0f);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    text-decoration: none;
+    margin-top: 6px;
+    transition: transform .2s, box-shadow .2s, background .2s;
+    box-shadow: 0 4px 24px rgba(0,0,0,.22);
+  }
+  .fh-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 32px rgba(0,0,0,.32);
+    background: #fff;
+  }
+
+  /* ── Scroll CTA ── */
+  .fh-scroll-cta {
+    position: absolute;
+    bottom: 24px;
+    left: 8%;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--fh-subtext, #d4b8a8);
+    font-size: 9px;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    opacity: .7;
+  }
+  .fh-scroll-cta__icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid currentColor;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fhBounce 2s ease-in-out infinite;
+  }
+
+  /* ── Keyframes ── */
+  @keyframes fhFadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fhSpin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes fhBounce {
+    0%,100% { transform: translateY(0); }
+    50%     { transform: translateY(4px); }
+  }
+
+  /* ════ RESPONSIVE ════ */
+
+  @media (max-width: 1024px) {
+    #{{ section_id }}.fh-section {
+      --fh-split: 52%;
+    }
+    .fh-content-panel {
+      padding: 40px 6% 80px 6%;
+    }
+    .fh-badge {
+      top: 5%;
+      left: 5%;
+      width: 90px;
+      height: 90px;
+    }
+  }
+
+  /* Mobile: stack vertically — content card FIRST, image SECOND */
+  @media (max-width: 767px) {
+    #{{ section_id }}.fh-section {
+      flex-direction: column;
+      height: auto;
+      min-height: unset;
+    }
+
+    /* Content panel on top, full width */
+    .fh-content-panel {
+      width: 100%;
+      padding: 40px 7% 80px;
+      align-items: center;
+    }
+
+    /* Image on bottom, fixed height */
+    .fh-image-panel {
+      width: 100%;
+      height: 55vw;
+      min-height: 240px;
+      max-height: 420px;
+      flex-shrink: 0;
+    }
+
+    .fh-content {
+      align-items: center;
+      text-align: center;
+      max-width: 100%;
+    }
+    .fh-subtext {
+      max-width: 100%;
+    }
+
+    .fh-bottom-title span {
+      font-size: clamp(48px, 16vw, 80px);
+    }
+    .fh-bottom-title {
+      bottom: 44px;
+    }
+
+    .fh-dots {
+      bottom: 52px;
+    }
+
+    /* Badge: top-right on mobile */
+    .fh-badge {
+      top: -20px;
+      left: auto;
+      right: 6%;
+      width: 80px;
+      height: 80px;
+    }
+
+    .fh-scroll-cta {
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .fh-image-panel {
+      height: 65vw;
+    }
+    .fh-heading {
+      font-size: clamp(24px, 7vw, 34px);
+    }
+  }
+</style>
+
+{%- comment %} ════════════ JAVASCRIPT ════════════ {% endcomment -%}
+<script>
+(function(){
+  var sec = document.getElementById('{{ section_id }}');
+  if (!sec) return;
+
+  var slides = sec.querySelectorAll('.fh-slide');
+  var dots   = sec.querySelectorAll('.fh-dot');
+  var total  = slides.length;
+  if (total < 2) return;
+
+  var cur = 0;
+  var autoplay = sec.getAttribute('data-autoplay') === 'true';
+  var durRaw = autoplay
+    ? parseInt(sec.style.getPropertyValue('--fh-slide-duration') || '5000', 10)
+    : 0;
+  var dur = (durRaw > 0 && durRaw < 100) ? durRaw * 1000 : durRaw;
+  var timer;
+
+  function goTo(n) {
+    slides[cur].classList.remove('is-active');
+    if (dots[cur]) {
+      dots[cur].classList.remove('is-active');
+      dots[cur].setAttribute('aria-selected', 'false');
+    }
+    cur = (n + total) % total;
+    slides[cur].classList.add('is-active');
+    if (dots[cur]) {
+      dots[cur].classList.add('is-active');
+      dots[cur].setAttribute('aria-selected', 'true');
+    }
+  }
+
+  function startAuto() {
+    if (!dur) return;
+    clearInterval(timer);
+    timer = setInterval(function(){ goTo(cur + 1); }, dur);
+  }
+
+  dots.forEach(function(d) {
+    d.addEventListener('click', function() {
+      clearInterval(timer);
+      goTo(parseInt(this.dataset.slide, 10));
+      startAuto();
+    });
+  });
+
+  startAuto();
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Furniture Hero",
+  "tag": "section",
+  "class": "shopify-section-furniture-hero",
+  "max_blocks": 6,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow label",
+      "default": "NEW COLLECTION 2025"
+    },
+    {
+      "type": "textarea",
+      "id": "heading",
+      "label": "Heading",
+      "default": "FURNITURE THAT\nFITS YOUR LIFE NOW"
+    },
+    {
+      "type": "textarea",
+      "id": "subtext",
+      "label": "Subtext",
+      "default": "Makes it simple, accessible and sustainable for you to create space that you love, with commitment."
+    },
+    {
+      "type": "text",
+      "id": "btn_label",
+      "label": "Button label",
+      "default": "EXPLORE"
+    },
+    {
+      "type": "url",
+      "id": "btn_url",
+      "label": "Button URL"
+    },
+    {
+      "type": "text",
+      "id": "bottom_title",
+      "label": "Big text over image",
+      "default": "LA VARA"
+    },
+    {
+      "type": "header",
+      "content": "Badge"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_badge",
+      "label": "Show rotating badge",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "badge_text",
+      "label": "Badge text (fits ~30 chars)",
+      "default": "SEASON STARTS • SALES • "
+    },
+    {
+      "type": "header",
+      "content": "Scroll CTA"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_scroll_cta",
+      "label": "Show scroll CTA",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "scroll_label",
+      "label": "Scroll label",
+      "default": "SCROLL"
+    },
+    {
+      "type": "header",
+      "content": "Slider"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "Autoplay slides",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "slide_duration",
+      "min": 500,
+      "max": 8000,
+      "step": 500,
+      "unit": "ms",
+      "label": "Slide duration",
+      "default": 5000
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "split_ratio",
+      "min": 45,
+      "max": 70,
+      "step": 5,
+      "unit": "%",
+      "label": "Image panel width",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "section_height",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "vh",
+      "label": "Section height (desktop)",
+      "default": 90
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 10,
+      "max": 80,
+      "step": 5,
+      "unit": "%",
+      "label": "Image overlay opacity",
+      "default": 40
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background fallback",
+      "default": "#2b0f0f"
+    },
+    {
+      "type": "color",
+      "id": "panel_color",
+      "label": "Left panel solid color",
+      "default": "#2b0f0f"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent",
+      "default": "#d4b8a8"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Heading text",
+      "default": "#f0e6dc"
+    },
+    {
+      "type": "color",
+      "id": "subtext_color",
+      "label": "Subtext",
+      "default": "#d4b8a8"
+    },
+    {
+      "type": "color",
+      "id": "btn_bg",
+      "label": "Button background",
+      "default": "#f0e6dc"
+    },
+    {
+      "type": "color",
+      "id": "btn_text_color",
+      "label": "Button text",
+      "default": "#2b0f0f"
+    },
+    {
+      "type": "color",
+      "id": "bottom_title_color",
+      "label": "Big title color (over image)",
+      "default": "#f0e6dc26"
+    },
+    {
+      "type": "header",
+      "content": "Big Title Position"
+    },
+    {
+      "type": "select",
+      "id": "bottom_title_position",
+      "label": "Title vertical position",
+      "options": [
+        { "value": "top",    "label": "Top" },
+        { "value": "center", "label": "Center" },
+        { "value": "bottom", "label": "Bottom" }
+      ],
+      "default": "bottom"
+    },
+    {
+      "type": "header",
+      "content": "Left Panel Padding"
+    },
+    {
+      "type": "range",
+      "id": "panel_pad_top",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "panel_pad_right",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "Padding right",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "panel_pad_bottom",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "panel_pad_left",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "Padding left",
+      "default": 40
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "settings": [
+        {
+          "type": "text",
+          "id": "slide_name",
+          "label": "Slide name",
+          "default": "Slide"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Slide image"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Furniture Hero",
+      "blocks": [
+        { "type": "slide" },
+        { "type": "slide" },
+        { "type": "slide" }
+      ]
+    }
+  ]
+}
+{% endschema %}

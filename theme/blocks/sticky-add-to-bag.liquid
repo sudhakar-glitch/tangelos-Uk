@@ -1,0 +1,297 @@
+{%- comment -%}
+  Theme block: Sticky add to bag (mobile bottom bar)
+  Put this file in: blocks/sticky-add-to-bag.liquid
+  Add it inside the product section (e.g. Details > Add block > "Sticky add to bag").
+{%- endcomment -%}
+
+{%- liquid
+  assign current = product.selected_or_first_available_variant
+  assign thumb = current.featured_image | default: product.featured_image
+  assign current_title = current.title | replace: ' / ', ' · '
+  if product.has_only_default_variant
+    assign current_title = product.title
+  endif
+-%}
+
+{%- style -%}
+  .sab-{{ block.id }} {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: {{ block.settings.bar_bg }};
+    border-top: 1px solid {{ block.settings.border_color }};
+    box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.05);
+    transform: translateY(110%);
+    transition: transform 0.3s ease;
+    box-sizing: border-box;
+  }
+  .sab-{{ block.id }}.is-visible {
+    transform: translateY(0);
+  }
+  .sab-{{ block.id }} .sab__thumb {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    border-radius: {{ block.settings.thumb_radius }}px;
+    overflow: hidden;
+    background: #F3EFE7;
+  }
+  .sab-{{ block.id }} .sab__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .sab-{{ block.id }} .sab__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .sab-{{ block.id }} .sab__title {
+    color: {{ block.settings.title_color }};
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.3;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sab-{{ block.id }} .sab__price {
+    color: {{ block.settings.price_color }};
+    font-size: 13px;
+    line-height: 1.3;
+    margin: 0;
+  }
+  .sab-{{ block.id }} .sab__btn {
+    flex-shrink: 0;
+    border: 0;
+    cursor: pointer;
+    background: {{ block.settings.button_bg }};
+    color: {{ block.settings.button_text_color }};
+    border-radius: 999px;
+    padding: 14px 24px;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    transition: opacity 0.2s ease;
+  }
+  .sab-{{ block.id }} .sab__btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .sab-{{ block.id }} .sab__btn.is-loading {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  {%- unless block.settings.show_on_desktop %}
+  @media screen and (min-width: 750px) {
+    .sab-{{ block.id }} { display: none !important; }
+  }
+  {%- endunless %}
+  @media screen and (max-width: 749px) {
+    body { padding-bottom: 84px; }
+  }
+{%- endstyle -%}
+
+<div
+  id="sab-{{ block.id }}"
+  class="sab-{{ block.id }}{% if request.design_mode or block.settings.show_mode == 'always' %} is-visible{% endif %}"
+  data-variant-id="{{ current.id }}"
+  data-product-title="{{ product.title | escape }}"
+  data-mode="{{ block.settings.show_mode }}"
+  data-design-mode="{{ request.design_mode }}"
+  data-sold-out-text="{{ block.settings.sold_out_text | escape }}"
+  data-button-text="{{ block.settings.button_text | escape }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="sab__thumb">
+    {%- if thumb != blank -%}
+      {{ thumb | image_url: width: 160 | image_tag: loading: 'lazy', alt: product.title, data-sab-img: '' }}
+    {%- endif -%}
+  </div>
+
+  <div class="sab__info">
+    <p class="sab__title" data-sab-title>{{ current_title }}</p>
+    <p class="sab__price" data-sab-price>{{ current.price | money }}</p>
+  </div>
+
+  <button type="button" class="sab__btn" data-sab-btn {% unless current.available %}disabled{% endunless %}>
+    {%- if current.available -%}
+      {{ block.settings.button_text }}
+    {%- else -%}
+      {{ block.settings.sold_out_text }}
+    {%- endif -%}
+  </button>
+
+  <script type="application/json" data-sab-variants>
+    [
+      {%- for v in product.variants -%}
+        {
+          "id": {{ v.id }},
+          "title": {{ v.title | replace: ' / ', ' · ' | json }},
+          "price": {{ v.price | money | json }},
+          "available": {{ v.available }},
+          "image": {% if v.featured_image %}{{ v.featured_image | image_url: width: 160 | json }}{% else %}null{% endif %}
+        }{% unless forloop.last %},{% endunless %}
+      {%- endfor -%}
+    ]
+  </script>
+</div>
+
+<script>
+  (function () {
+    var root = document.getElementById('sab-{{ block.id }}');
+    if (!root || root.dataset.ready) return;
+    root.dataset.ready = '1';
+
+    var variants = [];
+    try { variants = JSON.parse(root.querySelector('[data-sab-variants]').textContent); } catch (e) {}
+
+    var titleEl = root.querySelector('[data-sab-title]');
+    var priceEl = root.querySelector('[data-sab-price]');
+    var btn = root.querySelector('[data-sab-btn]');
+    var productTitle = root.dataset.productTitle;
+    var designMode = root.dataset.designMode === 'true';
+    var alwaysShow = root.dataset.mode === 'always';
+    var currentId = Number(root.dataset.variantId);
+    var mainBtn = null;
+
+    // ---- Find the theme's real Add to cart button (inside this product section only) ----
+    function isRendered(el) {
+      if (!el || root.contains(el)) return false;
+      if (!el.getClientRects().length) return false;            // display:none / not in layout
+      var node = el;
+      while (node && node !== document.body) {                  // skip fixed bars, drawers, popups
+        var cs = getComputedStyle(node);
+        if (cs.position === 'fixed' || cs.visibility === 'hidden') return false;
+        if (node.tagName === 'DIALOG' || node.getAttribute('aria-hidden') === 'true') return false;
+        node = node.parentElement;
+      }
+      return true;
+    }
+
+    function findMainButton(scope) {
+      var forms = scope.querySelectorAll('form[action*="/cart/add"]');
+      for (var i = 0; i < forms.length; i++) {
+        var f = forms[i];
+        var list = Array.prototype.slice.call(f.querySelectorAll('button[name="add"], [type="submit"]'));
+        if (f.id) list = list.concat(Array.prototype.slice.call(document.querySelectorAll('[form="' + f.id + '"][type="submit"]')));
+        for (var j = 0; j < list.length; j++) {
+          if (isRendered(list[j])) return list[j];
+        }
+      }
+      return null;
+    }
+
+    function getMainButton() {
+      if (mainBtn && document.body.contains(mainBtn) && isRendered(mainBtn)) return mainBtn;
+      var section = root.closest('.shopify-section');
+      mainBtn = (section && findMainButton(section)) || findMainButton(document);
+      return mainBtn;
+    }
+
+    function getMainForm() {
+      var b = getMainButton();
+      return b ? (b.form || b.closest('form')) : null;
+    }
+
+    // ---- Show only when the main button is scrolled out of view (above the screen) ----
+    function checkVisibility() {
+      if (designMode || alwaysShow) { root.classList.add('is-visible'); return; }
+      var b = getMainButton();
+      if (!b) { root.classList.remove('is-visible'); return; }
+      var r = b.getBoundingClientRect();
+      root.classList.toggle('is-visible', r.bottom < 0);
+    }
+
+    var ticking = false;
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function () { ticking = false; checkVisibility(); });
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    document.addEventListener('DOMContentLoaded', checkVisibility);
+    window.addEventListener('load', checkVisibility);
+    checkVisibility();
+
+    // ---- Keep the bar in sync with the selected variant ----
+    function update(id) {
+      id = Number(id);
+      var v = null;
+      for (var i = 0; i < variants.length; i++) { if (variants[i].id === id) { v = variants[i]; break; } }
+      if (!v) return;
+      currentId = id;
+      titleEl.textContent = v.title === 'Default Title' ? productTitle : v.title;
+      priceEl.textContent = v.price;
+      var img = root.querySelector('[data-sab-img]');
+      if (img && v.image) { img.src = v.image; img.removeAttribute('srcset'); }
+      btn.disabled = !v.available;
+      btn.textContent = v.available ? root.dataset.buttonText : root.dataset.soldOutText;
+    }
+
+    setInterval(function () {
+      var form = getMainForm();
+      var input = form && form.querySelector('[name="id"]');
+      var id = input ? Number(input.value) : Number(new URLSearchParams(location.search).get('variant'));
+      if (id && id !== currentId) update(id);
+    }, 400);
+
+    // ---- Add to bag: click the theme's own button so the cart drawer opens as usual ----
+    btn.addEventListener('click', function () {
+      var b = getMainButton();
+      if (b && !b.disabled) { b.click(); return; }
+
+      btn.classList.add('is-loading');
+      fetch('/cart/add.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ items: [{ id: currentId, quantity: 1 }] })
+      })
+        .then(function (r) { if (!r.ok) throw new Error(); window.location.href = '/cart'; })
+        .catch(function () { btn.classList.remove('is-loading'); });
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Sticky add to bag",
+  "settings": [
+    { "type": "text", "id": "button_text", "label": "Button text", "default": "Add to bag" },
+    { "type": "text", "id": "sold_out_text", "label": "Sold out text", "default": "Sold out" },
+    {
+      "type": "select", "id": "show_mode", "label": "When to show", "default": "after_scroll",
+      "options": [
+        { "value": "after_scroll", "label": "After main button scrolls away" },
+        { "value": "always", "label": "Always" }
+      ]
+    },
+    { "type": "checkbox", "id": "show_on_desktop", "label": "Show on desktop too", "default": false },
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "bar_bg", "label": "Bar background", "default": "#FFFFFF" },
+    { "type": "color", "id": "border_color", "label": "Top border", "default": "#ECE8E1" },
+    { "type": "color", "id": "title_color", "label": "Title color", "default": "#1E1E1E" },
+    { "type": "color", "id": "price_color", "label": "Price color", "default": "#8A8A8A" },
+    { "type": "color", "id": "button_bg", "label": "Button background", "default": "#1E1E1E" },
+    { "type": "color", "id": "button_text_color", "label": "Button text", "default": "#FFFFFF" },
+    { "type": "header", "content": "Image" },
+    { "type": "range", "id": "thumb_radius", "label": "Image corner radius", "min": 0, "max": 26, "step": 1, "unit": "px", "default": 10 }
+  ],
+  "presets": [
+    { "name": "Sticky add to bag" }
+  ]
+}
+{% endschema %}

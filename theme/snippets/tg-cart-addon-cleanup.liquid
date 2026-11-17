@@ -1,0 +1,105 @@
+{%- comment -%}
+  Tangelos · Remove "Complete the bed" add-ons when their main product is removed
+  ------------------------------------------------------------------------------
+  Add-ons are added with the line property _parent_variant = main variant id.
+  Whenever the cart is changed (item removed, quantity set to 0, cart cleared),
+  this checks the cart and removes any add-on whose main product is no longer in it.
+
+  Install: Snippets → add "tg-cart-addon-cleanup", paste this file, then in
+  layout/theme.liquid add just before </body>:
+    {% render 'tg-cart-addon-cleanup' %}
+{%- endcomment -%}
+
+<script>
+(function () {
+  if (window.__tgAddonCleanup) return;
+  window.__tgAddonCleanup = true;
+
+  var ROOT = (window.Shopify && Shopify.routes && Shopify.routes.root) || '/';
+  var CART_JS = ROOT + 'cart.js';
+  var UPDATE_JS = ROOT + 'cart/update.js';
+  var nativeFetch = window.fetch.bind(window);
+  var timer = null;
+  var running = false;
+
+  function isRemovalCall(url) {
+    url = String(url || '');
+    return /\/cart\/(change|update|clear)(\.js)?(\?|$)/.test(url);
+  }
+
+  // Lines whose main product is no longer in the cart
+  function orphans(cart) {
+    var mains = {};
+    (cart.items || []).forEach(function (it) {
+      var p = it.properties || {};
+      if (!p._parent_variant) mains[String(it.variant_id)] = true;
+    });
+    return (cart.items || []).filter(function (it) {
+      var parent = it.properties && it.properties._parent_variant;
+      return parent && !mains[String(parent)];
+    });
+  }
+
+  function announce(cart) {
+    var detail = {
+      resource: cart,
+      sourceId: 'tg-addon-cleanup',
+      data: { source: 'tg-addon-cleanup', itemCount: cart.item_count }
+    };
+    ['cart:update', 'cart:updated', 'cart:change', 'cart:refresh'].forEach(function (name) {
+      try { document.dispatchEvent(new CustomEvent(name, { bubbles: true, detail: detail })); } catch (e) {}
+    });
+  }
+
+  function cleanup() {
+    if (running) return;
+    running = true;
+    nativeFetch(CART_JS, { headers: { Accept: 'application/json' }, cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (cart) {
+        var gone = orphans(cart);
+        if (!gone.length) return null;
+        var updates = {};
+        gone.forEach(function (it) { updates[it.key] = 0; });
+        return nativeFetch(UPDATE_JS, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ updates: updates })
+        }).then(function (r) { return r.json(); });
+      })
+      .then(function (cart) {
+        if (!cart) return;
+        // Cart page: reload so the removed lines disappear. Drawer: tell the theme to refresh.
+        if (/\/cart\/?$/.test(location.pathname)) location.reload();
+        else announce(cart);
+      })
+      .catch(function () {})
+      .then(function () { running = false; });
+  }
+
+  function schedule() {
+    clearTimeout(timer);
+    timer = setTimeout(cleanup, 300);
+  }
+
+  // Watch the theme's own cart calls (fetch and XHR). Adds are ignored on purpose:
+  // the add-ons are added just before the main product, so checking then would
+  // remove them too early.
+  window.fetch = function (input, init) {
+    var url = typeof input === 'string' ? input : (input && input.url);
+    var p = nativeFetch(input, init);
+    if (isRemovalCall(url)) p.then(schedule, schedule);
+    return p;
+  };
+
+  var open = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function (method, url) {
+    if (isRemovalCall(url)) this.addEventListener('loadend', schedule);
+    return open.apply(this, arguments);
+  };
+
+  // Removal links like /cart/change?line=2&quantity=0 reload the page, so check on load too
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', schedule);
+  else schedule();
+})();
+</script>

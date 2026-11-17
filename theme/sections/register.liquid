@@ -1,0 +1,274 @@
+{% comment %} sections/register.liquid {% endcomment %}
+
+<style>
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+.register-page-bg {
+  min-height: 100vh;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+.register-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2.5rem 2.25rem 2rem;
+  width: 100%;
+  max-width: 420px;
+}
+.register-logo {
+  text-align: center;
+  margin-bottom: 1.75rem;
+  font-size: 2.2rem;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  letter-spacing: -1px;
+  color: #111;
+  text-transform: lowercase;
+}
+.register-form-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 0.25rem;
+}
+.register-form-subtitle {
+  font-size: 0.875rem;
+  color: #888;
+  margin-bottom: 1.5rem;
+}
+.input-group {
+  margin-bottom: 0.9rem;
+  position: relative;
+}
+.input-group input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid #cce0ff;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #222;
+  outline: none;
+  background: #fff;
+  transition: border-color 0.15s;
+}
+.input-group input:focus {
+  border-color: #2563eb;
+}
+.input-group input::placeholder {
+  color: #aaa;
+}
+.password-group input {
+  padding-right: 2.75rem;
+}
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+.checkbox-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #2563eb;
+  cursor: pointer;
+}
+.checkbox-row label {
+  font-size: 0.85rem;
+  color: #555;
+  cursor: pointer;
+}
+.register-btn {
+  width: 100%;
+  padding: 0.85rem;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  transition: background 0.15s;
+}
+.register-btn:hover {
+  background: #1d4ed8;
+}
+.register-errors {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+.register-terms {
+  text-align: center;
+  font-size: 0.78rem;
+  color: #999;
+}
+.register-terms a {
+  color: #999;
+  text-decoration: underline;
+}
+.have-account {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #555;
+  margin-top: 1rem;
+}
+.have-account a {
+  color: #2563eb;
+  font-weight: 500;
+  text-decoration: none;
+}
+</style>
+
+<div class="register-page-bg">
+  <div class="register-card">
+
+  <div class="login-logo">
+  {%- assign brand_logo = settings.logo | default: shop.brand.logo -%}
+  {%- if brand_logo -%}
+    <a href="{{ routes.root_url }}" aria-label="{{ shop.name | escape }}">
+      {{ brand_logo | image_url: width: 400 | image_tag:
+         loading: 'eager',
+         widths: '120, 200, 300, 400',
+         sizes: '160px',
+         alt: shop.name,
+         class: 'login-logo__image' }}
+    </a>
+  {%- else -%}
+    {{ shop.name }}
+  {%- endif -%}
+</div>
+<style>
+  .login-logo__image {
+  display: block;
+  width: 160px;
+  height: auto;
+  margin: 0 auto;
+}
+</style>
+    <div class="register-form-title">Create account</div>
+    <div class="register-form-subtitle">Sign up to get started</div>
+
+    {%- form 'create_customer', novalidate: 'novalidate' -%}
+
+      {%- if form.errors -%}
+        <div class="register-errors">
+          {{ form.errors | default_errors }}
+        </div>
+      {%- endif -%}
+
+      <div class="input-group">
+        <input
+          type="text"
+          name="customer[first_name]"
+          id="FirstName"
+          placeholder="First name"
+          autocomplete="given-name"
+          autocorrect="off"
+          autocapitalize="words"
+        />
+      </div>
+
+      <div class="input-group">
+        <input
+          type="text"
+          name="customer[last_name]"
+          id="LastName"
+          placeholder="Last name"
+          autocomplete="family-name"
+          autocorrect="off"
+          autocapitalize="words"
+        />
+      </div>
+
+      <div class="input-group">
+        <input
+          type="email"
+          name="customer[email]"
+          id="Email"
+          placeholder="Email"
+          autocomplete="email"
+          autocorrect="off"
+          autocapitalize="off"
+          required
+        />
+      </div>
+
+      <div class="input-group password-group">
+        <input
+          type="password"
+          name="customer[password]"
+          id="CreatePassword"
+          placeholder="Password"
+          autocomplete="new-password"
+          required
+        />
+        <button type="button" class="password-toggle" onclick="toggleRegisterPassword()">
+          <svg id="reg-eye-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#aaa" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="checkbox-row">
+        <input type="checkbox" id="news" name="customer[accepts_marketing]" checked />
+        <label for="news">Email me with news and offers</label>
+      </div>
+
+      <button type="submit" class="register-btn">Create account</button>
+
+    {%- endform -%}
+
+    <div class="register-terms">
+      By continuing, you agree to our <a href="{{ shop.url }}/policies/terms-of-service">Terms of service</a>
+    </div>
+
+    <div class="have-account">
+      Already have an account? <a href="/account/login">Sign in</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function toggleRegisterPassword() {
+    var input = document.getElementById('CreatePassword');
+    var icon = document.getElementById('reg-eye-icon');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+    } else {
+      input.type = 'password';
+      icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    }
+  }
+</script>
+
+{% schema %}
+{
+  "name": "Register",
+  "settings": []
+}
+{% endschema %}

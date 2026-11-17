@@ -1,0 +1,206 @@
+{% liquid
+  assign product = closest.product
+  
+  assign current_variant = product.selected_or_first_available_variant
+  assign compare_price = current_variant.compare_at_price
+  assign sale_price = current_variant.price
+
+  if compare_price > sale_price
+    assign price_diff = compare_price | minus: sale_price
+    assign discount_pct = price_diff | times: 100 | divided_by: compare_price
+  endif
+-%}
+
+{% capture children %}
+  {% content_for 'blocks', closest.product: product %}
+{% endcapture %}
+
+<div class="product-card-wrapper" style="position: relative;">
+{% comment %} {% if discount_pct > 0 and product.title contains 'Duvet Set' %}
+    <div class="discount-badge">
+      Save {{ discount_pct }}%
+    </div>
+  {% endif %}
+  {% if discount_pct > 0 and product.title contains 'Cover Set' %}
+    <div class="discount-badge">
+      Save {{ discount_pct }}%
+    </div>
+  {% endif %} {% endcomment %}{% if product.title contains 'Duvet Set' %}
+    <div class="discount-badge discount-badge--bogo" style="background-color:#760C05;color:#fff;">
+      Buy 1 Get 1
+    </div>
+  {% elsif compare_price > sale_price %}
+    <div class="discount-badge">
+      Save {{ discount_pct }}%
+    </div>
+  
+  {% endif %}{% render 'product-card', children: children, product: product %}
+</div>
+
+{% render 'buy-buttons-styles' %}
+{% render 'gift-card-recipient-form-styles' %}
+{% render 'quick-add-styles' %}
+{% render 'quick-add-modal-styles' %}
+{% render 'product-badges-styles' %}
+
+<style>
+  .product-card-wrapper {
+    position: relative;
+    display: block;
+  }
+
+  {% comment %} .discount-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 10;
+    background-color: #0fb981;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    padding: 4px 8px;
+    border-radius: 4px;
+    line-height: 1;
+    pointer-events: none;
+  } {% endcomment %}
+</style>
+
+{% schema %}
+{
+  "name": "t:names.product_card",
+  "blocks": [
+    { "type": "_product-card-group" },
+    { "type": "text" },
+    { "type": "image" },
+    { "type": "buy-buttons" },
+    { "type": "price" },
+    { "type": "review" },
+    { "type": "sku" },
+    { "type": "swatches" },
+    { "type": "_product-card-gallery" },
+    { "type": "product-title" },
+    { "type": "custom-liquid" },
+    { "type": "@app" }
+  ],
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "t:content.resource_reference_product_card"
+    },
+    {
+      "type": "range",
+      "id": "product_card_gap",
+      "label": "t:settings.vertical_gap",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "checkbox",
+      "id": "inherit_color_scheme",
+      "label": "t:settings.inherit_color_scheme",
+      "default": true
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1",
+      "visible_if": "{{ block.settings.inherit_color_scheme == false }}"
+    },
+    {
+      "type": "header",
+      "content": "t:content.borders"
+    },
+    {
+      "type": "select",
+      "id": "border",
+      "label": "t:settings.style",
+      "options": [
+        { "value": "none", "label": "t:options.none" },
+        { "value": "solid", "label": "t:options.solid" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "range",
+      "id": "border_width",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "t:settings.thickness",
+      "default": 1,
+      "visible_if": "{{ block.settings.border != 'none' }}"
+    },
+    {
+      "type": "range",
+      "id": "border_opacity",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "t:settings.opacity",
+      "default": 100,
+      "visible_if": "{{ block.settings.border != 'none' }}"
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "label": "t:settings.border_radius",
+      "min": 0,
+      "max": 32,
+      "step": 1,
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-start",
+      "label": "t:settings.left",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-end",
+      "label": "t:settings.right",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ]
+}
+{% endschema %}

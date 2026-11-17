@@ -1,0 +1,613 @@
+<section
+  class="upc-wrap"
+  id="upcoming-products-{{ section.id }}"
+  aria-label="{{ section.settings.section_label | escape }}"
+>
+  <div class="upc-inner">
+
+    {%- comment -%} ── LEFT PRODUCT ──────────────────────────────── {%- endcomment -%}
+    <div class="upc-product upc-product--left">
+      <h2 class="upc-title upc-title--left">
+        {{ section.settings.product_left_title | escape }}
+      </h2>
+
+      <div class="upc-pill upc-pill--left">
+        {%- if section.settings.product_left_image != blank -%}
+          <img
+            src="{{ section.settings.product_left_image | image_url: width: 320 }}"
+            srcset="
+              {{ section.settings.product_left_image | image_url: width: 160 }} 160w,
+              {{ section.settings.product_left_image | image_url: width: 320 }} 320w,
+              {{ section.settings.product_left_image | image_url: width: 480 }} 480w
+            "
+            sizes="(max-width: 600px) 45vw, 220px"
+            alt="{{ section.settings.product_left_image.alt | default: section.settings.product_left_title | escape }}"
+            width="320"
+            height="180"
+            fetchpriority="high"
+            decoding="async"
+          >
+        {%- else -%}
+          {{ 'image' | placeholder_svg_tag: 'upc-placeholder' }}
+        {%- endif -%}
+      </div>
+    </div>
+
+    {%- comment -%} ── AMPERSAND ─────────────────────────────────── {%- endcomment -%}
+    <span class="upc-amp" aria-hidden="true">&amp;</span>
+
+    {%- comment -%} ── RIGHT PRODUCT ─────────────────────────────── {%- endcomment -%}
+    <div class="upc-product upc-product--right">
+      <div class="upc-pill upc-pill--right">
+        {%- if section.settings.product_right_image != blank -%}
+          <img
+            src="{{ section.settings.product_right_image | image_url: width: 320 }}"
+            srcset="
+              {{ section.settings.product_right_image | image_url: width: 160 }} 160w,
+              {{ section.settings.product_right_image | image_url: width: 320 }} 320w,
+              {{ section.settings.product_right_image | image_url: width: 480 }} 480w
+            "
+            sizes="(max-width: 600px) 45vw, 220px"
+            alt="{{ section.settings.product_right_image.alt | default: section.settings.product_right_title | escape }}"
+            width="320"
+            height="180"
+            loading="eager"
+            decoding="async"
+          >
+        {%- else -%}
+          {{ 'image' | placeholder_svg_tag: 'upc-placeholder' }}
+        {%- endif -%}
+      </div>
+
+      <h2 class="upc-title upc-title--right">
+        {{ section.settings.product_right_title | escape }}
+      </h2>
+    </div>
+
+  </div><!-- /.upc-inner -->
+
+  {%- comment -%} ── DIVIDER ───────────────────────────────────────── {%- endcomment -%}
+  <hr class="upc-divider" aria-hidden="true">
+
+  {%- comment -%} ── CTA ROW ───────────────────────────────────────── {%- endcomment -%}
+  <div class="upc-cta-row">
+    <p class="upc-arriving">{{ section.settings.arriving_text | escape }}</p>
+
+    {%- if section.settings.cta_url != blank -%}
+      
+      <button class="upc-btn subscribe-btn" id="upc-waitlist-btn" type="button">
+        {{ section.settings.cta_text | escape }}
+      </button>
+    {%- endif -%}
+  </div>
+
+  {%- comment -%} ── EMAIL FORM MODAL ───────────────────────────────── {%- endcomment -%}
+  <div id="upc-email-modal" class="upc-modal" style="display: none;">
+    <div class="upc-modal-content">
+      <button class="upc-modal-close" id="upc-modal-close">&times;</button>
+      <h3>Join the Waitlist</h3>
+      
+      {% form 'customer', id: 'upc-email-form' %}
+        {%- if form.posted_successfully? -%}
+          <p class="form-success">Thank you for joining our waitlist!</p>
+        {%- endif -%}
+
+        <input type="hidden" name="contact[tags]" value="waitlist, new-arrival">
+        <input 
+          type="email" 
+          id="upc-email" 
+          name="contact[email]" 
+          placeholder="Enter your email" 
+          required 
+          class="upc-email-input"
+        />
+        <button type="submit" class="upc-form-submit">Join the waitlist</button>
+      {% endform %}
+    </div>
+  </div>
+
+</section>
+
+<style>
+  /* ── tokens ─────────────────────────────────────────────────────── */
+  #upcoming-products-{{ section.id }} {
+    --upc-bg:          {{ section.settings.bg_color }};
+    --upc-text:        {{ section.settings.text_color }};
+    --upc-amp-color:   {{ section.settings.amp_color }};
+    --upc-divider:     {{ section.settings.divider_color }};
+    --upc-btn-bg:      {{ section.settings.btn_bg_color }};
+    --upc-btn-text:    {{ section.settings.btn_text_color }};
+    --upc-btn-hover-bg:   {{ section.settings.btn_hover_bg }};
+    --upc-btn-hover-text: {{ section.settings.btn_hover_text }};
+    --upc-title-size:  {{ section.settings.title_size_desktop }}px;
+    --upc-title-size-m:{{ section.settings.title_size_mobile }}px;
+    --upc-pill-radius: {{ section.settings.pill_radius }}px;
+    --upc-section-py:  {{ section.settings.padding_vertical }}px;
+    --upc-section-px:  {{ section.settings.padding_horizontal }}px;
+    --upc-font:        {{ section.settings.font_family }}, Georgia, serif;
+  }
+
+  /* ── layout ─────────────────────────────────────────────────────── */
+  #upcoming-products-{{ section.id }} {
+    background: var(--upc-bg);
+    color: var(--upc-text);
+    font-family: var(--upc-font);
+    padding: var(--upc-section-py) var(--upc-section-px);
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .upc-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(1rem, 3vw, 2.5rem);
+    flex-wrap: wrap;
+  }
+
+  /* ── product blocks ──────────────────────────────────────────────── */
+  .upc-product {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* ── titles ─────────────────────────────────────────────────────── */
+  .upc-title {
+    font-size: var(--upc-title-size);
+    font-weight: {{ section.settings.title_weight }};
+    line-height: 1.1;
+    letter-spacing: calc({{ section.settings.title_letter_spacing }} * 0.01em);
+    margin: 0;
+    color: var(--upc-text);
+  }
+
+  /* ── pill images ─────────────────────────────────────────────────── */
+  .upc-pill {
+    border-radius: var(--upc-pill-radius);
+    overflow: hidden;
+    width: clamp(140px, 22vw, 260px);
+    aspect-ratio: 16 / 9;
+    display: flex;
+  }
+  .upc-pill img,
+  .upc-pill .upc-placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── ampersand ───────────────────────────────────────────────────── */
+  .upc-amp {
+    font-size: clamp(1.4rem, 3vw, 2.2rem);
+    color: var(--upc-amp-color);
+    font-family: var(--upc-font);
+    line-height: 1;
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  /* ── divider ─────────────────────────────────────────────────────── */
+  .upc-divider {
+    border: none;
+    border-top: 1px solid var(--upc-divider);
+    margin: clamp(1.2rem, 3vw, 2rem) auto 0;
+    width: min(680px, 80%);
+  }
+
+  /* ── CTA row ─────────────────────────────────────────────────────── */
+  .upc-cta-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    margin-top: clamp(1rem, 2.5vw, 1.75rem);
+  }
+
+  .upc-arriving {
+    margin: 0;
+    font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+    color: var(--upc-text);
+    letter-spacing: 0.02em;
+  }
+
+  .upc-btn {
+    display: inline-block;
+    background: var(--upc-btn-bg);
+    color: var(--upc-btn-text);
+    border: none;
+    border-radius: {{ section.settings.btn_radius }}px;
+    padding: 0.7em 1.6em;
+    font-size: clamp(0.75rem, 1.2vw, 0.85rem);
+    font-family: inherit;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    white-space: nowrap;
+  }
+  .upc-btn:hover,
+  .upc-btn:focus-visible {
+    background: var(--upc-btn-hover-bg);
+    color: var(--upc-btn-hover-text);
+    outline: 2px solid var(--upc-btn-bg);
+    outline-offset: 2px;
+  }
+
+  /* ── MODAL STYLES ────────────────────────────────────────────────── */
+  .upc-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+
+  .upc-modal-content {
+    background: var(--upc-bg);
+    color: var(--upc-text);
+    border-radius: 8px;
+    padding: 2rem;
+    max-width: 400px;
+    width: 90%;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    font-family: var(--upc-font);
+  }
+
+  .upc-modal-content h3 {
+    margin: 0 0 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  .upc-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--upc-text);
+  }
+
+  #upc-email-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .upc-email-input {
+    padding: 0.75rem;
+    border: 1px solid var(--upc-divider);
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: inherit;
+  }
+
+  .upc-email-input:focus {
+    outline: none;
+    border-color: var(--upc-amp-color);
+  }
+
+  .upc-form-submit {
+    background: var(--upc-btn-bg);
+    color: var(--upc-btn-text);
+    border: none;
+    border-radius: {{ section.settings.btn_radius }}px;
+    padding: 0.7em 1.6em;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .upc-form-submit:hover {
+    background: var(--upc-btn-hover-bg);
+    color: var(--upc-btn-hover-text);
+  }
+
+  /* ── responsive ──────────────────────────────────────────────────── */
+  @media (max-width: 600px) {
+    .upc-title { font-size: var(--upc-title-size-m);}
+    .upc-inner { gap: 0.75rem; flex-direction: row;
+        display: flex;
+        flex-wrap: nowrap;}
+    .upc-pill  { width: clamp(110px, 38vw, 180px); }
+    .upc-arriving { text-transform: capitalize; }
+    .upc-cta-row { flex-direction: column; }
+    .upc-arriving { font-size:26px}
+    
+    .upc-modal-content {
+      width: 85%;
+      padding: 1.5rem;
+    }
+  }
+</style>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('upc-waitlist-btn');
+    const modal = document.getElementById('upc-email-modal');
+    const closeBtn = document.getElementById('upc-modal-close');
+    const form = document.getElementById('upc-email-form');
+
+    // Show modal
+    if (btn) {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        modal.style.display = 'flex';
+      });
+    }
+
+    // Close modal
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function() {
+        modal.style.display = 'none';
+      });
+    }
+
+    // Close on outside click
+    window.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+
+    // Check if form was just submitted (to keep modal open to show success message)
+    if (window.location.search.includes('customer_posted=true')) {
+       modal.style.display = 'flex';
+       // Optional: Auto-hide after 5 seconds
+       setTimeout(() => { modal.style.display = 'none'; }, 5000);
+    }
+  });
+</script>
+
+{% schema %}
+{
+  "name": "New Arrival Products",
+  "tag": "section",
+  "class": "new-arrival-products-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Section Label (Accessibility)"
+    },
+    {
+      "type": "text",
+      "id": "section_label",
+      "label": "ARIA label",
+      "default": "Upcoming products"
+    },
+
+    {
+      "type": "header",
+      "content": "Left Product"
+    },
+    {
+      "type": "text",
+      "id": "product_left_title",
+      "label": "Title",
+      "default": "Sateen"
+    },
+    {
+      "type": "image_picker",
+      "id": "product_left_image",
+      "label": "Fabric image"
+    },
+
+    {
+      "type": "header",
+      "content": "Right Product"
+    },
+    {
+      "type": "text",
+      "id": "product_right_title",
+      "label": "Title",
+      "default": "Linen"
+    },
+    {
+      "type": "image_picker",
+      "id": "product_right_image",
+      "label": "Fabric image"
+    },
+
+    {
+      "type": "header",
+      "content": "CTA"
+    },
+    {
+      "type": "text",
+      "id": "arriving_text",
+      "label": "Arriving text",
+      "default": "arriving soon"
+    },
+    {
+      "type": "text",
+      "id": "cta_text",
+      "label": "Button label",
+      "default": "Join the Waitlist"
+    },
+    {
+      "type": "url",
+      "id": "cta_url",
+      "label": "Button URL"
+    },
+    {
+      "type": "checkbox",
+      "id": "cta_new_tab",
+      "label": "Open in new tab",
+      "default": false
+    },
+
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "text",
+      "id": "font_family",
+      "label": "Font family (CSS name)",
+      "default": "Palatino Linotype"
+    },
+    {
+      "type": "range",
+      "id": "title_size_desktop",
+      "label": "Title size – desktop (px)",
+      "min": 28,
+      "max": 100,
+      "step": 2,
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "title_size_mobile",
+      "label": "Title size – mobile (px)",
+      "min": 22,
+      "max": 60,
+      "step": 2,
+      "default": 38
+    },
+    {
+      "type": "select",
+      "id": "title_weight",
+      "label": "Title weight",
+      "options": [
+        { "value": "300", "label": "Light" },
+        { "value": "400", "label": "Regular" },
+        { "value": "500", "label": "Medium" },
+        { "value": "600", "label": "Semi-bold" },
+        { "value": "700", "label": "Bold" }
+      ],
+      "default": "400"
+    },
+    {
+      "type": "range",
+      "id": "title_letter_spacing",
+      "label": "Title letter spacing (×0.01 em)",
+      "min": -5,
+      "max": 15,
+      "step": 1,
+      "default": -1
+    },
+
+    {
+      "type": "header",
+      "content": "Shape"
+    },
+    {
+      "type": "range",
+      "id": "pill_radius",
+      "label": "Pill corner radius (px)",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "btn_radius",
+      "label": "Button corner radius (px)",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "default": 4
+    },
+
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_vertical",
+      "label": "Section vertical padding (px)",
+      "min": 20,
+      "max": 120,
+      "step": 4,
+      "default": 56
+    },
+    {
+      "type": "range",
+      "id": "padding_horizontal",
+      "label": "Section horizontal padding (px)",
+      "min": 16,
+      "max": 100,
+      "step": 4,
+      "default": 24
+    },
+
+    {
+      "type": "header",
+      "content": "Colours"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text / titles",
+      "default": "#5a5a5a"
+    },
+    {
+      "type": "color",
+      "id": "amp_color",
+      "label": "Ampersand",
+      "default": "#888888"
+    },
+    {
+      "type": "color",
+      "id": "divider_color",
+      "label": "Divider line",
+      "default": "#d8d8d8"
+    },
+    {
+      "type": "color",
+      "id": "btn_bg_color",
+      "label": "Button background",
+      "default": "#2b2b2b"
+    },
+    {
+      "type": "color",
+      "id": "btn_text_color",
+      "label": "Button text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "btn_hover_bg",
+      "label": "Button background (hover)",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "btn_hover_text",
+      "label": "Button text (hover)",
+      "default": "#2b2b2b"
+    }
+  ],
+  "presets": [
+    {
+      "name": "New Arrival Products",
+      "category": "Promotional"
+    }
+  ]
+}
+{% endschema %}

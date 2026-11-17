@@ -1,0 +1,867 @@
+{% comment %}
+  ============================================================
+  Collection Grid — sections/collection-grid.liquid
+  ============================================================
+  DESKTOP  (≥1025px) : CSS Grid, fully customisable columns
+  TABLET   (750-1024) : Horizontal slider — arrows + scrollbar
+  MOBILE   (≤749px)  : Horizontal slider — swipe only, side padding
+  ============================================================
+{% endcomment %}
+
+{%- liquid
+  assign lcp_img = nil
+  assign fb = section.blocks.first
+  if fb
+    if fb.settings.custom_image != blank
+      assign lcp_img = fb.settings.custom_image
+    elsif fb.settings.collection != blank and fb.settings.collection.image != blank
+      assign lcp_img = fb.settings.collection.image
+    endif
+  endif
+-%}
+
+{%- if lcp_img != blank -%}
+<link rel="preload" as="image"
+  href="{{ lcp_img | image_url: width: 900 }}"
+  imagesrcset="{{ lcp_img | image_url: width: 400 }} 400w,{{ lcp_img | image_url: width: 700 }} 700w,{{ lcp_img | image_url: width: 900 }} 900w"
+  imagesizes="(max-width:749px) 85vw,(max-width:1024px) 50vw,25vw"
+  fetchpriority="high">
+{%- endif -%}
+
+<section
+  class="cg{% if section.settings.show_desk_arrows %} cg--desk-arr{% endif %}"
+  id="cg-{{ section.id }}"
+  style="
+    --cols:    {{ section.settings.cols_desktop }};
+    --cols-t:  {{ section.settings.cols_tablet }};
+    --gap:     {{ section.settings.gap }}px;
+    --ratio:   {{ section.settings.image_ratio }};
+    --radius:  {{ section.settings.image_radius }}px;
+    --hc:      {{ section.settings.heading_color }};
+    --lc:      {{ section.settings.label_color }};
+    --oc:      {{ section.settings.overlay_color }};
+    --oo:      {{ section.settings.overlay_opacity | divided_by: 100.0 }};
+    --sub-c:   {{ section.settings.sublabel_color }};
+    --tab-w:   {{ section.settings.tab_card_width }}vw;
+    --mob-w:   {{ section.settings.mob_card_width }}vw;
+    --mob-px:  {{ section.settings.mob_side_space }}px;
+    --sb-h:    {{ section.settings.scrollbar_height }}px;
+    --sb-c:    {{ section.settings.scrollbar_color }};
+    --sb-bg:   {{ section.settings.scrollbar_bg }};
+    background: {{ section.settings.section_bg }};
+    padding: {{ section.settings.pad_top }}px {{ section.settings.pad_x }}px {{ section.settings.pad_bottom }}px;
+  "
+>
+
+  {%- if section.settings.heading != blank or section.settings.show_toplink -%}
+  <div class="cg-head">
+    {%- if section.settings.heading != blank -%}
+      <{{ section.settings.heading_tag }} class="cg-head__title"
+        style="font-size:{{ section.settings.heading_size }}px;font-weight:{{ section.settings.heading_weight }};">
+        {{- section.settings.heading | escape -}}
+      </{{ section.settings.heading_tag }}>
+    {%- endif -%}
+    {%- if section.settings.show_toplink -%}
+      {%- if section.settings.toplink_url != blank -%}
+        <a class="cg-head__link" href="{{ section.settings.toplink_url }}">{{ section.settings.toplink_text | default: 'View all' | escape }}</a>
+      {%- else -%}
+        <span class="cg-head__link">{{ section.settings.toplink_text | default: 'View all' | escape }}</span>
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+  {%- endif -%}
+
+  <!-- TRACK -->
+  <div class="cg-track" id="cg-track-{{ section.id }}">
+    {%- for block in section.blocks -%}
+      {%- liquid
+        assign col  = block.settings.collection
+        assign cimg = block.settings.custom_image
+        assign lbl  = block.settings.label
+        assign sub  = block.settings.sublabel
+        assign url  = block.settings.link
+        if lbl == blank and col != blank
+          assign lbl = col.title
+        endif
+        if url == blank and col != blank
+          assign url = col.url
+        endif
+        assign img = nil
+        if cimg != blank
+          assign img = cimg
+        elsif col != blank and col.image != blank
+          assign img = col.image
+        elsif col != blank and col.products.first != blank
+          assign img = col.products.first.featured_image
+        endif
+      -%}
+      <div class="cg-item" {{ block.shopify_attributes }}>
+        <a class="cg-card" href="{{ url | default: '#' }}" {% if lbl != blank %}aria-label="{{ lbl | escape }}"{% endif %}>
+          <div class="cg-img-wrap">
+            {%- if img != blank -%}
+              {%- if forloop.first -%}
+                {{ img | image_url: width: 900 | image_tag:
+                  class: 'cg-img',
+                  loading: 'eager', fetchpriority: 'high', decoding: 'sync',
+                  widths: '300,500,700,900',
+                  sizes: '(max-width:749px) 85vw,(max-width:1024px) 50vw,25vw',
+                  alt: lbl }}
+              {%- else -%}
+                {{ img | image_url: width: 900 | image_tag:
+                  class: 'cg-img',
+                  loading: 'lazy', fetchpriority: 'low', decoding: 'async',
+                  widths: '300,500,700,900',
+                  sizes: '(max-width:749px) 85vw,(max-width:1024px) 50vw,25vw',
+                  alt: lbl }}
+              {%- endif -%}
+            {%- else -%}
+              <div class="cg-ph">{{- 'collection-1' | placeholder_svg_tag: 'cg-ph-svg' -}}</div>
+            {%- endif -%}
+            <div class="cg-overlay"></div>
+            {%- if section.settings.label_pos == 'over' -%}
+              <div class="cg-labels cg-labels--over">
+                {%- if lbl != blank -%}<span class="cg-lbl">{{ lbl | escape }}</span>{%- endif -%}
+                {%- if sub != blank -%}<span class="cg-sub">{{ sub | escape }}</span>{%- endif -%}
+              </div>
+            {%- endif -%}
+          </div>
+          {%- if section.settings.label_pos == 'below' -%}
+            <div class="cg-labels cg-labels--below">
+              {%- if lbl != blank -%}<span class="cg-lbl cg-lbl--dark">{{ lbl | escape }}</span>{%- endif -%}
+              {%- if sub != blank -%}<span class="cg-sub cg-sub--dark">{{ sub | escape }}</span>{%- endif -%}
+            </div>
+          {%- endif -%}
+        </a>
+      </div>
+    {%- else -%}
+      <p class="cg-empty">Add collection blocks in the theme editor.</p>
+    {%- endfor -%}
+  </div>
+
+  <!-- TABLET ARROWS (hidden on mobile via CSS) -->
+  <button class="cg-btn cg-btn--p" id="cg-p-{{ section.id }}" aria-label="Previous" type="button" disabled>
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M13 16L7 10l6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+  <button class="cg-btn cg-btn--n" id="cg-n-{{ section.id }}" aria-label="Next" type="button">
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+
+  <!-- SCROLLBAR -->
+  <div class="cg-sb" id="cg-sb-{{ section.id }}">
+    <div class="cg-sb__track" id="cg-sbt-{{ section.id }}">
+      <div class="cg-sb__fill" id="cg-sbf-{{ section.id }}"></div>
+    </div>
+  </div>
+
+</section>
+
+<style>
+/* ── Reset ── */
+.cg, .cg * { box-sizing: border-box; }
+
+/* ── Section ── */
+.cg {
+  position: relative;
+  width: 100%;
+  overflow: hidden; /* prevent horizontal page scroll */
+}
+
+/* ─────────────────────────────────────────
+   HEADER
+───────────────────────────────────────── */
+.cg-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+}
+.cg-head__title { margin: 0; color: var(--hc, #111); line-height: 1.2; }
+.cg-head__link {
+  font-size: .65rem; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--hc, #111); text-decoration: none;
+  opacity: .5; white-space: nowrap; flex-shrink: 0;
+}
+a.cg-head__link:hover { opacity: 1; }
+
+/* ─────────────────────────────────────────
+   TRACK
+───────────────────────────────────────── */
+.cg-track {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 4), 1fr);
+  gap: var(--gap, 2px);
+}
+
+/* ─────────────────────────────────────────
+   DESKTOP — full grid, no change
+───────────────────────────────────────── */
+
+/* ─────────────────────────────────────────
+   TABLET — slider
+───────────────────────────────────────── */
+@media (max-width: 1024px) and (min-width: 750px) {
+  .cg-track {
+    display: flex;
+    overflow-x: scroll;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    /* peek: ~40px of next card shows */
+    padding-right: 40px;
+  }
+  .cg-track::-webkit-scrollbar { display: none; }
+  .cg-item {
+    /* width = (viewport - arrows - gaps - peek) / cols */
+    flex: 0 0 var(--tab-w, 44vw);
+    scroll-snap-align: start;
+    min-width: 0;
+  }
+}
+
+/* ─────────────────────────────────────────
+   MOBILE — slider, swipe only
+───────────────────────────────────────── */
+@media (max-width: 749px) {
+  .cg {
+    /* Zero section x-padding on mobile slider
+       so the track padding creates the side space */
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  .cg-track {
+    display: flex;
+    overflow-x: scroll;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-left: var(--mob-px, 16px);
+    padding-right: calc(var(--mob-px, 16px) + 20px);
+    scroll-padding-left: var(--mob-px, 16px);
+  }
+  .cg-track::-webkit-scrollbar { display: none; }
+  .cg-item {
+    flex: 0 0 var(--mob-w, 78vw);
+    scroll-snap-align: start;
+    min-width: 0;
+  }
+  /* Hide tablet arrows + scrollbar on mobile */
+  .cg-btn { display: none !important; }
+  .cg-sb  { display: none !important; }
+}
+
+/* ─────────────────────────────────────────
+   CARD
+───────────────────────────────────────── */
+.cg-card { display: block; text-decoration: none; color: inherit; }
+.cg-img-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--ratio, 4/5);
+  overflow: hidden;
+  border-radius: var(--radius, 0px);
+  background: #ece8e1;
+}
+.cg-img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+  transform: scale(1);
+  transition: transform .65s cubic-bezier(.25,.46,.45,.94);
+  will-change: transform;
+}
+.cg-card:hover .cg-img { transform: scale(1.07); }
+.cg-ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.cg-ph-svg { width: 52%; height: 52%; opacity: .18; }
+
+/* Overlay */
+.cg-overlay {
+  position: absolute; inset: 0;
+  background: var(--oc, #000);
+  opacity: 0;
+  transition: opacity .45s ease;
+  pointer-events: none;
+}
+.cg-card:hover .cg-overlay { opacity: var(--oo, .15); }
+
+/* Labels over image */
+.cg-labels--over {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: .9rem 1rem;
+  display: flex; flex-direction: column; gap: .25rem;
+  transform: translateY(4px);
+  transition: transform .4s ease;
+}
+.cg-card:hover .cg-labels--over { transform: translateY(0); }
+
+/* Labels below image */
+.cg-labels--below { padding: .55rem 0 0; display: flex; flex-direction: column; gap: .15rem; }
+
+/* Label */
+.cg-lbl {
+  display: block;
+  font-size: {{ section.settings.label_size }}px;
+  font-weight: {{ section.settings.label_weight }};
+  letter-spacing: {{ section.settings.label_spacing | divided_by: 100.0 }}em;
+  text-transform: {{ section.settings.label_case }};
+  color: var(--lc, #fff);
+  line-height: 1.3;
+}
+.cg-lbl--dark { color: var(--hc, #111); }
+
+/* Sublabel — hover only */
+.cg-sub {
+  display: block;
+  font-size: {{ section.settings.sublabel_size }}px;
+  font-weight: 400; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--sub-c, rgba(255,255,255,.72));
+  line-height: 1.3;
+  opacity: 0;
+  transform: translateY(5px);
+  transition: opacity .35s ease .05s, transform .35s ease .05s;
+}
+.cg-card:hover .cg-sub { opacity: 1; transform: translateY(0); }
+.cg-sub--dark { color: rgba(0,0,0,.45); }
+.cg-empty { grid-column: 1/-1; padding: 2rem; opacity: .4; font-size: .9rem; }
+
+/* ─────────────────────────────────────────
+   ARROWS
+   Tablet: always shown (slider nav)
+   Desktop: shown only when schema enabled (.cg--desk-arr)
+   Mobile: hidden always
+───────────────────────────────────────── */
+
+/* ── Arrow base (hidden by default everywhere) ── */
+.cg-btn {
+  display: none; /* hidden unless explicitly shown below */
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,.15);
+  background: rgba(255,255,255,.95);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  color: #111;
+  outline: none;
+  transition: background .2s, border-color .2s, opacity .2s;
+}
+.cg-btn:hover:not(:disabled) { background: #fff; border-color: rgba(0,0,0,.35); }
+.cg-btn:disabled { opacity: .2; cursor: default; pointer-events: none; }
+.cg-btn--p { left: 10px; }
+.cg-btn--n { right: 10px; }
+
+/* Tablet: always show arrows (slider nav) */
+@media (max-width: 1024px) and (min-width: 750px) {
+  .cg-btn { display: flex; }
+}
+
+/* Desktop: show arrows ONLY when schema setting is ON */
+@media (min-width: 1025px) {
+  .cg--desk-arr .cg-btn { display: flex; }
+}
+
+/* Mobile: always hidden */
+@media (max-width: 749px) {
+  .cg-btn { display: none !important; }
+}
+
+/* ─────────────────────────────────────────
+   SCROLLBAR
+   Shown on tablet, hidden on mobile
+───────────────────────────────────────── */
+.cg-sb { display: none; margin-top: 12px; } /* hidden on desktop */
+
+/* Show scrollbar on tablet only */
+@media (max-width: 1024px) and (min-width: 750px) {
+  .cg-sb { display: block; }
+}
+.cg-sb__track {
+  width: 100%;
+  height: var(--sb-h, 2px);
+  background: var(--sb-bg, #ddd);
+  border-radius: 99px;
+  position: relative;
+  cursor: pointer;
+}
+.cg-sb__fill {
+  position: absolute; top: 0; left: 0;
+  height: 100%;
+  background: var(--sb-c, #111);
+  border-radius: 99px;
+  min-width: 24px;
+  pointer-events: none;
+  /* No transition — live update during drag */
+}
+</style>
+
+<script>
+(function () {
+  'use strict';
+
+  var track = document.getElementById('cg-track-{{ section.id }}');
+  var btnP  = document.getElementById('cg-p-{{ section.id }}');
+  var btnN  = document.getElementById('cg-n-{{ section.id }}');
+  var sbEl  = document.getElementById('cg-sb-{{ section.id }}');
+  var sbt   = document.getElementById('cg-sbt-{{ section.id }}');
+  var sbf   = document.getElementById('cg-sbf-{{ section.id }}');
+
+  if (!track) return;
+
+  var items = Array.from(track.querySelectorAll('.cg-item'));
+  if (!items.length) return;
+
+  var idx = 0;
+
+  /* ── Is tablet? ── */
+  function isTab() {
+    return window.innerWidth >= 750 && window.innerWidth <= 1024;
+  }
+
+  /* ── Scroll to item i ── */
+  function goTo(i) {
+    i = Math.max(0, Math.min(i, items.length - 1));
+    idx = i;
+    /* Account for padding-left on track (mobile side space) */
+    var pl = parseFloat(window.getComputedStyle(track).paddingLeft) || 0;
+    track.scrollTo({
+      left: items[i].offsetLeft - pl,
+      behavior: 'smooth'
+    });
+    syncArrows();
+  }
+
+  /* ── Sync arrow disabled state ── */
+  function syncArrows() {
+    if (btnP) btnP.disabled = idx <= 0;
+    if (btnN) btnN.disabled = idx >= items.length - 1;
+  }
+
+  /* ── Update scrollbar fill ── */
+  function syncScrollbar() {
+    if (!sbf || !sbt) return;
+    var maxScroll = track.scrollWidth - track.clientWidth;
+    if (maxScroll <= 0) { sbf.style.width = '100%'; return; }
+    var ratio  = track.scrollLeft / maxScroll;
+    var tw     = sbt.clientWidth;
+    var fillW  = Math.max(24, tw * (track.clientWidth / track.scrollWidth));
+    sbf.style.width = fillW + 'px';
+    sbf.style.left  = ((tw - fillW) * ratio) + 'px';
+  }
+
+  /* ── Detect active item on scroll ── */
+  var scrollTimer;
+  track.addEventListener('scroll', function () {
+    syncScrollbar();
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(function () {
+      var pl = parseFloat(window.getComputedStyle(track).paddingLeft) || 0;
+      var best = 0, minD = Infinity;
+      items.forEach(function (el, i) {
+        var d = Math.abs((el.offsetLeft - pl) - track.scrollLeft);
+        if (d < minD) { minD = d; best = i; }
+      });
+      if (best !== idx) { idx = best; syncArrows(); }
+    }, 80);
+  }, { passive: true });
+
+  /* ── Arrow clicks ── */
+  if (btnP) btnP.addEventListener('click', function () { goTo(idx - 1); });
+  if (btnN) btnN.addEventListener('click', function () { goTo(idx + 1); });
+
+  /* ── Scrollbar drag ── */
+  if (sbt && sbf) {
+    var dragging = false, dragStartX = 0, dragStartScroll = 0;
+
+    sbt.addEventListener('mousedown', function (e) {
+      dragging = true;
+      dragStartX = e.clientX;
+      dragStartScroll = track.scrollLeft;
+      e.preventDefault();
+    });
+    window.addEventListener('mousemove', function (e) {
+      if (!dragging) return;
+      var maxScroll = track.scrollWidth - track.clientWidth;
+      var dx = (e.clientX - dragStartX) / sbt.clientWidth;
+      track.scrollLeft = dragStartScroll + dx * maxScroll;
+    });
+    window.addEventListener('mouseup', function () { dragging = false; });
+
+    /* Click on track to jump */
+    sbt.addEventListener('click', function (e) {
+      if (e.target === sbf) return;
+      var maxScroll = track.scrollWidth - track.clientWidth;
+      track.scrollTo({
+        left: (e.offsetX / sbt.clientWidth) * maxScroll,
+        behavior: 'smooth'
+      });
+    });
+  }
+
+  /* ── Resize: reset to first item ── */
+  var resizeTimer;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      idx = 0;
+      track.scrollLeft = 0;
+      syncArrows();
+      syncScrollbar();
+    }, 200);
+  });
+
+  /* ── Init ── */
+  syncArrows();
+  syncScrollbar();
+
+}());
+</script>
+
+{% schema %}
+{
+  "name": "Collection Grid",
+  "tag": "section",
+  "class": "cg-section",
+  "disabled_on": { "groups": ["header","footer"] },
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "Heading Tag",
+      "options": [
+        {"value":"h1","label":"H1"},
+        {"value":"h2","label":"H2"},
+        {"value":"h3","label":"H3"}
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Heading Size",
+      "min": 16, "max": 56, "step": 2, "default": 28, "unit": "px"
+    },
+    {
+      "type": "select",
+      "id": "heading_weight",
+      "label": "Heading Weight",
+      "options": [
+        {"value":"300","label":"Light"},
+        {"value":"400","label":"Regular"},
+        {"value":"500","label":"Medium"},
+        {"value":"600","label":"Semibold"},
+        {"value":"700","label":"Bold"}
+      ],
+      "default": "400"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading Color",
+      "default": "#111111"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_toplink",
+      "label": "Show Top-Right Link",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "toplink_text",
+      "label": "Link Text",
+      "default": "View all"
+    },
+    {
+      "type": "url",
+      "id": "toplink_url",
+      "label": "Link URL"
+    },
+    {
+      "type": "header",
+      "content": "Desktop Grid (≥1025px)"
+    },
+    {
+      "type": "select",
+      "id": "cols_desktop",
+      "label": "Columns",
+      "options": [
+        {"value":"2","label":"2"},
+        {"value":"3","label":"3"},
+        {"value":"4","label":"4"},
+        {"value":"5","label":"5"},
+        {"value":"6","label":"6"}
+      ],
+      "default": "4"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_desk_arrows",
+      "label": "Show Arrows on Desktop",
+      "default": false,
+      "info": "Adds prev/next arrow buttons over the grid on desktop."
+    },
+    {
+      "type": "header",
+      "content": "Tablet Slider (750–1024px)"
+    },
+    {
+      "type": "range",
+      "id": "tab_card_width",
+      "label": "Card Width",
+      "info": "Each card as % of viewport. Set lower to show more cards + peek.",
+      "min": 25, "max": 75, "step": 1, "default": 44, "unit": "vw"
+    },
+    {
+      "type": "range",
+      "id": "scrollbar_height",
+      "label": "Scrollbar Height",
+      "min": 1, "max": 6, "step": 1, "default": 2, "unit": "px"
+    },
+    {
+      "type": "color",
+      "id": "scrollbar_color",
+      "label": "Scrollbar Fill Color",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "scrollbar_bg",
+      "label": "Scrollbar Track Color",
+      "default": "#dddddd"
+    },
+    {
+      "type": "header",
+      "content": "Mobile (≤749px)"
+    },
+    {
+      "type": "range",
+      "id": "mob_card_width",
+      "label": "Card Width",
+      "info": "Each card as % of viewport.",
+      "min": 50, "max": 92, "step": 2, "default": 78, "unit": "vw"
+    },
+    {
+      "type": "range",
+      "id": "mob_side_space",
+      "label": "Side Space",
+      "info": "Left and right padding on mobile slider.",
+      "min": 0, "max": 40, "step": 2, "default": 16, "unit": "px"
+    },
+    {
+      "type": "header",
+      "content": "Spacing & Background"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Gap Between Cards",
+      "min": 0, "max": 40, "step": 1, "default": 2, "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "pad_x",
+      "label": "Side Padding",
+      "min": 0, "max": 120, "step": 4, "default": 0, "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "pad_top",
+      "label": "Padding Top",
+      "min": 0, "max": 120, "step": 4, "default": 0, "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "pad_bottom",
+      "label": "Padding Bottom",
+      "min": 0, "max": 120, "step": 4, "default": 0, "unit": "px"
+    },
+    {
+      "type": "color",
+      "id": "section_bg",
+      "label": "Background Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Image"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Aspect Ratio",
+      "options": [
+        {"value":"1/1",  "label":"Square 1:1"},
+        {"value":"4/5",  "label":"Portrait 4:5"},
+        {"value":"3/4",  "label":"Portrait 3:4"},
+        {"value":"2/3",  "label":"Tall 2:3"},
+        {"value":"4/3",  "label":"Landscape 4:3"},
+        {"value":"16/9", "label":"Wide 16:9"}
+      ],
+      "default": "4/5"
+    },
+    {
+      "type": "range",
+      "id": "image_radius",
+      "label": "Corner Radius",
+      "min": 0, "max": 40, "step": 2, "default": 0, "unit": "px"
+    },
+    {
+      "type": "header",
+      "content": "Hover Overlay"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay Color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay Opacity on Hover",
+      "min": 0, "max": 60, "step": 5, "default": 15, "unit": "%"
+    },
+    {
+      "type": "header",
+      "content": "Label"
+    },
+    {
+      "type": "select",
+      "id": "label_pos",
+      "label": "Label Position",
+      "options": [
+        {"value":"over",  "label":"Over image"},
+        {"value":"below", "label":"Below image"}
+      ],
+      "default": "over"
+    },
+    {
+      "type": "range",
+      "id": "label_size",
+      "label": "Label Size",
+      "min": 10, "max": 28, "step": 1, "default": 15, "unit": "px"
+    },
+    {
+      "type": "select",
+      "id": "label_weight",
+      "label": "Label Weight",
+      "options": [
+        {"value":"300","label":"Light"},
+        {"value":"400","label":"Regular"},
+        {"value":"500","label":"Medium"},
+        {"value":"600","label":"Semibold"}
+      ],
+      "default": "300"
+    },
+    {
+      "type": "select",
+      "id": "label_case",
+      "label": "Label Case",
+      "options": [
+        {"value":"none",       "label":"Default"},
+        {"value":"uppercase",  "label":"Uppercase"},
+        {"value":"capitalize", "label":"Capitalize"}
+      ],
+      "default": "none"
+    },
+    {
+      "type": "range",
+      "id": "label_spacing",
+      "label": "Letter Spacing (x0.01em)",
+      "min": 0, "max": 20, "step": 1, "default": 0
+    },
+    {
+      "type": "color",
+      "id": "label_color",
+      "label": "Label Color (over image)",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "sublabel_size",
+      "label": "Sublabel Size",
+      "min": 8, "max": 18, "step": 1, "default": 10, "unit": "px"
+    },
+    {
+      "type": "color",
+      "id": "sublabel_color",
+      "label": "Sublabel Color (over image)",
+      "default": "#ffffffaa"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "Collection Item",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection",
+          "info": "Auto-pulls image, title and URL."
+        },
+        {
+          "type": "header",
+          "content": "Overrides"
+        },
+        {
+          "type": "image_picker",
+          "id": "custom_image",
+          "label": "Custom Image"
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "info": "Overrides collection title."
+        },
+        {
+          "type": "text",
+          "id": "sublabel",
+          "label": "Sublabel",
+          "info": "Hover-only. e.g. Shop the breathable"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link",
+          "info": "Overrides collection URL."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection Grid",
+      "blocks": [
+        {"type":"item","settings":{"label":"Percale"}},
+        {"type":"item","settings":{"label":"Muslin"}},
+        {"type":"item","settings":{"label":"Sateen"}},
+        {"type":"item","settings":{"label":"Linen","sublabel":"Shop the breathable"}}
+      ]
+    }
+  ],
+  "max_blocks": 12
+}
+{% endschema %}

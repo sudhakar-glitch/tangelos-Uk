@@ -1,0 +1,465 @@
+{%- liquid
+  assign section_id = 'promise-' | append: section.id
+-%}
+
+<section
+  id="{{ section_id }}"
+  class="promise-section"
+  style="
+    --promise-bg: {{ section.settings.background_color }};
+    --promise-heading-color: {{ section.settings.heading_color }};
+    --promise-icon-bg: {{ section.settings.icon_bg_color }};
+    --promise-icon-color: {{ section.settings.icon_color }};
+    --promise-title-color: {{ section.settings.item_title_color }};
+    --promise-desc-color: {{ section.settings.item_desc_color }};
+    --promise-heading-size: {{ section.settings.heading_size }}px;
+    --promise-title-size: {{ section.settings.item_title_size }}px;
+    --promise-desc-size: {{ section.settings.item_desc_size }}px;
+    --promise-icon-size: {{ section.settings.icon_size }}px;
+    --promise-icon-radius: {{ section.settings.icon_border_radius }}%;
+    --promise-section-padding: {{ section.settings.section_padding }}px;
+    --promise-cols-desktop: {{ section.settings.cols_desktop }};
+    --promise-cols-tablet: {{ section.settings.cols_tablet }};
+    --promise-cols-mobile: {{ section.settings.cols_mobile }};
+    --promise-gap: {{ section.settings.item_gap }}px;
+  "
+>
+  {%- if section.settings.heading != blank -%}
+    <h2 class="promise-heading">{{ section.settings.heading | escape }}</h2>
+  {%- endif -%}
+
+  <ul class="promise-grid" role="list">
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'promise_item' -%}
+        {%- liquid
+          assign hide_desktop = block.settings.visible_on_desktop | default: true
+          assign hide_mobile  = block.settings.visible_on_mobile  | default: true
+
+          assign visibility_classes = ''
+          unless block.settings.visible_on_desktop
+            assign visibility_classes = visibility_classes | append: ' promise-hide-desktop'
+          endunless
+          unless block.settings.visible_on_mobile
+            assign visibility_classes = visibility_classes | append: ' promise-hide-mobile'
+          endunless
+        -%}
+        <li class="promise-item{{ visibility_classes }}" {{ block.shopify_attributes }}>
+          <div class="promise-icon-wrap" aria-hidden="true">
+            {%- case block.settings.icon -%}
+              {%- when 'delivery' -%}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v4h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              {%- when 'leaf' -%}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M17 8C8 10 5.9 16.17 3.82 19.5c.19.05.39.08.59.08A3.28 3.28 0 0 0 7.5 18c1.5-1.5 2-4 2-4s.5 2.5 2 4a3 3 0 0 0 4.07.13C18 16 22 8 22 8s-2.5 2-5 0z"/><path d="M3.82 19.5C5 17 7 15 9.5 14"/></svg>
+              {%- when 'spray' -%}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 3h2l2 7H3z"/><rect x="5" y="8" width="7" height="11" rx="2"/><path d="M12 12h3"/><circle cx="17" cy="12" r=".5" fill="currentColor"/><circle cx="20" cy="10" r=".5" fill="currentColor"/><circle cx="20" cy="14" r=".5" fill="currentColor"/><circle cx="17" cy="8" r=".5" fill="currentColor"/></svg>
+              {%- when 'return' -%}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12l-3 3 3 3"/><path d="M6 15h8a3 3 0 0 0 0-6h-1"/></svg>
+              {%- when 'swatch' -%}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              {%- when 'shield' -%}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              {%- when 'star' -%}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              {%- when 'gift' -%}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+              {%- when 'heart' -%}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              {%- when 'check' -%}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polyline points="20 6 9 17 4 12"/></svg>
+              {%- when 'lock' -%}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            {%- endcase -%}
+          </div>
+
+          {%- if block.settings.title != blank -%}
+            <p class="promise-item-title">{{ block.settings.title | escape }}</p>
+          {%- endif -%}
+
+          {%- if block.settings.description != blank -%}
+            <p class="promise-item-desc">{{ block.settings.description | escape }}</p>
+          {%- endif -%}
+        </li>
+      {%- endif -%}
+    {%- endfor -%}
+  </ul>
+</section>
+
+<style>
+  #{{ section_id }} {
+    background-color: var(--promise-bg);
+    padding: var(--promise-section-padding) 20px;
+    box-sizing: border-box;
+  }
+
+  #{{ section_id }} .promise-heading {
+    text-align: center;
+    color: var(--promise-heading-color);
+    font-size: var(--promise-heading-size);
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    margin: 0 0 40px;
+  }
+
+  #{{ section_id }} .promise-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--promise-cols-desktop), 1fr);
+    gap: var(--promise-gap);
+    list-style: none;
+    margin: 0 auto;
+    padding: 0;
+    max-width: 1200px;
+  }
+
+  #{{ section_id }} .promise-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+  }
+
+  #{{ section_id }} .promise-icon-wrap {
+    width: calc(var(--promise-icon-size) * 2);
+    height: calc(var(--promise-icon-size) * 2);
+    border-radius: var(--promise-icon-radius);
+    background-color: var(--promise-icon-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  #{{ section_id }} .promise-icon-wrap svg {
+    width: var(--promise-icon-size);
+    height: var(--promise-icon-size);
+    color: var(--promise-icon-color);
+    display: block;
+  }
+
+  #{{ section_id }} .promise-item-title {
+    margin: 0;
+    color: var(--promise-title-color);
+    font-size: var(--promise-title-size);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    line-height: 1.4;
+  }
+
+  #{{ section_id }} .promise-item-desc {
+    margin: 0;
+    color: var(--promise-desc-color);
+    font-size: var(--promise-desc-size);
+    line-height: 1.6;
+    max-width: 200px;
+  }
+
+  /* ── Visibility helpers ─────────────────────────────────── */
+
+  /* Hide on desktop (≥1024px), show on smaller screens */
+  @media (min-width: 1024px) {
+    #{{ section_id }} .promise-hide-desktop {
+      display: none !important;
+    }
+  }
+
+  /* Hide on mobile (≤639px), show on larger screens */
+  @media (max-width: 639px) {
+    #{{ section_id }} .promise-hide-mobile {
+      display: none !important;
+    }
+  }
+
+  /* ── Responsive columns ─────────────────────────────────── */
+
+  @media (max-width: 1023px) {
+    #{{ section_id }} .promise-grid {
+      grid-template-columns: repeat(var(--promise-cols-tablet), 1fr);
+    }
+  }
+
+  @media (max-width: 639px) {
+    #{{ section_id }} .promise-grid {
+      grid-template-columns: repeat(var(--promise-cols-mobile), 1fr);
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Promise Section",
+  "tag": "section",
+  "class": "promise-section-wrapper",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Section Heading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading Text",
+      "default": "The Tangelos Promise"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Heading Font Size (px)",
+      "min": 16,
+      "max": 60,
+      "step": 1,
+      "default": 28
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Section Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading Color",
+      "default": "#3a3a3a"
+    },
+    {
+      "type": "color",
+      "id": "icon_bg_color",
+      "label": "Icon Background Color",
+      "default": "#f0ede8"
+    },
+    {
+      "type": "color",
+      "id": "icon_color",
+      "label": "Icon Color",
+      "default": "#5a5147"
+    },
+    {
+      "type": "color",
+      "id": "item_title_color",
+      "label": "Item Title Color",
+      "default": "#3a3a3a"
+    },
+    {
+      "type": "color",
+      "id": "item_desc_color",
+      "label": "Item Description Color",
+      "default": "#7a7a7a"
+    },
+    {
+      "type": "header",
+      "content": "Icon Style"
+    },
+    {
+      "type": "range",
+      "id": "icon_size",
+      "label": "Icon Size (px)",
+      "min": 16,
+      "max": 60,
+      "step": 2,
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "icon_border_radius",
+      "label": "Icon Background Roundness (%)",
+      "info": "0 = square, 50 = circle",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "default": 50
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "range",
+      "id": "item_title_size",
+      "label": "Item Title Font Size (px)",
+      "min": 8,
+      "max": 24,
+      "step": 1,
+      "default": 11
+    },
+    {
+      "type": "range",
+      "id": "item_desc_size",
+      "label": "Item Description Font Size (px)",
+      "min": 8,
+      "max": 20,
+      "step": 1,
+      "default": 13
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "section_padding",
+      "label": "Section Vertical Padding (px)",
+      "min": 20,
+      "max": 120,
+      "step": 4,
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "item_gap",
+      "label": "Gap Between Items (px)",
+      "min": 8,
+      "max": 80,
+      "step": 4,
+      "default": 32
+    },
+    {
+      "type": "header",
+      "content": "Responsive Columns"
+    },
+    {
+      "type": "range",
+      "id": "cols_desktop",
+      "label": "Columns — Desktop (≥1024px)",
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "default": 5
+    },
+    {
+      "type": "range",
+      "id": "cols_tablet",
+      "label": "Columns — Tablet (640–1023px)",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "cols_mobile",
+      "label": "Columns — Mobile (≤639px)",
+      "min": 1,
+      "max": 3,
+      "step": 1,
+      "default": 2
+    }
+  ],
+  "blocks": [
+    {
+      "type": "promise_item",
+      "name": "Promise Item",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "delivery", "label": "Delivery Truck" },
+            { "value": "leaf",     "label": "Leaf / Natural" },
+            { "value": "spray",    "label": "Spray / Clean" },
+            { "value": "return",   "label": "Easy Returns" },
+            { "value": "swatch",   "label": "Swatch / Sample" },
+            { "value": "shield",   "label": "Shield / Protection" },
+            { "value": "star",     "label": "Star / Quality" },
+            { "value": "gift",     "label": "Gift" },
+            { "value": "heart",    "label": "Heart" },
+            { "value": "check",    "label": "Checkmark" },
+            { "value": "lock",     "label": "Lock / Secure" }
+          ],
+          "default": "delivery"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "FREE UK DELIVERY"
+        },
+        {
+          "type": "text",
+          "id": "description",
+          "label": "Description",
+          "default": "Orders dispatched within 4 working days"
+        },
+        {
+          "type": "header",
+          "content": "Visibility"
+        },
+        {
+          "type": "checkbox",
+          "id": "visible_on_desktop",
+          "label": "Show on Desktop (≥1024px)",
+          "default": true
+        },
+        {
+          "type": "checkbox",
+          "id": "visible_on_mobile",
+          "label": "Show on Mobile (≤639px)",
+          "default": true
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Promise Section",
+      "blocks": [
+        {
+          "type": "promise_item",
+          "settings": {
+            "icon": "delivery",
+            "title": "FREE UK DELIVERY",
+            "description": "Orders dispatched within 4 working days",
+            "visible_on_desktop": true,
+            "visible_on_mobile": true
+          }
+        },
+        {
+          "type": "promise_item",
+          "settings": {
+            "icon": "leaf",
+            "title": "NATURAL MATERIALS",
+            "description": "Sustainably farmed organic cotton initiative",
+            "visible_on_desktop": true,
+            "visible_on_mobile": true
+          }
+        },
+        {
+          "type": "promise_item",
+          "settings": {
+            "icon": "spray",
+            "title": "NEVER CONTAINING NASTIES",
+            "description": "Always gentle, never with harmful finishes",
+            "visible_on_desktop": true,
+            "visible_on_mobile": true
+          }
+        },
+        {
+          "type": "promise_item",
+          "settings": {
+            "icon": "return",
+            "title": "EASY RETURNS",
+            "description": "Return your order with no fuss if unhappy",
+            "visible_on_desktop": true,
+            "visible_on_mobile": true
+          }
+        },
+        {
+          "type": "promise_item",
+          "settings": {
+            "icon": "swatch",
+            "title": "FREE BEDDING SWATCHES",
+            "description": "Order free swatches of all our colours",
+            "visible_on_desktop": true,
+            "visible_on_mobile": true
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

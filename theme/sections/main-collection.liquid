@@ -1,0 +1,513 @@
+
+<script
+  src="{{ 'results-list.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+
+{% javascript %}
+  const url = new URL(window.location.href);
+  if (url.hash) {
+    document.addEventListener(
+      'DOMContentLoaded',
+      () => {
+        const card = document.getElementById(url.hash.slice(1));
+        if (card) {
+          card.scrollIntoView({ behavior: 'instant' });
+        }
+      },
+      { once: true }
+    );
+  }
+{% endjavascript %}
+
+<style>
+  .nav-sections-top nav.collection-subnav ul {
+    display: flex;
+    text-align: center;
+    gap: 10px;
+    list-style: none;
+    justify-content: center;
+}
+.nav-sections-top {
+    padding-top: 17px;
+    padding-bottom: 0;
+    padding-left: 100px;
+    padding-right: 100px;
+}
+.nav-sections-top nav.collection-subnav ul a {
+    text-decoration: underline;
+}
+</style>
+
+<div class="nav-sections-top">
+{% assign child_collections = collection.metafields.custom.child_navs_main.value %}
+
+{% if child_collections.size > 0 %}
+  <nav class="collection-subnav">
+    <ul>
+      {% for child in child_collections %}
+        <li class="collection-subnav__item">
+          <a href="{{ child.url }}"{% if child.url == collection.url %} aria-current="page"{% endif %}>
+            {{ child.title }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </nav>
+{% endif %}
+</div>
+
+
+<div class="section-background color-{{ section.settings.color_scheme }}"></div>
+
+<results-list
+  class="section product-grid-container color-{{ section.settings.color_scheme }}"
+  style="--padding-block-start: {{ section.settings.padding-block-start }}px; --padding-block-end: {{ section.settings.padding-block-end }}px;"
+  section-id="{{ section.id }}"
+  infinite-scroll="{{ section.settings.enable_infinite_scroll }}"
+>
+  {% render 'skip-to-content-link', href: '#ResultsList', text: 'accessibility.skip_to_results_list' %}
+
+  <div
+    class="collection-wrapper grid gap-style{% if section.settings.product_grid_width == 'full-width' %} collection-wrapper--grid-full-width{% endif %}"
+  >
+    {% content_for 'block',
+      type: 'filters',
+      id: 'filters',
+      results: collection,
+      results_size: collection.products_count
+    %}
+
+    {% assign products_per_page = 24 %}
+    {% if section.settings.enable_infinite_scroll == false %}
+      {% assign products_per_page = section.settings.products_per_page %}
+    {% endif %}
+
+    {% paginate collection.products by products_per_page %}
+      {% capture children %}
+
+        {% for product in collection.products %}
+
+          {%- assign cur_pos = forloop.index -%}
+
+          {%- comment -%} Loop through each banner and inject if position matches {%- endcomment -%}
+          {%- for i in (1..5) -%}
+            {%- assign b_show   = 'banner_' | append: i | append: '_show' -%}
+            {%- assign b_pos    = 'banner_' | append: i | append: '_position' -%}
+            {%- assign b_span   = 'banner_' | append: i | append: '_col_span' -%}
+            {%- assign b_minh   = 'banner_' | append: i | append: '_min_height' -%}
+            {%- assign b_rad    = 'banner_' | append: i | append: '_radius' -%}
+            {%- assign b_img    = 'banner_' | append: i | append: '_image' -%}
+            {%- assign b_halign = 'banner_' | append: i | append: '_text_align' -%}
+            {%- assign b_valign = 'banner_' | append: i | append: '_text_valign' -%}
+            {%- assign b_eyebrow= 'banner_' | append: i | append: '_eyebrow' -%}
+            {%- assign b_htag   = 'banner_' | append: i | append: '_heading_tag' -%}
+            {%- assign b_head   = 'banner_' | append: i | append: '_heading' -%}
+            {%- assign b_body   = 'banner_' | append: i | append: '_body' -%}
+            {%- assign b_cta_t  = 'banner_' | append: i | append: '_cta_text' -%}
+            {%- assign b_cta_u  = 'banner_' | append: i | append: '_cta_url' -%}
+            {%- assign b_cta_s  = 'banner_' | append: i | append: '_cta_style' -%}
+            {%- assign b_hc     = 'banner_' | append: i | append: '_heading_color' -%}
+            {%- assign b_bc     = 'banner_' | append: i | append: '_body_color' -%}
+            {%- assign b_ctac   = 'banner_' | append: i | append: '_cta_color' -%}
+            {%- assign b_ctabg  = 'banner_' | append: i | append: '_cta_bg' -%}
+            {%- assign b_ov_key = 'banner_' | append: i | append: '_overlay' -%}
+            {%- assign b_op_key = 'banner_' | append: i | append: '_overlay_opacity' -%}
+
+            {%- comment -%} Compute rgba inline — avoids variable bleed between banners {%- endcomment -%}
+            {%- assign b_ov_opacity = section.settings[b_op_key] | divided_by: 100.0 -%}
+            {%- assign b_ov_r = section.settings[b_ov_key] | color_extract: 'red' -%}
+            {%- assign b_ov_g = section.settings[b_ov_key] | color_extract: 'green' -%}
+            {%- assign b_ov_b = section.settings[b_ov_key] | color_extract: 'blue' -%}
+            {%- assign b_overlay = 'rgba(' | append: b_ov_r | append: ',' | append: b_ov_g | append: ',' | append: b_ov_b | append: ',' | append: b_ov_opacity | append: ')' -%}
+
+            {%- if section.settings[b_show]
+                 and section.settings[b_pos] == cur_pos
+                 and paginate.current_page == 1 -%}
+
+              <li
+                class="product-grid__item cgb-banner cgb-banner--align-{{ section.settings[b_halign] }} cgb-banner--valign-{{ section.settings[b_valign] }}"
+                aria-hidden="true"
+                style="
+                  --cgb-overlay:   {{ b_overlay }};
+                  --cgb-heading-c: {{ section.settings[b_hc] }};
+                  --cgb-body-c:    {{ section.settings[b_bc] }};
+                  --cgb-cta-c:     {{ section.settings[b_ctac] }};
+                  --cgb-cta-bg:    {{ section.settings[b_ctabg] }};
+                  --cgb-radius:    {{ section.settings[b_rad] }}px;
+                  --cgb-span:      {{ section.settings[b_span] }};
+                  --cgb-min-h:     {{ section.settings[b_minh] }}px;
+                "
+              >
+                <div class="cgb-banner__inner">
+                  {%- if section.settings[b_img] != blank -%}
+                    <div class="cgb-banner__media">
+                      {{- section.settings[b_img]
+                        | image_url: width: 1200
+                        | image_tag:
+                          class: 'cgb-banner__img',
+                          loading: 'lazy',
+                          decoding: 'async',
+                          widths: '600,800,1000,1200',
+                          sizes: '(max-width:749px) 100vw, 50vw',
+                          alt: section.settings[b_img].alt | default: section.settings[b_head]
+                      -}}
+                    </div>
+                  {%- endif -%}
+                  <div class="cgb-banner__content">
+                    {%- if section.settings[b_eyebrow] != blank -%}
+                      <p class="cgb-banner__eyebrow">{{ section.settings[b_eyebrow] | escape }}</p>
+                    {%- endif -%}
+                    {%- if section.settings[b_head] != blank -%}
+                      <{{ section.settings[b_htag] }} class="cgb-banner__heading">
+                        {{ section.settings[b_head] | escape }}
+                      </{{ section.settings[b_htag] }}>
+                    {%- endif -%}
+                    {%- if section.settings[b_body] != blank -%}
+                      <p class="cgb-banner__body">{{ section.settings[b_body] | escape }}</p>
+                    {%- endif -%}
+                    {%- if section.settings[b_cta_t] != blank and section.settings[b_cta_u] != blank -%}
+                      <a
+                        class="cgb-banner__cta cgb-banner__cta--{{ section.settings[b_cta_s] }}"
+                        href="{{ section.settings[b_cta_u] }}"
+                      >
+                        {{ section.settings[b_cta_t] | escape }}
+                      </a>
+                    {%- endif -%}
+                  </div>
+                </div>
+              </li>
+
+            {%- endif -%}
+          {%- endfor -%}
+
+          <li {% if product.tags contains 'upsell-only' %} style="display:none;" {% else %} style="display:block;" {% endif %}
+            id="{{ section.id }}-{{ product.id }}"
+            class="product-grid__item product-grid__item--{{ forloop.index0 }}"
+            data-page="{{ paginate.current_page }}"
+            data-product-id="{{ product.id }}"
+            ref="cards[]"
+          >
+            {% # theme-check-disable %}
+            {% content_for 'block', type: '_product-card', id: 'product-card', closest.product: product %}
+            {% # theme-check-enable %}
+          </li>
+
+        {% endfor %}
+
+      {% endcapture %}
+
+      {% render 'product-grid',
+        section: section,
+        children: children,
+        products: collection.products,
+        paginate: paginate,
+        enable_infinite_scroll: section.settings.enable_infinite_scroll
+      %}
+    {% endpaginate %}
+  </div>
+</results-list>
+
+
+
+
+<style>
+.cgb-banner {
+  grid-column: span var(--cgb-span, 2);
+  border-radius: var(--cgb-radius, 0);
+  overflow: hidden;
+  position: relative;
+  min-height: var(--cgb-min-h, 340px);
+}
+.cgb-banner__inner {
+  position: relative; width: 100%; height: 100%; min-height: inherit;
+}
+.cgb-banner__media {
+  position: absolute; inset: 0;
+}
+.cgb-banner__img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.cgb-banner__inner::after {
+  content: ''; position: absolute; inset: 0;
+  background: var(--cgb-overlay, rgba(0,0,0,0.35));
+  pointer-events: none;
+}
+.cgb-banner__content {
+  position: absolute; inset: 0; z-index: 2;
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 36px 32px;
+  justify-content: var(--cgb-valign, center);
+  align-items: var(--cgb-halign, flex-start);
+  text-align: var(--cgb-textalign, left);
+}
+.cgb-banner__eyebrow {
+  margin: 0; font-size: 13px; font-style: italic;
+  letter-spacing: 0.04em; color: var(--cgb-body-c, rgba(255,255,255,0.85));
+}
+.cgb-banner__heading {
+  margin: 0; font-size: clamp(22px, 2.4vw, 36px);
+  font-weight: 400; line-height: 1.15;
+  color: var(--cgb-heading-c, #fff);
+  letter-spacing: -0.01em; max-width: 380px;
+}
+.cgb-banner__body {
+  margin: 0; font-size: 14px; line-height: 1.65;
+  color: var(--cgb-body-c, rgba(255,255,255,0.82)); max-width: 320px;
+}
+.cgb-banner__cta {
+  display: inline-block; text-decoration: none;
+  font-size: 11px; letter-spacing: 0.15em;
+  text-transform: uppercase; font-weight: 500; margin-top: 4px;
+  transition: opacity 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+.cgb-banner__cta--underline {
+  color: var(--cgb-cta-c, #fff); border-bottom: 1px solid currentColor; padding-bottom: 3px;
+}
+.cgb-banner__cta--underline:hover { opacity: 0.6; }
+.cgb-banner__cta--filled {
+  background: var(--cgb-cta-bg, #fff); color: var(--cgb-cta-c, #111); padding: 11px 28px;
+}
+.cgb-banner__cta--filled:hover { opacity: 0.85; }
+.cgb-banner__cta--outline {
+  color: var(--cgb-cta-c, #fff); border: 1px solid var(--cgb-cta-c, #fff); padding: 11px 28px;
+}
+.cgb-banner__cta--outline:hover { background: var(--cgb-cta-c, #fff); color: #111; }
+
+.cgb-banner--align-left   { --cgb-halign: flex-start; --cgb-textalign: left; }
+.cgb-banner--align-center { --cgb-halign: center;     --cgb-textalign: center; }
+.cgb-banner--align-right  { --cgb-halign: flex-end;   --cgb-textalign: right; }
+.cgb-banner--valign-top    { --cgb-valign: flex-start; }
+.cgb-banner--valign-middle { --cgb-valign: center; }
+.cgb-banner--valign-bottom { --cgb-valign: flex-end; }
+.cgb-banner--align-center .cgb-banner__heading,
+.cgb-banner--align-center .cgb-banner__body { max-width: 100%; }
+
+@media (max-width: 749px) {
+  .cgb-banner { grid-column: 1 / -1 !important; min-height: 260px; }
+  .cgb-banner__content { padding: 28px 20px; gap: 10px; }
+  .cgb-banner__heading { font-size: 22px; max-width: 100%; }
+  .cgb-banner__body    { max-width: 100%; font-size: 13px; }
+}
+</style>
+
+{% schema %}
+{
+  "name": "t:names.collection_container",
+  "enabled_on": { "templates": ["collection"] },
+  "settings": [
+    {
+      "type": "select", "id": "layout_type", "label": "t:settings.type",
+      "options": [
+        { "value": "grid",    "label": "t:options.grid" },
+        { "value": "organic", "label": "t:options.editorial" }
+      ],
+      "default": "grid"
+    },
+    {
+      "type": "select", "id": "product_card_size", "label": "t:settings.card_size",
+      "options": [
+        { "value": "small",       "label": "t:options.small" },
+        { "value": "medium",      "label": "t:options.medium" },
+        { "value": "large",       "label": "t:options.large" },
+        { "value": "extra-large", "label": "t:options.extra_large" }
+      ],
+      "default": "medium",
+      "visible_if": "{{ section.settings.layout_type == 'grid' }}"
+    },
+    {
+      "type": "select", "id": "mobile_product_card_size", "label": "t:settings.mobile_card_size",
+      "options": [
+        { "value": "small", "label": "t:options.small" },
+        { "value": "large", "label": "t:options.large" }
+      ],
+      "default": "small"
+    },
+    { "type": "checkbox", "id": "enable_infinite_scroll", "label": "t:settings.auto_load_products", "default": true },
+    {
+      "type": "range", "id": "products_per_page", "label": "t:settings.products_per_page",
+      "min": 8, "max": 36, "step": 4, "default": 24,
+      "visible_if": "{{ section.settings.enable_infinite_scroll == false }}"
+    },
+    { "type": "header", "content": "t:content.layout" },
+    {
+      "type": "select", "id": "product_grid_width", "label": "t:settings.width",
+      "options": [
+        { "value": "centered",   "label": "t:options.page" },
+        { "value": "full-width", "label": "t:options.full" }
+      ],
+      "default": "centered"
+    },
+    {
+      "type": "checkbox", "id": "full_width_on_mobile", "label": "t:settings.full_width_on_mobile", "default": true,
+      "visible_if": "{{ section.settings.product_grid_width != 'full-width' }}"
+    },
+    { "type": "range", "id": "columns_gap_horizontal", "label": "t:settings.horizontal_gap", "min": 0, "max": 50, "step": 1, "unit": "px", "default": 16 },
+    { "type": "range", "id": "columns_gap_vertical",   "label": "t:settings.vertical_gap",   "min": 0, "max": 50, "step": 1, "unit": "px", "default": 16 },
+    { "type": "range", "id": "padding-inline-start",   "label": "t:settings.left_padding",   "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding-inline-end",     "label": "t:settings.right_padding",  "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "header", "content": "t:content.section_layout" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "t:settings.color_scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding-block-start", "label": "t:settings.top_padding",    "min": 0, "max": 100, "step": 1, "unit": "px", "default": 8 },
+    { "type": "range", "id": "padding-block-end",   "label": "t:settings.bottom_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 8 },
+
+    { "type": "header", "content": "━━━ Banner 1 ━━━" },
+    { "type": "checkbox",    "id": "banner_1_show",            "label": "Show Banner 1",              "default": false },
+    { "type": "range",       "id": "banner_1_position",        "label": "Insert Before Product #",   "min": 1, "max": 24, "step": 1, "default": 3 },
+    { "type": "range",       "id": "banner_1_col_span",        "label": "Column Span",                "min": 1, "max": 6,  "step": 1, "default": 2 },
+    { "type": "range",       "id": "banner_1_min_height",      "label": "Min Height (px)",            "min": 160, "max": 600, "step": 20, "unit": "px", "default": 340 },
+    { "type": "range",       "id": "banner_1_radius",          "label": "Corner Radius (px)",         "min": 0, "max": 24, "step": 2, "unit": "px", "default": 0 },
+    { "type": "image_picker","id": "banner_1_image",           "label": "Image" },
+    { "type": "color",       "id": "banner_1_overlay",         "label": "Overlay Color",              "default": "#000000" },
+    { "type": "range",       "id": "banner_1_overlay_opacity", "label": "Overlay Opacity (%)",        "min": 0, "max": 80, "step": 5, "unit": "%", "default": 35 },
+    { "type": "select",      "id": "banner_1_text_align",      "label": "Horizontal Alignment",       "options": [{"value":"left","label":"Left"},{"value":"center","label":"Center"},{"value":"right","label":"Right"}], "default": "center" },
+    { "type": "select",      "id": "banner_1_text_valign",     "label": "Vertical Alignment",         "options": [{"value":"top","label":"Top"},{"value":"middle","label":"Middle"},{"value":"bottom","label":"Bottom"}], "default": "middle" },
+    { "type": "text",        "id": "banner_1_eyebrow",         "label": "Eyebrow",                    "default": "New Collection" },
+    { "type": "select",      "id": "banner_1_heading_tag",     "label": "Heading Tag",                "options": [{"value":"h2","label":"H2"},{"value":"h3","label":"H3"},{"value":"h4","label":"H4"}], "default": "h3" },
+    { "type": "text",        "id": "banner_1_heading",         "label": "Heading",                    "default": "Crafted for living well." },
+    { "type": "textarea",    "id": "banner_1_body",            "label": "Body Text",                  "default": "Every piece is made with care, designed to last and feel good every day." },
+    { "type": "text",        "id": "banner_1_cta_text",        "label": "Button Text",                "default": "Shop Now" },
+    { "type": "url",         "id": "banner_1_cta_url",         "label": "Button Link" },
+    { "type": "select",      "id": "banner_1_cta_style",       "label": "Button Style",               "options": [{"value":"outline","label":"Outline"},{"value":"filled","label":"Filled"},{"value":"underline","label":"Underline"}], "default": "outline" },
+    { "type": "color",       "id": "banner_1_heading_color",   "label": "Heading Color",              "default": "#ffffff" },
+    { "type": "color",       "id": "banner_1_body_color",      "label": "Body & Eyebrow Color",       "default": "#ffffff" },
+    { "type": "color",       "id": "banner_1_cta_color",       "label": "Button Text & Border",       "default": "#ffffff" },
+    { "type": "color",       "id": "banner_1_cta_bg",          "label": "Button Background (Filled)", "default": "#ffffff" },
+
+    { "type": "header", "content": "━━━ Banner 2 ━━━" },
+    { "type": "checkbox",    "id": "banner_2_show",            "label": "Show Banner 2",              "default": false },
+    { "type": "range",       "id": "banner_2_position",        "label": "Insert Before Product #",   "min": 1, "max": 24, "step": 1, "default": 9 },
+    { "type": "range",       "id": "banner_2_col_span",        "label": "Column Span",                "min": 1, "max": 6,  "step": 1, "default": 2 },
+    { "type": "range",       "id": "banner_2_min_height",      "label": "Min Height (px)",            "min": 160, "max": 600, "step": 20, "unit": "px", "default": 340 },
+    { "type": "range",       "id": "banner_2_radius",          "label": "Corner Radius (px)",         "min": 0, "max": 24, "step": 2, "unit": "px", "default": 0 },
+    { "type": "image_picker","id": "banner_2_image",           "label": "Image" },
+    { "type": "color",       "id": "banner_2_overlay",         "label": "Overlay Color",              "default": "#000000" },
+    { "type": "range",       "id": "banner_2_overlay_opacity", "label": "Overlay Opacity (%)",        "min": 0, "max": 80, "step": 5, "unit": "%", "default": 35 },
+    { "type": "select",      "id": "banner_2_text_align",      "label": "Horizontal Alignment",       "options": [{"value":"left","label":"Left"},{"value":"center","label":"Center"},{"value":"right","label":"Right"}], "default": "center" },
+    { "type": "select",      "id": "banner_2_text_valign",     "label": "Vertical Alignment",         "options": [{"value":"top","label":"Top"},{"value":"middle","label":"Middle"},{"value":"bottom","label":"Bottom"}], "default": "middle" },
+    { "type": "text",        "id": "banner_2_eyebrow",         "label": "Eyebrow",                    "default": "Featured" },
+    { "type": "select",      "id": "banner_2_heading_tag",     "label": "Heading Tag",                "options": [{"value":"h2","label":"H2"},{"value":"h3","label":"H3"},{"value":"h4","label":"H4"}], "default": "h3" },
+    { "type": "text",        "id": "banner_2_heading",         "label": "Heading",                    "default": "Explore the collection." },
+    { "type": "textarea",    "id": "banner_2_body",            "label": "Body Text",                  "default": "Discover our most loved pieces." },
+    { "type": "text",        "id": "banner_2_cta_text",        "label": "Button Text",                "default": "View All" },
+    { "type": "url",         "id": "banner_2_cta_url",         "label": "Button Link" },
+    { "type": "select",      "id": "banner_2_cta_style",       "label": "Button Style",               "options": [{"value":"outline","label":"Outline"},{"value":"filled","label":"Filled"},{"value":"underline","label":"Underline"}], "default": "outline" },
+    { "type": "color",       "id": "banner_2_heading_color",   "label": "Heading Color",              "default": "#ffffff" },
+    { "type": "color",       "id": "banner_2_body_color",      "label": "Body & Eyebrow Color",       "default": "#ffffff" },
+    { "type": "color",       "id": "banner_2_cta_color",       "label": "Button Text & Border",       "default": "#ffffff" },
+    { "type": "color",       "id": "banner_2_cta_bg",          "label": "Button Background (Filled)", "default": "#ffffff" },
+
+    { "type": "header", "content": "━━━ Banner 3 ━━━" },
+    { "type": "checkbox",    "id": "banner_3_show",            "label": "Show Banner 3",              "default": false },
+    { "type": "range",       "id": "banner_3_position",        "label": "Insert Before Product #",   "min": 1, "max": 24, "step": 1, "default": 15 },
+    { "type": "range",       "id": "banner_3_col_span",        "label": "Column Span",                "min": 1, "max": 6,  "step": 1, "default": 2 },
+    { "type": "range",       "id": "banner_3_min_height",      "label": "Min Height (px)",            "min": 160, "max": 600, "step": 20, "unit": "px", "default": 340 },
+    { "type": "range",       "id": "banner_3_radius",          "label": "Corner Radius (px)",         "min": 0, "max": 24, "step": 2, "unit": "px", "default": 0 },
+    { "type": "image_picker","id": "banner_3_image",           "label": "Image" },
+    { "type": "color",       "id": "banner_3_overlay",         "label": "Overlay Color",              "default": "#000000" },
+    { "type": "range",       "id": "banner_3_overlay_opacity", "label": "Overlay Opacity (%)",        "min": 0, "max": 80, "step": 5, "unit": "%", "default": 35 },
+    { "type": "select",      "id": "banner_3_text_align",      "label": "Horizontal Alignment",       "options": [{"value":"left","label":"Left"},{"value":"center","label":"Center"},{"value":"right","label":"Right"}], "default": "center" },
+    { "type": "select",      "id": "banner_3_text_valign",     "label": "Vertical Alignment",         "options": [{"value":"top","label":"Top"},{"value":"middle","label":"Middle"},{"value":"bottom","label":"Bottom"}], "default": "middle" },
+    { "type": "text",        "id": "banner_3_eyebrow",         "label": "Eyebrow",                    "default": "Limited Edition" },
+    { "type": "select",      "id": "banner_3_heading_tag",     "label": "Heading Tag",                "options": [{"value":"h2","label":"H2"},{"value":"h3","label":"H3"},{"value":"h4","label":"H4"}], "default": "h3" },
+    { "type": "text",        "id": "banner_3_heading",         "label": "Heading",                    "default": "Warmth, reimagined." },
+    { "type": "textarea",    "id": "banner_3_body",            "label": "Body Text",                  "default": "A considered palette drawn from nature." },
+    { "type": "text",        "id": "banner_3_cta_text",        "label": "Button Text",                "default": "Shop the Edit" },
+    { "type": "url",         "id": "banner_3_cta_url",         "label": "Button Link" },
+    { "type": "select",      "id": "banner_3_cta_style",       "label": "Button Style",               "options": [{"value":"outline","label":"Outline"},{"value":"filled","label":"Filled"},{"value":"underline","label":"Underline"}], "default": "outline" },
+    { "type": "color",       "id": "banner_3_heading_color",   "label": "Heading Color",              "default": "#ffffff" },
+    { "type": "color",       "id": "banner_3_body_color",      "label": "Body & Eyebrow Color",       "default": "#ffffff" },
+    { "type": "color",       "id": "banner_3_cta_color",       "label": "Button Text & Border",       "default": "#ffffff" },
+    { "type": "color",       "id": "banner_3_cta_bg",          "label": "Button Background (Filled)", "default": "#ffffff" },
+
+    { "type": "header", "content": "━━━ Banner 4 ━━━" },
+    { "type": "checkbox",    "id": "banner_4_show",            "label": "Show Banner 4",              "default": false },
+    { "type": "range",       "id": "banner_4_position",        "label": "Insert Before Product #",   "min": 1, "max": 24, "step": 1, "default": 19 },
+    { "type": "range",       "id": "banner_4_col_span",        "label": "Column Span",                "min": 1, "max": 6,  "step": 1, "default": 2 },
+    { "type": "range",       "id": "banner_4_min_height",      "label": "Min Height (px)",            "min": 160, "max": 600, "step": 20, "unit": "px", "default": 340 },
+    { "type": "range",       "id": "banner_4_radius",          "label": "Corner Radius (px)",         "min": 0, "max": 24, "step": 2, "unit": "px", "default": 0 },
+    { "type": "image_picker","id": "banner_4_image",           "label": "Image" },
+    { "type": "color",       "id": "banner_4_overlay",         "label": "Overlay Color",              "default": "#000000" },
+    { "type": "range",       "id": "banner_4_overlay_opacity", "label": "Overlay Opacity (%)",        "min": 0, "max": 80, "step": 5, "unit": "%", "default": 35 },
+    { "type": "select",      "id": "banner_4_text_align",      "label": "Horizontal Alignment",       "options": [{"value":"left","label":"Left"},{"value":"center","label":"Center"},{"value":"right","label":"Right"}], "default": "center" },
+    { "type": "select",      "id": "banner_4_text_valign",     "label": "Vertical Alignment",         "options": [{"value":"top","label":"Top"},{"value":"middle","label":"Middle"},{"value":"bottom","label":"Bottom"}], "default": "middle" },
+    { "type": "text",        "id": "banner_4_eyebrow",         "label": "Eyebrow",                    "default": "Sale" },
+    { "type": "select",      "id": "banner_4_heading_tag",     "label": "Heading Tag",                "options": [{"value":"h2","label":"H2"},{"value":"h3","label":"H3"},{"value":"h4","label":"H4"}], "default": "h3" },
+    { "type": "text",        "id": "banner_4_heading",         "label": "Heading",                    "default": "Up to 50% off." },
+    { "type": "textarea",    "id": "banner_4_body",            "label": "Body Text",                  "default": "For a limited time only." },
+    { "type": "text",        "id": "banner_4_cta_text",        "label": "Button Text",                "default": "Shop Sale" },
+    { "type": "url",         "id": "banner_4_cta_url",         "label": "Button Link" },
+    { "type": "select",      "id": "banner_4_cta_style",       "label": "Button Style",               "options": [{"value":"outline","label":"Outline"},{"value":"filled","label":"Filled"},{"value":"underline","label":"Underline"}], "default": "outline" },
+    { "type": "color",       "id": "banner_4_heading_color",   "label": "Heading Color",              "default": "#ffffff" },
+    { "type": "color",       "id": "banner_4_body_color",      "label": "Body & Eyebrow Color",       "default": "#ffffff" },
+    { "type": "color",       "id": "banner_4_cta_color",       "label": "Button Text & Border",       "default": "#ffffff" },
+    { "type": "color",       "id": "banner_4_cta_bg",          "label": "Button Background (Filled)", "default": "#ffffff" },
+
+    { "type": "header", "content": "━━━ Banner 5 ━━━" },
+    { "type": "checkbox",    "id": "banner_5_show",            "label": "Show Banner 5",              "default": false },
+    { "type": "range",       "id": "banner_5_position",        "label": "Insert Before Product #",   "min": 1, "max": 24, "step": 1, "default": 23 },
+    { "type": "range",       "id": "banner_5_col_span",        "label": "Column Span",                "min": 1, "max": 6,  "step": 1, "default": 2 },
+    { "type": "range",       "id": "banner_5_min_height",      "label": "Min Height (px)",            "min": 160, "max": 600, "step": 20, "unit": "px", "default": 340 },
+    { "type": "range",       "id": "banner_5_radius",          "label": "Corner Radius (px)",         "min": 0, "max": 24, "step": 2, "unit": "px", "default": 0 },
+    { "type": "image_picker","id": "banner_5_image",           "label": "Image" },
+    { "type": "color",       "id": "banner_5_overlay",         "label": "Overlay Color",              "default": "#000000" },
+    { "type": "range",       "id": "banner_5_overlay_opacity", "label": "Overlay Opacity (%)",        "min": 0, "max": 80, "step": 5, "unit": "%", "default": 35 },
+    { "type": "select",      "id": "banner_5_text_align",      "label": "Horizontal Alignment",       "options": [{"value":"left","label":"Left"},{"value":"center","label":"Center"},{"value":"right","label":"Right"}], "default": "center" },
+    { "type": "select",      "id": "banner_5_text_valign",     "label": "Vertical Alignment",         "options": [{"value":"top","label":"Top"},{"value":"middle","label":"Middle"},{"value":"bottom","label":"Bottom"}], "default": "middle" },
+    { "type": "text",        "id": "banner_5_eyebrow",         "label": "Eyebrow",                    "default": "Story" },
+    { "type": "select",      "id": "banner_5_heading_tag",     "label": "Heading Tag",                "options": [{"value":"h2","label":"H2"},{"value":"h3","label":"H3"},{"value":"h4","label":"H4"}], "default": "h3" },
+    { "type": "text",        "id": "banner_5_heading",         "label": "Heading",                    "default": "Born from sleepless nights." },
+    { "type": "textarea",    "id": "banner_5_body",            "label": "Body Text",                  "default": "Crafted for restful ones." },
+    { "type": "text",        "id": "banner_5_cta_text",        "label": "Button Text",                "default": "Our Story" },
+    { "type": "url",         "id": "banner_5_cta_url",         "label": "Button Link" },
+    { "type": "select",      "id": "banner_5_cta_style",       "label": "Button Style",               "options": [{"value":"outline","label":"Outline"},{"value":"filled","label":"Filled"},{"value":"underline","label":"Underline"}], "default": "outline" },
+    { "type": "color",       "id": "banner_5_heading_color",   "label": "Heading Color",              "default": "#ffffff" },
+    { "type": "color",       "id": "banner_5_body_color",      "label": "Body & Eyebrow Color",       "default": "#ffffff" },
+    { "type": "color",       "id": "banner_5_cta_color",       "label": "Button Text & Border",       "default": "#ffffff" },
+    { "type": "color",       "id": "banner_5_cta_bg",          "label": "Button Background (Filled)", "default": "#ffffff" }
+  ],
+  "presets": []
+}
+{% endschema %}
+
+
+
+<div class="nav-sections">
+{% if collection.description != blank %}
+  <div class="collection-description">
+    <h2>{{ collection.title }}</h2>
+    {{ collection.description }}
+  </div>
+{% endif %}
+</div>
+
+
+<style>
+  .nav-sections {
+   padding-left: 60px;
+    padding-right: 60px;
+    padding-top: 40px;
+    padding-bottom: 40px;
+}
+.nav-sections nav.collection-subnav {
+    display: block;
+        text-align: center;
+    padding-top: 30px;
+    padding-bottom: 0;
+}
+.nav-sections .collection-description h2 {
+    font-size: 22px;
+    text-align: center;
+}
+.nav-sections nav.collection-subnav ul {
+    display: inline-flex;
+    gap: 10px;
+    list-style: none;
+    text-align: center;
+    margin: auto;
+}
+.nav-sections nav.collection-subnav ul li {
+    text-decoration: underline;
+}
+</style>

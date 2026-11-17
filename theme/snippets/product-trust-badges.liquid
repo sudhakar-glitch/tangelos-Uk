@@ -1,0 +1,737 @@
+
+
+{% comment %} {% if product.title contains "Butter Bean Muslin Duvet Cover" %}
+  
+  <div id="shipping-badge" class="shipping-badge" style="text-align:center; padding: 0px 4px;padding-bottom: 10px; border-radius: 4px; margin: 10px 0; display: none;">
+    {% assign shipping_date = "2026-06-21" | date: "%s" | times: 1 %}
+    {% assign today = "now" | date: "%s" | times: 1 %}
+    {% assign days_remaining = shipping_date | minus: today | divided_by: 86400 | ceil %}
+    
+    {% if days_remaining > 0 %}
+      <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">
+        Perfection takes time, but it's worth it.</p>
+        <p style="margin: 0px 0 0 0; font-size: 13px; color: #666;"> Pre-order | Ships in {{ days_remaining }} day{% if days_remaining != 1 %}s (20-06-2026){% endif %}</p>
+    {% endif %}
+  </div>
+
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  
+  // Check size selection on page load
+  checkShippingBadge();
+  
+  // Listen for size selector changes (radio buttons)
+  document.querySelectorAll('input[type="radio"]').forEach(function(radio) {
+    radio.addEventListener('change', checkShippingBadge);
+  });
+  
+  // Listen for size selector changes (dropdown)
+  var sizeSelect = document.querySelector('select[type="radio"]');
+  if (sizeSelect) {
+    sizeSelect.addEventListener('change', checkShippingBadge);
+  }
+  
+  function checkShippingBadge() {
+    var badge = document.getElementById('shipping-badge');
+    
+    // Get selected size from radio or dropdown
+    var selectedSize = '';
+    var radioChecked = document.querySelector('input[type="radio"]:checked');
+    if (radioChecked) {
+      selectedSize = radioChecked.value;
+    } else {
+      var dropdown = document.querySelector('select[type="radio"]');
+      if (dropdown) {
+        selectedSize = dropdown.value;
+      }
+    }
+    
+    // Show badge only for King or Super King
+    if (selectedSize && (selectedSize.includes('King') || selectedSize.includes('Super King'))) {
+      badge.style.display = 'block';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+});
+</script>
+ {% endcomment %}
+
+
+
+
+
+ 
+{% comment %} 
+
+{% assign title_downcase = product.title | downcase %}
+
+<div class="trust-badges-wrap" id="trust-badges-wrap">
+
+  <div class="trust-badges">
+ {% if title_downcase contains 'percale' %}
+    <div class="trust-badge">
+      <div class="trust-badge__icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/>
+          <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+        </svg>
+      </div>
+      <p class="trust-badge__label">CERTIFIED ORGANIC</p>
+      <button type="button" class="trust-badge__cta" data-tab="certs" aria-expanded="false">
+        VIEW CERTIFICATE
+      </button>
+    </div>
+
+    <div class="trust-badge">
+      <div class="trust-badge__icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+          <path d="m9 12 2 2 4-4"/>
+        </svg>
+      </div>
+      <p class="trust-badge__label">50 WASH GUARANTEE</p>
+      <button type="button" class="trust-badge__cta" data-tab="report" aria-expanded="false">
+        VIEW REPORT 
+      </button>
+    </div>
+
+    <div class="trust-badge">
+      <div class="trust-badge__icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M8 12s1.5-3 4-3 4 3 4 3-1.5 3-4 3-4-3-4-3z"/>
+          <circle cx="12" cy="12" r="1" fill="currentColor"/>
+        </svg>
+      </div>
+      <p class="trust-badge__label">ECO VERIFIED</p>
+      <button type="button" class="trust-badge__cta" data-tab="impact" aria-expanded="false">
+        VIEW IMPACT
+      </button>
+
+      <button style="display:none" type="button" id="click_reviews" class="trust-badge__cta" data-tab="reviews" aria-expanded="false">
+        VIEW IMPACT
+      </button>
+    </div>
+    {% endif %}
+
+
+    <div class="trust-badges">
+ {% if title_downcase contains 'linen' %}
+<style>
+  .trust-badges-wrap{
+  display:none;
+}
+</style>
+
+    <div class="trust-badge">
+      <div class="trust-badge__icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/>
+          <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+        </svg>
+      </div>
+      <p class="trust-badge__label">CERTIFIED ORGANIC</p>
+      <button type="button" class="trust-badge__cta" data-tab="certs" aria-expanded="false">
+        VIEW CERTIFICATE
+      </button>
+    </div>
+
+    <div class="trust-badge">
+      <div class="trust-badge__icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+          <path d="m9 12 2 2 4-4"/>
+        </svg>
+      </div>
+      <p class="trust-badge__label">50 WASH GUARANTEE</p>
+      <button type="button" class="trust-badge__cta" data-tab="report" aria-expanded="false">
+        VIEW REPORT 
+      </button>
+    </div>
+
+    <div class="trust-badge">
+      <div class="trust-badge__icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M8 12s1.5-3 4-3 4 3 4 3-1.5 3-4 3-4-3-4-3z"/>
+          <circle cx="12" cy="12" r="1" fill="currentColor"/>
+        </svg>
+      </div>
+      <p class="trust-badge__label">ECO VERIFIED</p>
+      <button type="button" class="trust-badge__cta" data-tab="impact" aria-expanded="false">
+        VIEW IMPACT
+      </button>
+
+      <button style="display:none" type="button" id="click_reviews" class="trust-badge__cta" data-tab="reviews" aria-expanded="false">
+        VIEW IMPACT
+      </button>
+    </div>
+    {% endif %}
+
+
+    {% comment %} Sateen {% endcomment %}
+
+{% if title_downcase contains 'sateen' %}
+    <div class="trust-badge">
+      <div class="trust-badge__icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/>
+          <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+        </svg>
+      </div>
+      <p class="trust-badge__label">CERTIFIED ORGANIC</p>
+      <button type="button" class="trust-badge__cta" data-tab="certs" aria-expanded="false">
+        VIEW CERTIFICATE
+      </button>
+    </div>
+
+    <div class="trust-badge">
+      <div class="trust-badge__icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+          <path d="m9 12 2 2 4-4"/>
+        </svg>
+      </div>
+      <p class="trust-badge__label">50 WASH GUARANTEE</p>
+      <button type="button" class="trust-badge__cta" data-tab="report" aria-expanded="false">
+        VIEW REPORT 
+      </button>
+    </div>
+
+    <div class="trust-badge">
+      <div class="trust-badge__icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M8 12s1.5-3 4-3 4 3 4 3-1.5 3-4 3-4-3-4-3z"/>
+          <circle cx="12" cy="12" r="1" fill="currentColor"/>
+        </svg>
+      </div>
+      <p class="trust-badge__label">ECO VERIFIED</p>
+      <button type="button" class="trust-badge__cta" data-tab="impact" aria-expanded="false">
+        VIEW IMPACT
+      </button>
+
+      <button style="display:none" type="button" id="click_reviews" class="trust-badge__cta" data-tab="reviews" aria-expanded="false">
+        VIEW IMPACT
+      </button>
+    </div>
+    {% endif %}
+
+    {% comment %}  {% endcomment %}
+
+    {% if title_downcase contains 'muslin' %}
+    <div class="trust-badge">
+      <div class="trust-badge__icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/>
+          <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+        </svg>
+      </div>
+      <p class="trust-badge__label">CERTIFIED ORGANIC</p>
+      <button type="button" class="trust-badge__cta" data-tab="certs" aria-expanded="false">
+        VIEW CERTIFICATE
+      </button>
+    </div>
+
+    <div class="trust-badge">
+      <div class="trust-badge__icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+          <path d="m9 12 2 2 4-4"/>
+        </svg>
+      </div>
+      <p class="trust-badge__label">SHRINK-FREE</p>
+      <button type="button" class="trust-badge__cta" data-tab="report" aria-expanded="false">
+        VIEW REPORT 
+      </button>
+    </div>
+
+    <div class="trust-badge">
+      <div class="trust-badge__icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M8 12s1.5-3 4-3 4 3 4 3-1.5 3-4 3-4-3-4-3z"/>
+          <circle cx="12" cy="12" r="1" fill="currentColor"/>
+        </svg>
+      </div>
+      <p class="trust-badge__label">ECO VERIFIED</p>
+      <button type="button" class="trust-badge__cta" data-tab="impact" aria-expanded="false">
+        VIEW IMPACT
+      </button>
+
+      <button style="display:none" type="button" id="click_reviews" class="trust-badge__cta" data-tab="reviews" aria-expanded="false">
+        VIEW IMPACT
+      </button>
+    </div>
+    {% endif %}
+
+
+  </div>
+</div> {% endcomment %}
+
+
+{% unless product.handle contains 'duvet-set' %}
+{% comment %}  {% endcomment %}
+
+  {%- assign product_list = product.metafields.custom.whats_inside.value -%}
+
+{% if product_list != blank %}
+<div class="space-y-6 whats-included" >
+
+  {% for p in product_list %}
+
+<div class="pt-4">
+<div class="flex items-center gap-5 p-4 border border-outline-variant/20 rounded-sm bg-surface-container-low/30 hover:bg-surface-container-low transition-colors group cursor-pointer">
+<div class="w-16 h-16 shrink-0 overflow-hidden rounded-sm bg-surface-container-high" style="">
+  {{ p.featured_image | image_url: width: 500 | image_tag }}
+</div>
+<div class="flex-grow space-y-1">
+<h4 class="text-[9px] tracking-[0.3em] uppercase font-label text-primary font-medium">Shop the Bundle</h4>
+<p class="text-[10px] text-stone-500 font-light leading-relaxed">Save 15% Versus Buying Individuals</p>
+<div class="pt-1">
+ <a href="{{ p.url }}">
+  Choose Your Bundle
+  </a>
+</div>
+</div>
+</div>
+</div>
+ {% endfor %}
+ </div>
+{% endif %}
+
+{% endunless %}
+
+{% comment %}  {% endcomment %}
+
+
+
+<!-- Overlay -->
+<div class="trust-overlay" id="trustOverlay"></div>
+
+<!-- Panel -->
+<div class="trust-panel" id="trustPanel" aria-hidden="true">
+
+  <div class="panel-header">
+    <div class="panel-header-row">
+      <div class="panel-title">Product Insights</div>
+      <button type="button" class="panel-x-close" id="panelXClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="panel-tabs">
+      <button type="button" class="panel-tab active" data-pane="certs">Certs</button>
+      {% comment %} <button type="button" class="panel-tab" data-pane="delivery">Delivery / Returns</button> {% endcomment %}
+      <button type="button" class="panel-tab" data-pane="impact">Impact</button>
+      {% comment %} <button type="button" class="panel-tab" data-pane="reviews">Delivery / Returns</button>  {% endcomment %}
+    </div>
+  </div>
+
+  <div class="panel-body">
+
+    <!-- CERTS -->
+    <div class="tab-pane active" id="pane-certs">
+      <div class="cert-card">
+        <div class="cert-card-header">
+          <div class="cert-card-title">GOTS Certified</div>
+          <div class="cert-status">Active</div>
+        </div>
+        <div class="cert-meta">Global Organic Textile Standard</div>
+        <div class="cert-body">Ensures the organic status of textiles from harvesting of the raw materials through environmentally and socially responsible manufacturing.</div>
+        <div class="cert-footer">
+          <div class="cert-license">License No: GCL-3209</div>
+          {% comment %} <a href="#" class="cert-link">Verify Database</a> {% endcomment %}
+        </div>
+      </div>
+      <div class="cert-card">
+        <div class="cert-card-header">
+          <div class="cert-card-title">OEKO-TEX® Standard 100</div>
+          <div class="cert-status">Active</div>
+        </div>
+        <div class="cert-meta">Class 1 (Baby Safe) · 15.HIN.75800</div>
+        <div class="cert-body">Every component — every thread, button and accessory — has been tested and is certified harmless for human health.</div>
+        <div class="cert-footer">
+          <div class="cert-license">License No: 15.HIN.75800</div>
+          {% comment %} <a href="/pages/oeko-certificate" class="cert-link">View Certificate</a> {% endcomment %}
+        </div>
+      </div>
+      
+    </div>
+
+
+
+
+    <!-- REPORT -->
+    <div class="tab-pane" id="pane-report">
+
+{% if title_downcase contains 'percale' or title_downcase contains 'sateen' or title_downcase contains 'linen'  %}
+
+      <div class="report-item">
+        <div class="report-item-header">
+          <div class="report-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+            </svg>
+          </div>
+          <div class="report-meta">
+            <div class="report-title-row">
+              <span class="report-name">ASTM PILLING RESISTANCE:</span>
+              <span class="report-score">4 / 5.0</span>
+            </div>
+            <div class="report-method">Method D3512 · Random Tumble</div>
+          </div>
+        </div>
+        <div class="report-desc">Rated Technical Grade 4 for surface integrity. This fabric withstands 2,000 friction cycles with virtually no pilling, maintaining its crisp, original texture.</div>
+      </div>
+      <div class="report-item">
+        <div class="report-item-header">
+          <div class="report-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="5"></circle>
+              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
+            </svg>
+          </div>
+          <div class="report-meta">
+            <div class="report-title-row">
+              <span class="report-name">FADING RESISTANCE:</span>
+              <span class="report-score">Grade 7</span>
+            </div>
+            <div class="report-method">ISO 105-B02 · Xenon Arc Lamp</div>
+          </div>
+        </div>
+        <div class="report-desc">Engineered with a 7/8 Blue Wool rating, our fabric resists UV degradation by locking dyes into the fiber core for lasting vibrancy, wash after wash.</div>
+      </div>
+      <div class="report-item">
+        <div class="report-item-header">
+          <div class="report-icon report-icon--text">
+            <span class="report-icon-co2"></span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" width="56" height="56">
+  <circle cx="28" cy="28" r="24" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="28" cy="28" r="14" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+          </div>
+          <div class="report-meta">
+            <div class="report-title-row">
+              <span class="report-name">LASTS 50+ WASHES : </span>
+              <span class="report-score">97%</span>
+            </div>
+            <div class="report-method">Industrial Standard Wash Test</div>
+          </div>
+        </div>
+        <div class="report-desc">Structural weave remains intact. Dimensional stability is preserved with less than 3% shrinkage after 50 washes.</div>
+      </div>
+
+{% endif %}
+
+{% if title_downcase contains 'muslin' %}
+
+      <div class="report-item">
+        <div class="report-item-header">
+          <div class="report-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <div class="report-meta">
+            <div class="report-title-row">
+              <span class="report-name">ASTM PILLING RESISTANCE</span>
+              <span class="report-score">4/ 5.0</span>
+            </div>
+            <div class="report-method">Method D3512 · Random Tumble</div>
+          </div>
+        </div>
+        <div class="report-desc">Engineered for high-tenacity endurance, our muslin achieved a Grade 4.0 rating after 2,000 friction cycles.
+</div>
+      </div>
+      <div class="report-item">
+        <div class="report-item-header">
+          <div class="report-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="5"/>
+              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            </svg>
+          </div>
+          <div class="report-meta">
+            <div class="report-title-row">
+              <span class="report-name">SHRINK-FREE</span>
+              <span class="report-score">0%</span>
+            </div>
+            <div class="report-method">ISO 105-B02 · Xenon Arc Lamp</div>
+          </div>
+        </div>
+        <div class="report-desc">To prevent the 15% natural shrinking found in raw muslin, we thermally stabilize our fabric through industrial pre-washing, ensuring you experience 0% shrinkage after your purchase
+</div>
+      </div>
+      <div class="report-item">
+        <div class="report-item-header">
+          <div class="report-icon report-icon--text">
+            <span class="report-icon-co2"></span>
+           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" width="56" height="56">
+  <circle cx="28" cy="28" r="24" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="28" cy="28" r="14" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+          </div>
+          <div class="report-meta">
+            <div class="report-title-row">
+              <span class="report-name">FADING RESISTANCE:</span>
+              <span class="report-score">Grade 7</span>
+            </div>
+            <div class="report-method">Industrial Standard Wash Test</div>
+          </div>
+        </div>
+        <div class="report-desc">Engineered with a 7/8 Blue Wool rating, our fabric resists UV degradation by locking dyes into the fiber core for lasting vibrancy, wash after wash.
+</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- IMPACT -->
+    <div class="tab-pane" id="pane-impact">
+      <div class="impact-item">
+        <div class="impact-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M12 2a10 10 0 0 1 0 20A10 10 0 0 1 2 12c0-3 1.3-5.7 3.3-7.7"/>
+            <path d="M12 6v6l4 2"/>
+          </svg>
+        </div>
+        <div class="impact-content">
+          <div class="impact-title">2,400 L Water Saved</div>
+          <div class="impact-desc">Per sheet set compared to conventional cotton. Rain-fed farms reduce irrigation needs significantly, preserving local water tables.</div>
+        </div>
+      </div>
+      <div class="impact-item">
+        <div class="impact-icon report-icon--text">
+          <span class="report-icon-co2"></span>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" width="56" height="56">
+  <circle cx="28" cy="28" r="24" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="28" cy="28" r="14" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+        </div>
+        <div class="impact-content">
+          <div class="impact-title">4.2 kg CO2e Displaced</div>
+          <div class="impact-desc">Avoided emissions through organic farming practices that sequester carbon in the soil and elimination of synthetic fertilizers.</div>
+        </div>
+      </div>
+      <div class="impact-item">
+        <div class="impact-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+        </div>
+        <div class="impact-content">
+          <div class="impact-title">100% Renewable Energy</div>
+          <div class="impact-desc">Our manufacturing facility in India is powered entirely by solar and wind energy, eliminating reliance on fossil fuels in the finishing process.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REVIEWS -->
+                                                                                    
+
+  </div>
+
+  <div class="panel-footer">
+    <button type="button" class="panel-close-btn" id="panelCloseBtn">Return to Product</button>
+  </div>
+
+</div>
+
+
+<style>
+/* ── Trust Badges ── */
+.trust-badges-wrap { width: 100%; margin-top: 15px;  padding-top: 0; margin-bottom: 20px; }
+.trust-badges {     gap: 55px;
+  display: flex;  justify-content: center; text-align: center; }
+.trust-badge { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0 12px;  }
+.trust-badge:last-child { border-right: none; }
+.trust-badge__icon { color: #6b7c5e; margin-bottom: 4px; line-height: 1; }
+.trust-badge__label { font-size: 9px; font-weight: 600; letter-spacing: 0.14em; color: #1a1a1a; margin: 0; line-height: 1.3; }
+.trust-badge__cta { background: none; border: none; padding-block: 0!important; font-family: inherit; font-size: 8px; font-weight: 500; letter-spacing: 0.1em; color: #888; cursor: pointer; text-decoration: none; text-underline-offset: 2px; align-items: center; gap: 3px; transition: color 0.2s; }
+.trust-badge__cta:hover { color: #1a1a1a; }
+.trust-badge__cta-arrow { transition: transform 0.25s ease; display: inline-block; }
+.trust-badge__cta[aria-expanded="true"] .trust-badge__cta-arrow { transform: rotate(180deg); }
+
+/* ── Overlay ── */
+.trust-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); backdrop-filter: blur(2px); z-index: 800; opacity: 0; transition: opacity 0.3s; }
+.trust-overlay.is-visible { display: block; opacity: 1; }
+
+/* ── Panel ── */
+.trust-panel { position: fixed; top: 80px; right: 0; bottom: 0; width: 500px; background: #fff; border-left: 1px solid #e0ddd9; z-index: 801; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); overflow: hidden; }
+.trust-panel.is-open { transform: translateX(0); }
+
+/* ── Panel Header ── */
+.panel-header { padding: 32px 32px 0; border-bottom: 1px solid #eee; flex-shrink: 0; }
+.panel-header-row { display: flex; justify-content: space-between; align-items: center; }
+.panel-title { font-size: 20px; font-weight: 400; color: #1a1a1a; letter-spacing: 0.01em; }
+.panel-x-close { background: none; border: none; font-size: 22px; color: #bbb; cursor: pointer; line-height: 1; transition: color 0.2s; padding: 0; width:20px !important }
+.panel-x-close:hover { color: #1a1a1a; }
+
+/* ── Tabs ── */
+.panel-tabs { display: flex; margin-top: 0; }
+.panel-tab { flex: 1; background: none; border: none; border-bottom: 1.5px solid transparent; font-family: inherit; font-size: 9px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #bbb; padding: 8px 4px 12px; cursor: pointer; transition: color 0.2s, border-color 0.2s; }
+.panel-tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; }
+.panel-tab:hover { color: #555; }
+
+/* ── Panel Body ── */
+.panel-body { flex: 1; overflow-y: auto; padding: 32px; }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* ── Certs Tab ── */
+.cert-card { border: 1px solid #ece9e4; border-radius: 4px; padding: 20px; margin-bottom: 14px; }
+.cert-card:last-child { margin-bottom: 0; }
+.cert-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.cert-card-title { font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #1a1a1a; }
+.cert-status { font-size: 7px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; border: 1px solid #1a1a1a; padding: 3px 7px; color: #1a1a1a; flex-shrink: 0; }
+.cert-meta { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #bbb; margin-bottom: 10px; }
+.cert-body { font-size: 12px; line-height: 1.75; color: #777; margin-bottom: 14px; }
+.cert-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #f0ede8; }
+.cert-license { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: #000; font-weight: 600;}
+.cert-link { font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #1a1a1a; text-decoration: underline; text-underline-offset: 2px; transition: opacity 0.2s; background: none; border: none; cursor: pointer; font-family: inherit; }
+.cert-link:hover { opacity: 0.5; }
+
+/* ── Report Tab ── */
+.report-item { padding: 24px 0; border-bottom: 1px solid #f0ede8; }
+.report-item:first-child { padding-top: 0; }
+.report-item:last-child { border-bottom: none; }
+.report-item-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 10px; }
+.report-icon { width: 36px; height: 36px; border: 1px solid #e8e5e0; border-radius: 3px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #888; }
+.report-icon svg { width: 16px; height: 16px; }
+.report-icon--text { flex-direction: column; gap: 2px; }
+.report-icon-co2 { font-size: 7px; font-weight: 600; letter-spacing: 0.05em; color: #888; line-height: 1; }
+.report-icon--text svg { width: 10px; height: 10px; }
+.report-meta { flex: 1; }
+.report-title-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+.report-name { font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #1a1a1a; }
+.report-score { font-size: 13px; font-weight: 400; color: #1a1a1a; white-space: nowrap; margin-left: 12px; }
+.report-method { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #bbb; }
+.report-desc { font-size: 12px; line-height: 1.75; color: #777; }
+
+/* ── Impact Tab ── */
+.impact-item { display: flex; align-items: flex-start; gap: 16px; padding: 24px 0; border-bottom: 1px solid #f0ede8; }
+.impact-item:first-child { padding-top: 0; }
+.impact-item:last-child { border-bottom: none; }
+.impact-icon { width: 36px; height: 36px; border: 1px solid #e8e5e0; border-radius: 3px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #888; }
+.impact-icon svg { width: 16px; height: 16px; }
+.impact-title { font-size: 14px; font-weight: 500; color: #1a1a1a; margin-bottom: 6px; letter-spacing: 0.01em; }
+.impact-desc { font-size: 12px; line-height: 1.75; color: #777; }
+
+/* ── Reviews Tab ── */
+.review-summary { text-align: center; padding: 20px 0 32px; border-bottom: 1px solid #f0ede8; margin-bottom: 28px; }
+.review-big-score { font-size: 64px; font-weight: 300; color: #1a1a1a; line-height: 1; }
+.review-stars { display: flex; justify-content: center; gap: 4px; margin: 10px 0 8px; color: #1a1a1a; font-size: 16px; }
+.review-stars .star-empty { color: #ddd; }
+.review-count { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #bbb; }
+.review-item { display: flex; gap: 14px; padding: 22px 0; border-bottom: 1px solid #f0ede8; }
+.review-item:last-child { border-bottom: none; }
+.review-avatar { width: 36px; height: 36px; border-radius: 50%; background: #ece9e4; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; letter-spacing: 0.05em; color: #888; flex-shrink: 0; }
+.review-name { font-size: 9px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #1a1a1a; margin-bottom: 4px; }
+.review-item-stars { display: flex; gap: 2px; margin-bottom: 8px; color: #1a1a1a; font-size: 11px; }
+.review-text { font-size: 12px; line-height: 1.75; color: #777; }
+
+/* ── Footer ── */
+.panel-footer { padding: 16px 32px; border-top: 1px solid #eee; flex-shrink: 0; }
+.panel-close-btn { width: 100%; background: #1a1a1a; color: #fff; border: none; font-family: inherit; font-size: 9px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; padding: 16px; cursor: pointer; transition: background 0.2s; }
+.panel-close-btn:hover { background: #333; }
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .trust-panel { top: 0 !important; width: 100%; }
+}
+.sdp-sticky-badge-row{
+display:none !important;
+}
+
+</style>
+
+
+<script>
+(function() {
+  var panel    = document.getElementById('trustPanel');
+  var overlay  = document.getElementById('trustOverlay');
+  var closeBtn = document.getElementById('panelCloseBtn');
+  var xClose   = document.getElementById('panelXClose');
+  var ctaBtns  = document.querySelectorAll('.trust-badge__cta');
+  var tabs     = document.querySelectorAll('.panel-tab');
+  var panes    = document.querySelectorAll('.tab-pane');
+
+  function setPanelTop() {
+    var header = document.querySelector('header')
+              || document.querySelector('.site-header')
+              || document.querySelector('.header');
+    if (header) {
+      panel.style.top = header.offsetHeight + 'px';
+    }
+  }
+
+  function switchTab(tabName) {
+    tabs.forEach(function(t) { t.classList.toggle('active', t.dataset.pane === tabName); });
+    panes.forEach(function(p) { p.classList.toggle('active', p.id === 'pane-' + tabName); });
+  }
+
+  function openPanel(tabName) {
+    setPanelTop();
+    switchTab(tabName);
+    panel.classList.add('is-open');
+    overlay.classList.add('is-visible');
+    panel.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closePanel() {
+    panel.classList.remove('is-open');
+    overlay.classList.remove('is-visible');
+    panel.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    ctaBtns.forEach(function(b) { b.setAttribute('aria-expanded', 'false'); });
+  }
+
+
+
+  
+  setPanelTop();
+  window.addEventListener('resize', setPanelTop);
+
+  ctaBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var tab    = btn.dataset.tab;
+      var isOpen = btn.getAttribute('aria-expanded') === 'true';
+      ctaBtns.forEach(function(b) { b.setAttribute('aria-expanded', 'false'); });
+      if (isOpen) { closePanel(); }
+      else { btn.setAttribute('aria-expanded', 'true'); openPanel(tab); }
+    });
+  });
+
+  tabs.forEach(function(tab) {
+    tab.addEventListener('click', function() { switchTab(tab.dataset.pane); });
+  });
+
+  closeBtn.addEventListener('click', closePanel);
+  xClose.addEventListener('click', closePanel);
+  overlay.addEventListener('click', closePanel);
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closePanel(); });
+
+})();
+</script>
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+ var panel    = document.getElementById('trustPanel');
+  var overlay  = document.getElementById('trustOverlay');
+  document.getElementById('certssss') &&
+  document.getElementById('certssss').addEventListener('click', function(e) {
+    panel.classList.add('is-open');
+    overlay.classList.add('is-visible');
+    panel.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  });
+
+});
+</script>
+
+
+

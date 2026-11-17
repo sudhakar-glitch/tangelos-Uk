@@ -1,0 +1,256 @@
+{% comment %}
+  FILE  : blocks/price-comparison.liquid
+  THEME : Atelier (Horizon family)
+  
+  FEATURE: Competitor rows show only if price value exists.
+           If no value entered → row hidden automatically.
+{% endcomment %}
+
+{%- liquid
+  assign product = closest.product
+  assign bid     = block.id | replace: '-', '_'
+
+  if product.metafields.custom.competitor1_name.value != blank
+    assign comp1 = product.metafields.custom.competitor1_name.value
+  else
+    assign comp1 = block.settings.comp1_name
+  endif
+
+  if product.metafields.custom.competitor2_name.value != blank
+    assign comp2 = product.metafields.custom.competitor2_name.value
+  else
+    assign comp2 = block.settings.comp2_name
+  endif
+
+  if product.metafields.custom.competitor3_name.value != blank
+    assign comp3 = product.metafields.custom.competitor3_name.value
+  else
+    assign comp3 = block.settings.comp3_name
+  endif
+-%}
+
+<script>
+window['__pc_{{ bid }}'] = {
+  sym: {{ cart.currency.symbol | json }},
+  c1:  {{ comp1 | json }},
+  c2:  {{ comp2 | json }},
+  c3:  {{ comp3 | json }},
+  v: {
+    {%- for v in product.variants -%}
+    "{{ v.id }}":{
+      p:  {{ v.price | divided_by: 100.0 }},
+      c1: "{{ v.metafields.custom.competitor1_price.value | default: '' }}",
+      c2: "{{ v.metafields.custom.competitor2_price.value | default: '' }}",
+      c3: "{{ v.metafields.custom.competitor3_price.value | default: '' }}"
+    }{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  }
+};
+</script>
+
+<div id="pc-{{ bid }}" {{ block.shopify_attributes }}>
+  <p class="pc-head">{{ block.settings.heading }}</p>
+  <table class="pc-table" role="table">
+    <thead>
+      <tr>
+        <th scope="col">Store</th>
+        <th scope="col">Price</th>
+        <th scope="col">You Save</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="pc-mine">
+        <td><span class="pc-badge">Our Store</span></td>
+        <td id="pc-p0-{{ bid }}">—</td>
+        <td class="pc-green">✓ Best Price</td>
+      </tr>
+      <tr id="pc-row1-{{ bid }}">
+        <td id="pc-n1-{{ bid }}">—</td>
+        <td id="pc-p1-{{ bid }}">—</td>
+        <td id="pc-s1-{{ bid }}" class="pc-red">—</td>
+      </tr>
+      <tr id="pc-row2-{{ bid }}">
+        <td id="pc-n2-{{ bid }}">—</td>
+        <td id="pc-p2-{{ bid }}">—</td>
+        <td id="pc-s2-{{ bid }}" class="pc-red">—</td>
+      </tr>
+      <tr id="pc-row3-{{ bid }}">
+        <td id="pc-n3-{{ bid }}">—</td>
+        <td id="pc-p3-{{ bid }}">—</td>
+        <td id="pc-s3-{{ bid }}" class="pc-red">—</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+{% stylesheet %}
+.pc-head{margin:0 0 10px;font-weight:700;font-size:.95rem}
+.pc-table{width:100%;border-collapse:collapse;font-size:.875rem}
+.pc-table th{background:#f8fafc;padding:7px 10px;text-align:left;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0}
+.pc-table td{padding:7px 10px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+.pc-mine td{background:#f0fdf4;font-weight:700}
+.pc-badge{background:#16a34a;color:#fff;padding:2px 9px;border-radius:99px;font-size:.75rem;white-space:nowrap}
+.pc-green{color:#16a34a;font-weight:600}
+.pc-red{color:#dc2626}
+.pc-hidden{display:none}
+@media(max-width:480px){.pc-table td,.pc-table th{padding:5px 7px;font-size:.8rem}}
+{% endstylesheet %}
+
+<script>
+(function(){
+  var bid = '{{ bid }}';
+  var d   = window['__pc_' + bid];
+  if(!d){ console.warn('PC: data missing', bid); return; }
+
+  var V = d.v, S = d.sym;
+
+  function fmt(n){
+    return S + (parseFloat(n)||0).toFixed(2);
+  }
+
+  function saving(mine, other){
+    var diff = (parseFloat(other)||0) - (parseFloat(mine)||0);
+    return diff > 0
+      ? '\u2212' + S + diff.toFixed(2) + ' (' + Math.round(diff / other * 100) + '% off)'
+      : '\u2014';
+  }
+
+  function gel(id){ return document.getElementById(id); }
+
+  function update(variantId){
+    var r = V[String(variantId)];
+    if(!r) return;
+
+    /* Our store price */
+    gel('pc-p0-' + bid).textContent = fmt(r.p);
+
+    /* Competitor rows — show only if value exists */
+    var rows = [
+      { row: 'pc-row1-', name: 'pc-n1-', price: 'pc-p1-', save: 'pc-s1-', label: d.c1, val: r.c1 },
+      { row: 'pc-row2-', name: 'pc-n2-', price: 'pc-p2-', save: 'pc-s2-', label: d.c2, val: r.c2 },
+      { row: 'pc-row3-', name: 'pc-n3-', price: 'pc-p3-', save: 'pc-s3-', label: d.c3, val: r.c3 }
+    ];
+
+    rows.forEach(function(x){
+      var rowEl = gel(x.row + bid);
+      var pr    = parseFloat(x.val) || 0;
+
+      /* value இல்லன்னா row hide பண்று */
+      if(!x.val || x.val === '' || x.val === '0' || pr === 0){
+        rowEl.classList.add('pc-hidden');
+        return;
+      }
+
+      /* value இருந்தா row show பண்று */
+      rowEl.classList.remove('pc-hidden');
+      gel(x.name  + bid).textContent = x.label;
+      gel(x.price + bid).textContent = fmt(pr);
+      gel(x.save  + bid).textContent = saving(r.p, pr);
+    });
+  }
+
+  function getUrlVariant(){
+    var m = location.search.match(/variant=(\d+)/);
+    return m ? m[1] : null;
+  }
+
+  /* METHOD 1: URL watch */
+  var _lastUrl = location.href;
+  setInterval(function(){
+    if(location.href !== _lastUrl){
+      _lastUrl = location.href;
+      var vid = getUrlVariant();
+      if(vid) update(vid);
+    }
+  }, 150);
+
+  /* METHOD 2: DOM mutation */
+  var priceEl = document.querySelector('.price__regular, .price, [data-product-price]');
+  if(priceEl){
+    new MutationObserver(function(){
+      var vid = getUrlVariant();
+      if(vid) update(vid);
+    }).observe(priceEl, { childList: true, subtree: true, characterData: true });
+  }
+
+  /* METHOD 3: fetch intercept (Atelier specific) */
+  var _origFetch = window.fetch;
+  window.fetch = function(url, opts){
+    var result = _origFetch.apply(this, arguments);
+    if(typeof url === 'string' && url.indexOf('variant=') > -1){
+      var m = url.match(/variant=(\d+)/);
+      if(m) setTimeout(function(){ update(m[1]); }, 100);
+    }
+    return result;
+  };
+
+  /* METHOD 4: section events */
+  var wrap = gel('pc-' + bid);
+  var sec  = wrap && wrap.closest('.shopify-section');
+  if(sec){
+    ['variant:update','variantUpdate','variant:change'].forEach(function(name){
+      sec.addEventListener(name, function(e){
+        var v = e.detail && (e.detail.variant || e.detail.selectedVariant);
+        if(v) update(v.id);
+      });
+    });
+  }
+
+  /* METHOD 5: native select */
+  document.addEventListener('change', function(e){
+    if(e.target.name === 'id') update(e.target.value);
+  });
+
+  /* METHOD 6: poll */
+  var _lastPoll = null;
+  setInterval(function(){
+    var sel = document.querySelector('input[name="id"]:checked, select[name="id"]');
+    if(sel && sel.value !== _lastPoll){
+      _lastPoll = sel.value;
+      update(sel.value);
+    }
+  }, 300);
+
+  /* Init */
+  var initId = getUrlVariant() || Object.keys(V)[0];
+  if(initId) update(initId);
+
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Price comparison",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "💰 Price Comparison"
+    },
+    {
+      "type": "text",
+      "id": "comp1_name",
+      "label": "Competitor 1 name",
+      "default": "Amazon"
+    },
+    {
+      "type": "text",
+      "id": "comp2_name",
+      "label": "Competitor 2 name",
+      "default": "Flipkart"
+    },
+    {
+      "type": "text",
+      "id": "comp3_name",
+      "label": "Competitor 3 name",
+      "default": "Meesho"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Price comparison"
+    }
+  ]
+}
+{% endschema %}

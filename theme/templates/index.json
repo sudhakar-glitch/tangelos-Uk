@@ -1,0 +1,2394 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "section_kpbeca": {
+      "type": "section",
+      "blocks": {
+        "group_B7Rkdh": {
+          "type": "group",
+          "name": "t:names.caption",
+          "settings": {
+            "content_direction": "column",
+            "vertical_on_mobile": true,
+            "horizontal_alignment": "center",
+            "vertical_alignment": "center",
+            "align_baseline": true,
+            "horizontal_alignment_flex_direction_column": "center",
+            "vertical_alignment_flex_direction_column": "center",
+            "gap": 12,
+            "width": "fill",
+            "custom_width": 100,
+            "width_mobile": "fill",
+            "custom_width_mobile": 100,
+            "height": "custom",
+            "custom_height": 40,
+            "inherit_color_scheme": true,
+            "color_scheme": "",
+            "background_media": "none",
+            "video_position": "cover",
+            "background_image_position": "cover",
+            "border": "none",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_radius": 0,
+            "toggle_overlay": false,
+            "overlay_color": "#00000026",
+            "overlay_style": "solid",
+            "gradient_direction": "to top",
+            "link": "",
+            "open_in_new_tab": false,
+            "placeholder": "",
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {
+            "text_wDBzCC": {
+              "type": "text",
+              "name": "t:names.heading",
+              "settings": {
+                "text": "<p>A LITTLE MORE COMFORT, WITH 20% OFF&nbsp;</p>",
+                "width": "100%",
+                "max_width": "normal",
+                "alignment": "center",
+                "type_preset": "custom",
+                "font": "var(--font-heading--family)",
+                "font_size": "3.5rem",
+                "mobile_font_size": "2rem",
+                "line_height": "tight",
+                "letter_spacing": "normal",
+                "case": "uppercase",
+                "wrap": "pretty",
+                "color": "var(--color-foreground)",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "text_aFDajV": {
+              "type": "text",
+              "name": "t:names.text",
+              "settings": {
+                "text": "<p>Sitewide savings on every bedding products</p>",
+                "width": "100%",
+                "max_width": "normal",
+                "alignment": "center",
+                "type_preset": "custom",
+                "font": "var(--font-body--family)",
+                "font_size": "1.5rem",
+                "mobile_font_size": "0.875rem",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "color": "var(--color-foreground)",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "button_UhLmrQ": {
+              "type": "button",
+              "name": "t:names.button",
+              "settings": {
+                "label": "EXPLORE",
+                "link": "shopify://collections/all",
+                "open_in_new_tab": false,
+                "style_class": "button",
+                "width": "fit-content",
+                "custom_width": 100,
+                "width_mobile": "fit-content",
+                "custom_width_mobile": 33
+              },
+              "blocks": {}
+            }
+          },
+          "block_order": [
+            "text_wDBzCC",
+            "text_aFDajV",
+            "button_UhLmrQ"
+          ]
+        }
+      },
+      "block_order": [
+        "group_B7Rkdh"
+      ],
+      "name": "t:names.video_section",
+      "settings": {
+        "content_direction": "column",
+        "vertical_on_mobile": true,
+        "horizontal_alignment": "flex-start",
+        "vertical_alignment": "center",
+        "align_baseline": false,
+        "horizontal_alignment_flex_direction_column": "center",
+        "vertical_alignment_flex_direction_column": "center",
+        "gap": 16,
+        "section_width": "full-width",
+        "section_height": "large",
+        "section_height_custom": 50,
+        "color_scheme": "",
+        "background_media": "video",
+        "video": "shopify://files/videos/banner-video.mp4",
+        "video_position": "cover",
+        "background_image_position": "cover",
+        "border": "none",
+        "border_width": 1,
+        "border_opacity": 100,
+        "border_radius": 0,
+        "toggle_overlay": false,
+        "overlay_color": "#00000026",
+        "overlay_style": "solid",
+        "gradient_direction": "to top",
+        "padding-block-start": 32,
+        "padding-block-end": 32
+      }
+    },
+    "hero_banner_PDTwJk": {
+      "type": "hero-banner",
+      "blocks": {
+        "slide_QA4CCU": {
+          "type": "slide",
+          "settings": {
+            "desktop_image": "shopify://shop_images/banner-sep3.png",
+            "mobile_image": "shopify://shop_images/banner-sep3.png",
+            "fallback_bg_color": "#1a1a1a",
+            "overlay_color": "#000000",
+            "overlay_opacity": 25,
+            "progress_color": "#c8b89e",
+            "d_content_align": "left",
+            "d_eyebrow": "",
+            "d_eyebrow_color": "#c8b89e",
+            "d_eyebrow_size": 11,
+            "d_eyebrow_spacing": 20,
+            "d_heading": "<p>FALL FOR MUSLIN, SLEEP LIGHT</p>",
+            "d_heading_tag": "h2",
+            "d_heading_font": "serif_italic",
+            "d_heading_color": "#ffffff",
+            "d_heading_size": 72,
+            "d_heading_spacing": 24,
+            "d_body": "<p>Four Layers Of Organic Muslin Bedding <br/> From  £60 </p>",
+            "d_body_color": "#ffffff",
+            "d_body_size": 15,
+            "d_body_max_width": 440,
+            "d_body_spacing": 40,
+            "d_cta_text": "Explore",
+            "d_cta_url": "shopify://collections/muslin-bedding",
+            "d_cta_style": "outline",
+            "d_cta_color": "#ffffff",
+            "d_cta_bg_color": "#111111",
+            "d_cta_size": 11,
+            "d_cta_spacing": 0,
+            "m_content_align": "left",
+            "m_eyebrow": "",
+            "m_eyebrow_color": "#c8b89e",
+            "m_eyebrow_size": 10,
+            "m_eyebrow_spacing": 14,
+            "m_heading": "<p>Crafted Organic Luxury. Without the Markup</p>",
+            "m_heading_font": "inherit",
+            "m_heading_color": "#ffffff",
+            "m_heading_size": 38,
+            "m_heading_spacing": 16,
+            "m_body": "<p>Certified. Traceable. Priced right. Exactly as it should be</p>",
+            "m_body_color": "#ffffff",
+            "m_body_size": 13,
+            "m_body_max_width": 320,
+            "m_body_spacing": 28,
+            "m_cta_text": "",
+            "m_cta_url": "",
+            "m_cta_style": "inherit",
+            "m_cta_color": "#ffffff",
+            "m_cta_bg_color": "#111111",
+            "m_cta_size": 11,
+            "m_cta_spacing": 0
+          }
+        },
+        "slide_WmhErW": {
+          "type": "slide",
+          "settings": {
+            "desktop_image": "shopify://shop_images/Slide-2.png",
+            "mobile_image": "shopify://shop_images/mob2.png",
+            "fallback_bg_color": "#1a1a1a",
+            "overlay_color": "#000000",
+            "overlay_opacity": 40,
+            "progress_color": "#c8b89e",
+            "d_content_align": "left",
+            "d_eyebrow": "",
+            "d_eyebrow_color": "#c8b89e",
+            "d_eyebrow_size": 11,
+            "d_eyebrow_spacing": 20,
+            "d_heading": "<p>If it's not certified, it's a story.</p>",
+            "d_heading_tag": "h2",
+            "d_heading_font": "serif_italic",
+            "d_heading_color": "#ffffff",
+            "d_heading_size": 72,
+            "d_heading_spacing": 24,
+            "d_body": "<p>GOTS certified from field to finish. OEKO-TEX on every product. Every certificate is open and readable before you spend a penny. That is what certification should look like.</p>",
+            "d_body_color": "#ffffff",
+            "d_body_size": 15,
+            "d_body_max_width": 440,
+            "d_body_spacing": 40,
+            "d_cta_text": "Shop Collection",
+            "d_cta_url": "shopify://collections/new-arrivals",
+            "d_cta_style": "outline",
+            "d_cta_color": "#ffffff",
+            "d_cta_bg_color": "#111111",
+            "d_cta_size": 11,
+            "d_cta_spacing": 0,
+            "m_content_align": "left",
+            "m_eyebrow": "",
+            "m_eyebrow_color": "#c8b89e",
+            "m_eyebrow_size": 10,
+            "m_eyebrow_spacing": 14,
+            "m_heading": "<p> If it’s not certified, it’s a story.</p>",
+            "m_heading_font": "inherit",
+            "m_heading_color": "#ffffff",
+            "m_heading_size": 38,
+            "m_heading_spacing": 16,
+            "m_body": "<p>GOTS from field to finish.<br/> OEKO-TEX on every product.<br/> Nothing claimed without proof.</p>",
+            "m_body_color": "#ffffff",
+            "m_body_size": 13,
+            "m_body_max_width": 320,
+            "m_body_spacing": 28,
+            "m_cta_text": "",
+            "m_cta_url": "",
+            "m_cta_style": "inherit",
+            "m_cta_color": "#ffffff",
+            "m_cta_bg_color": "#111111",
+            "m_cta_size": 11,
+            "m_cta_spacing": 0
+          }
+        },
+        "slide_rkqiJk": {
+          "type": "slide",
+          "settings": {
+            "desktop_image": "shopify://shop_images/Slide_3.png",
+            "mobile_image": "shopify://shop_images/mob3.png",
+            "fallback_bg_color": "#1a1a1a",
+            "overlay_color": "#000000",
+            "overlay_opacity": 40,
+            "progress_color": "#c8b89e",
+            "d_content_align": "left",
+            "d_eyebrow": "",
+            "d_eyebrow_color": "#c8b89e",
+            "d_eyebrow_size": 11,
+            "d_eyebrow_spacing": 20,
+            "d_heading": "<p>Woven to last. The only measure that matters.</p>",
+            "d_heading_tag": "h2",
+            "d_heading_font": "serif_italic",
+            "d_heading_color": "#ffffff",
+            "d_heading_size": 72,
+            "d_heading_spacing": 24,
+            "d_body": "<p>Fabrics that are built to outlast the trends, thread count myths and seasons.  Ours doesn't degrade - it develops. The kind of quality that reveals itself slowly - which is the only kind worth making.</p>",
+            "d_body_color": "#ffffff",
+            "d_body_size": 15,
+            "d_body_max_width": 440,
+            "d_body_spacing": 40,
+            "d_cta_text": "Shop Percale",
+            "d_cta_url": "shopify://collections/organic-cotton-percale-bedding",
+            "d_cta_style": "outline",
+            "d_cta_color": "#ffffff",
+            "d_cta_bg_color": "#111111",
+            "d_cta_size": 11,
+            "d_cta_spacing": 0,
+            "m_content_align": "left",
+            "m_eyebrow": "",
+            "m_eyebrow_color": "#c8b89e",
+            "m_eyebrow_size": 10,
+            "m_eyebrow_spacing": 14,
+            "m_heading": "<p>Woven to Last </p>",
+            "m_heading_font": "inherit",
+            "m_heading_color": "#ffffff",
+            "m_heading_size": 38,
+            "m_heading_spacing": 16,
+            "m_body": "<p>Built for time, not trends. Made to hold, not fade.</p>",
+            "m_body_color": "#ffffff",
+            "m_body_size": 13,
+            "m_body_max_width": 320,
+            "m_body_spacing": 28,
+            "m_cta_text": "",
+            "m_cta_url": "",
+            "m_cta_style": "inherit",
+            "m_cta_color": "#ffffff",
+            "m_cta_bg_color": "#111111",
+            "m_cta_size": 11,
+            "m_cta_spacing": 0
+          }
+        }
+      },
+      "block_order": [
+        "slide_QA4CCU",
+        "slide_WmhErW",
+        "slide_rkqiJk"
+      ],
+      "disabled": true,
+      "name": "Hero Banner Slider",
+      "settings": {
+        "header_offset": 0,
+        "slider_height_desktop": "90vh",
+        "slider_height_mobile": "100svh",
+        "section_padding_desktop": 8,
+        "section_padding_mobile": 5,
+        "autoplay": false,
+        "autoplay_speed": 5,
+        "transition_style": "zoom-fade",
+        "show_arrows": true,
+        "hide_arrows_mobile": true,
+        "show_thumbnails": false,
+        "show_counter": false,
+        "show_progress": true,
+        "show_autoplay_btn": true
+      }
+    },
+    "custom_liquid_MxpNNL": {
+      "type": "custom-liquid",
+      "name": "t:names.custom_liquid",
+      "settings": {
+        "custom_liquid": "<!-- TrustBox script -->\n<script type=\"text/javascript\" src=\"//widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js\" async></script>\n<!-- End TrustBox script -->\n<!-- TrustBox widget - Micro TrustScore -->\n<div class=\"trustpilot-widget\" data-locale=\"en-US\" data-template-id=\"5419b637fa0340045cd0c936\" data-businessunit-id=\"6790c2c917619e19c8e592c9\" data-style-height=\"20px\" data-style-width=\"100%\" data-token=\"47444bf7-e605-4bd7-beda-7f59761bec96\">\n  <a href=\"https://www.trustpilot.com/review/tangelos.co.uk\" target=\"_blank\" rel=\"noopener\">Trustpilot</a>\n</div>\n<!-- End TrustBox widget -->",
+        "color_scheme": "scheme-3",
+        "section_width": "page-width",
+        "padding-block-start": 0,
+        "padding-block-end": 0
+      }
+    },
+    "tangelos_promise_MUFVPQ": {
+      "type": "tangelos-promise",
+      "blocks": {
+        "promise_item_YWxg4V": {
+          "type": "promise_item",
+          "settings": {
+            "icon": "delivery",
+            "title": "Free UK Delivery",
+            "description": "Orders dispatched within 24 hours",
+            "visible_on_desktop": true,
+            "visible_on_mobile": true
+          }
+        },
+        "promise_item_4cxGz6": {
+          "type": "promise_item",
+          "settings": {
+            "icon": "leaf",
+            "title": "Certified Organic",
+            "description": "GOTS-certified organic cotton, from seed to stitch",
+            "visible_on_desktop": true,
+            "visible_on_mobile": true
+          }
+        },
+        "promise_item_fpUqkQ": {
+          "type": "promise_item",
+          "settings": {
+            "icon": "spray",
+            "title": "Tested Safe",
+            "description": "OEKO-TEX Standard 100 certified, free from harmful substances",
+            "visible_on_desktop": true,
+            "visible_on_mobile": true
+          }
+        },
+        "promise_item_x3igNa": {
+          "type": "promise_item",
+          "settings": {
+            "icon": "return",
+            "title": "365-Day Returns",
+            "description": "Easy returns for up to 365 days from delivery.",
+            "visible_on_desktop": true,
+            "visible_on_mobile": true
+          }
+        },
+        "promise_item_dEHaGr": {
+          "type": "promise_item",
+          "disabled": true,
+          "settings": {
+            "icon": "swatch",
+            "title": "Honest pricing",
+            "description": "Clear breakup of margins, showcasing savings.",
+            "visible_on_desktop": true,
+            "visible_on_mobile": true
+          }
+        },
+        "promise_item_Pmp7Lq": {
+          "type": "promise_item",
+          "disabled": true,
+          "settings": {
+            "icon": "star",
+            "title": "4.6 Rated",
+            "description": "by verified customers across the UK",
+            "visible_on_desktop": false,
+            "visible_on_mobile": true
+          }
+        }
+      },
+      "block_order": [
+        "promise_item_YWxg4V",
+        "promise_item_4cxGz6",
+        "promise_item_fpUqkQ",
+        "promise_item_x3igNa",
+        "promise_item_dEHaGr",
+        "promise_item_Pmp7Lq"
+      ],
+      "name": "Promise Section",
+      "settings": {
+        "heading": "The Tangelos Promise",
+        "heading_size": 24,
+        "background_color": "#ffffff",
+        "heading_color": "#3a3a3a",
+        "icon_bg_color": "#f0ede8",
+        "icon_color": "#5a5147",
+        "item_title_color": "#3a3a3a",
+        "item_desc_color": "#7a7a7a",
+        "icon_size": 28,
+        "icon_border_radius": 50,
+        "item_title_size": 11,
+        "item_desc_size": 13,
+        "section_padding": 52,
+        "item_gap": 32,
+        "cols_desktop": 4,
+        "cols_tablet": 3,
+        "cols_mobile": 2
+      }
+    },
+    "category_slider_Fh4kYn": {
+      "type": "category-slider",
+      "blocks": {
+        "category_hdWnxK": {
+          "type": "category",
+          "settings": {
+            "collection": "",
+            "custom_image": "shopify://shop_images/flatsheet-updated.webp",
+            "label": "Flat Sheet - From £45",
+            "link": "shopify://collections/flat-sheets"
+          }
+        },
+        "category_APKTRM": {
+          "type": "category",
+          "settings": {
+            "collection": "flat-sheets",
+            "custom_image": "shopify://shop_images/fitted-sheet.webp",
+            "label": "Fitted Sheet - From £40",
+            "link": "shopify://collections/fitted-sheets"
+          }
+        },
+        "category_DJeCwt": {
+          "type": "category",
+          "settings": {
+            "collection": "",
+            "custom_image": "shopify://shop_images/duvetcovers.webp",
+            "label": "Duvet Cover - From £70",
+            "link": "shopify://collections/duvet-covers"
+          }
+        },
+        "category_PUhfPk": {
+          "type": "category",
+          "settings": {
+            "collection": "duvet-covers",
+            "custom_image": "shopify://shop_images/pillow.webp",
+            "label": "Pillowcases - From £35",
+            "link": "shopify://collections/pillowcases"
+          }
+        }
+      },
+      "block_order": [
+        "category_hdWnxK",
+        "category_APKTRM",
+        "category_DJeCwt",
+        "category_PUhfPk"
+      ],
+      "disabled": true,
+      "name": "Category Slider",
+      "settings": {
+        "heading": "Shop by Category",
+        "heading_tag": "h2",
+        "heading_size": 30,
+        "heading_weight": "400",
+        "heading_color": "#111111",
+        "show_toplink": false,
+        "toplink_text": "SELECT ITEM",
+        "toplink_url": "",
+        "cards_desktop": "4",
+        "cards_tablet": "2",
+        "cards_mobile": "1",
+        "gap": 16,
+        "pad_x": 16,
+        "pad_top": 56,
+        "pad_bottom": 72,
+        "section_bg": "#f5f2ed",
+        "image_ratio": "3/4",
+        "image_radius": 0,
+        "show_overlay": false,
+        "overlay_color": "#000000",
+        "overlay_opacity": 20,
+        "label_pos": "below",
+        "label_size": 13,
+        "label_weight": "400",
+        "label_case": "none",
+        "label_spacing": 0,
+        "label_gap": 12,
+        "label_color": "#111111",
+        "show_arrows": true,
+        "show_dots": false,
+        "show_scrollbar": true,
+        "scrollbar_height": 3,
+        "scrollbar_color": "#111111",
+        "scrollbar_bg": "#e0e0e0",
+        "mobile_nav": "scrollbar"
+      }
+    },
+    "collection_grid_iq8T7D": {
+      "type": "collection-grid",
+      "blocks": {
+        "item_fpHjwW": {
+          "type": "item",
+          "settings": {
+            "collection": "",
+            "label": "Percale",
+            "sublabel": "Shop the Crisp",
+            "link": "#"
+          }
+        },
+        "item_NUErdp": {
+          "type": "item",
+          "settings": {
+            "collection": "",
+            "custom_image": "shopify://shop_images/MUSLIN.jpg",
+            "label": "Muslin",
+            "sublabel": "FROM 30 £",
+            "link": "#"
+          }
+        },
+        "item_aqeH67": {
+          "type": "item",
+          "settings": {
+            "collection": "",
+            "label": "Sateen",
+            "sublabel": "Shop the Smooth",
+            "link": "#"
+          }
+        },
+        "item_JEgAdR": {
+          "type": "item",
+          "settings": {
+            "collection": "",
+            "custom_image": "shopify://shop_images/linen.jpg",
+            "label": "Linen",
+            "sublabel": "Shop the Breathable",
+            "link": "#"
+          }
+        }
+      },
+      "block_order": [
+        "item_fpHjwW",
+        "item_NUErdp",
+        "item_aqeH67",
+        "item_JEgAdR"
+      ],
+      "disabled": true,
+      "name": "Collection Grid",
+      "settings": {
+        "heading": "",
+        "heading_tag": "h2",
+        "heading_size": 28,
+        "heading_weight": "400",
+        "heading_color": "#111111",
+        "show_toplink": false,
+        "toplink_text": "View all",
+        "toplink_url": "",
+        "cols_desktop": "4",
+        "show_desk_arrows": false,
+        "tab_card_width": 44,
+        "scrollbar_height": 2,
+        "scrollbar_color": "#111111",
+        "scrollbar_bg": "#dddddd",
+        "mob_card_width": 78,
+        "mob_side_space": 16,
+        "gap": 2,
+        "pad_x": 0,
+        "pad_top": 0,
+        "pad_bottom": 0,
+        "section_bg": "#ffffff",
+        "image_ratio": "4/5",
+        "image_radius": 0,
+        "overlay_color": "#000000",
+        "overlay_opacity": 15,
+        "label_pos": "over",
+        "label_size": 15,
+        "label_weight": "300",
+        "label_case": "none",
+        "label_spacing": 0,
+        "label_color": "#ffffff",
+        "sublabel_size": 10,
+        "sublabel_color": "#ffffffab"
+      }
+    },
+    "section_nMfyqw": {
+      "type": "section",
+      "blocks": {
+        "group_Tnem4U": {
+          "type": "group",
+          "settings": {
+            "content_direction": "column",
+            "vertical_on_mobile": true,
+            "horizontal_alignment": "flex-start",
+            "vertical_alignment": "center",
+            "align_baseline": false,
+            "horizontal_alignment_flex_direction_column": "center",
+            "vertical_alignment_flex_direction_column": "flex-end",
+            "gap": 32,
+            "width": "fill",
+            "custom_width": 100,
+            "width_mobile": "fill",
+            "custom_width_mobile": 100,
+            "height": "fill",
+            "custom_height": 100,
+            "inherit_color_scheme": false,
+            "color_scheme": "scheme-5",
+            "background_media": "image",
+            "video_position": "cover",
+            "background_image": "shopify://shop_images/Group_3014.jpg",
+            "background_image_position": "cover",
+            "border": "none",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_radius": 0,
+            "toggle_overlay": true,
+            "overlay_color": "#00000026",
+            "overlay_style": "solid",
+            "gradient_direction": "to top",
+            "link": "shopify://products/white-muslin-cover-set",
+            "open_in_new_tab": false,
+            "placeholder": "hero-apparel-2",
+            "padding-block-start": 40,
+            "padding-block-end": 40,
+            "padding-inline-start": 40,
+            "padding-inline-end": 40
+          },
+          "blocks": {
+            "spacer_8UtYHW": {
+              "type": "spacer",
+              "settings": {
+                "size": "pixel",
+                "percent_size": 100,
+                "pixel_size": 16,
+                "custom_mobile_size": false,
+                "size_mobile": "percent",
+                "percent_size_mobile": 100,
+                "pixel_size_mobile": 120
+              },
+              "blocks": {}
+            },
+            "text_CTb38n": {
+              "type": "text",
+              "settings": {
+                "text": "<h4>Muslin Cover Set</h4>",
+                "width": "fit-content",
+                "max_width": "normal",
+                "alignment": "center",
+                "type_preset": "h3",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "mobile_font_size": "",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "color": "var(--color-foreground)",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "text_YdcFDa": {
+              "type": "text",
+              "name": "t:names.text",
+              "settings": {
+                "text": "<p>Fresh. Calm. Timeless.</p>",
+                "width": "fit-content",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "rte",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "mobile_font_size": "",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "color": "var(--color-foreground)",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "button_4NaQVU": {
+              "type": "button",
+              "settings": {
+                "label": "Shop now",
+                "link": "shopify://products/white-muslin-cover-set",
+                "open_in_new_tab": false,
+                "style_class": "link",
+                "width": "fit-content",
+                "custom_width": 100,
+                "width_mobile": "fit-content",
+                "custom_width_mobile": 100
+              },
+              "blocks": {}
+            }
+          },
+          "block_order": [
+            "spacer_8UtYHW",
+            "text_CTb38n",
+            "text_YdcFDa",
+            "button_4NaQVU"
+          ]
+        },
+        "group_qQdRid": {
+          "type": "group",
+          "settings": {
+            "content_direction": "column",
+            "vertical_on_mobile": true,
+            "horizontal_alignment": "flex-start",
+            "vertical_alignment": "center",
+            "align_baseline": false,
+            "horizontal_alignment_flex_direction_column": "center",
+            "vertical_alignment_flex_direction_column": "flex-end",
+            "gap": 32,
+            "width": "fill",
+            "custom_width": 100,
+            "width_mobile": "fill",
+            "custom_width_mobile": 100,
+            "height": "fill",
+            "custom_height": 100,
+            "inherit_color_scheme": false,
+            "color_scheme": "scheme-5",
+            "background_media": "image",
+            "video_position": "cover",
+            "background_image": "shopify://shop_images/Sateen-Sage-fitted-detail_64baf49a-11a2-4eae-af08-421267d073bd.png",
+            "background_image_position": "cover",
+            "border": "none",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_radius": 0,
+            "toggle_overlay": true,
+            "overlay_color": "#00000030",
+            "overlay_style": "solid",
+            "gradient_direction": "to top",
+            "link": "shopify://products/sage-luxury-cotton-sateen-extra-deep-fitted-sheet",
+            "open_in_new_tab": false,
+            "placeholder": "hero-apparel-1",
+            "padding-block-start": 40,
+            "padding-block-end": 40,
+            "padding-inline-start": 40,
+            "padding-inline-end": 40
+          },
+          "blocks": {
+            "spacer_U7tRdH": {
+              "type": "spacer",
+              "settings": {
+                "size": "pixel",
+                "percent_size": 100,
+                "pixel_size": 16,
+                "custom_mobile_size": false,
+                "size_mobile": "percent",
+                "percent_size_mobile": 100,
+                "pixel_size_mobile": 120
+              },
+              "blocks": {}
+            },
+            "text_hyycYr": {
+              "type": "text",
+              "settings": {
+                "text": "<h4>Sateen Fitted sheet</h4>",
+                "width": "fit-content",
+                "max_width": "normal",
+                "alignment": "center",
+                "type_preset": "h3",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "mobile_font_size": "",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "color": "var(--color-foreground)",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "text_QhHkJy": {
+              "type": "text",
+              "name": "t:names.text",
+              "settings": {
+                "text": "<p>Warm. Sunlit. Easy.</p>",
+                "width": "fit-content",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "rte",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "mobile_font_size": "",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "color": "var(--color-foreground)",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "button_hx9Ud4": {
+              "type": "button",
+              "settings": {
+                "label": "Shop now",
+                "link": "shopify://products/sage-luxury-cotton-sateen-extra-deep-fitted-sheet",
+                "open_in_new_tab": false,
+                "style_class": "link",
+                "width": "fit-content",
+                "custom_width": 100,
+                "width_mobile": "fit-content",
+                "custom_width_mobile": 100
+              },
+              "blocks": {}
+            }
+          },
+          "block_order": [
+            "spacer_U7tRdH",
+            "text_hyycYr",
+            "text_QhHkJy",
+            "button_hx9Ud4"
+          ]
+        },
+        "group_X4H9WN": {
+          "type": "group",
+          "name": "t:names.group",
+          "settings": {
+            "content_direction": "column",
+            "vertical_on_mobile": true,
+            "horizontal_alignment": "flex-start",
+            "vertical_alignment": "center",
+            "align_baseline": false,
+            "horizontal_alignment_flex_direction_column": "center",
+            "vertical_alignment_flex_direction_column": "flex-end",
+            "gap": 32,
+            "width": "fill",
+            "custom_width": 100,
+            "width_mobile": "fill",
+            "custom_width_mobile": 100,
+            "height": "fill",
+            "custom_height": 100,
+            "inherit_color_scheme": false,
+            "color_scheme": "scheme-4",
+            "background_media": "image",
+            "video_position": "cover",
+            "background_image": "shopify://shop_images/linen-fabric-home-image.png",
+            "background_image_position": "cover",
+            "border": "none",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_radius": 0,
+            "toggle_overlay": true,
+            "overlay_color": "#00000026",
+            "overlay_style": "solid",
+            "gradient_direction": "to top",
+            "link": "shopify://products/aloe-eruropean-linen-duvet-set",
+            "open_in_new_tab": true,
+            "placeholder": "",
+            "padding-block-start": 40,
+            "padding-block-end": 40,
+            "padding-inline-start": 40,
+            "padding-inline-end": 40
+          },
+          "blocks": {
+            "text_mALpxw": {
+              "type": "text",
+              "name": "t:names.text",
+              "settings": {
+                "text": "<h1>Linen Duvet Set</h1>",
+                "width": "fit-content",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "rte",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "mobile_font_size": "",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "color": "var(--color-foreground)",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "text_QqWDMM": {
+              "type": "text",
+              "name": "t:names.text",
+              "settings": {
+                "text": "<p>Deep. Rich. Grounded.</p>",
+                "width": "fit-content",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "rte",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "mobile_font_size": "",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "color": "var(--color-foreground)",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "button_3P8H8w": {
+              "type": "button",
+              "name": "t:names.button",
+              "settings": {
+                "label": "Shop now",
+                "link": "shopify://products/aloe-eruropean-linen-duvet-set",
+                "open_in_new_tab": false,
+                "style_class": "link",
+                "width": "fit-content",
+                "custom_width": 100,
+                "width_mobile": "fit-content",
+                "custom_width_mobile": 100
+              },
+              "blocks": {}
+            }
+          },
+          "block_order": [
+            "text_mALpxw",
+            "text_QqWDMM",
+            "button_3P8H8w"
+          ]
+        },
+        "group_AVYKKE": {
+          "type": "group",
+          "name": "t:names.group",
+          "settings": {
+            "content_direction": "column",
+            "vertical_on_mobile": true,
+            "horizontal_alignment": "flex-start",
+            "vertical_alignment": "center",
+            "align_baseline": false,
+            "horizontal_alignment_flex_direction_column": "center",
+            "vertical_alignment_flex_direction_column": "flex-end",
+            "gap": 32,
+            "width": "fill",
+            "custom_width": 100,
+            "width_mobile": "fill",
+            "custom_width_mobile": 100,
+            "height": "fill",
+            "custom_height": 100,
+            "inherit_color_scheme": false,
+            "color_scheme": "scheme-4",
+            "background_media": "image",
+            "video_position": "cover",
+            "background_image": "shopify://shop_images/percale_1.webp",
+            "background_image_position": "cover",
+            "border": "none",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_radius": 0,
+            "toggle_overlay": true,
+            "overlay_color": "#00000026",
+            "overlay_style": "solid",
+            "gradient_direction": "to top",
+            "link": "shopify://products/ivory-organic-cotton-percale-flat-sheet",
+            "open_in_new_tab": true,
+            "placeholder": "",
+            "padding-block-start": 40,
+            "padding-block-end": 40,
+            "padding-inline-start": 40,
+            "padding-inline-end": 40
+          },
+          "blocks": {
+            "text_9hptWW": {
+              "type": "text",
+              "name": "t:names.text",
+              "settings": {
+                "text": "<h3>Percale Flat Sheet</h3>",
+                "width": "fit-content",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "rte",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "mobile_font_size": "",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "color": "var(--color-foreground)",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "text_jHhx4z": {
+              "type": "text",
+              "name": "t:names.text",
+              "settings": {
+                "text": "<p>Bold. Restful. Classic.</p>",
+                "width": "fit-content",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "rte",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "mobile_font_size": "",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "color": "var(--color-foreground)",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "button_a7TjjW": {
+              "type": "button",
+              "name": "t:names.button",
+              "settings": {
+                "label": "Shop now",
+                "link": "shopify://products/ivory-organic-cotton-percale-flat-sheet",
+                "open_in_new_tab": false,
+                "style_class": "link",
+                "width": "fit-content",
+                "custom_width": 100,
+                "width_mobile": "fit-content",
+                "custom_width_mobile": 100
+              },
+              "blocks": {}
+            }
+          },
+          "block_order": [
+            "text_9hptWW",
+            "text_jHhx4z",
+            "button_a7TjjW"
+          ]
+        }
+      },
+      "block_order": [
+        "group_Tnem4U",
+        "group_qQdRid",
+        "group_X4H9WN",
+        "group_AVYKKE"
+      ],
+      "name": "t:names.split_showcase",
+      "settings": {
+        "content_direction": "row",
+        "vertical_on_mobile": true,
+        "horizontal_alignment": "flex-start",
+        "vertical_alignment": "center",
+        "align_baseline": false,
+        "horizontal_alignment_flex_direction_column": "flex-start",
+        "vertical_alignment_flex_direction_column": "center",
+        "gap": 0,
+        "section_width": "full-width",
+        "section_height": "medium",
+        "section_height_custom": 50,
+        "color_scheme": "",
+        "background_media": "none",
+        "video_position": "cover",
+        "background_image_position": "cover",
+        "border": "none",
+        "border_width": 1,
+        "border_opacity": 100,
+        "border_radius": 0,
+        "toggle_overlay": true,
+        "overlay_color": "#000000",
+        "overlay_style": "solid",
+        "gradient_direction": "to top",
+        "padding-block-start": 0,
+        "padding-block-end": 0
+      }
+    },
+    "product_list_UwRqN4": {
+      "type": "product-list",
+      "blocks": {
+        "static-header": {
+          "type": "_product-list-content",
+          "static": true,
+          "settings": {
+            "content_direction": "column",
+            "vertical_on_mobile": true,
+            "horizontal_alignment": "flex-start",
+            "vertical_alignment": "center",
+            "align_baseline": false,
+            "horizontal_alignment_flex_direction_column": "flex-start",
+            "vertical_alignment_flex_direction_column": "center",
+            "gap": 12,
+            "width": "fill",
+            "custom_width": 100,
+            "width_mobile": "fill",
+            "custom_width_mobile": 100,
+            "height": "fit",
+            "custom_height": 100,
+            "inherit_color_scheme": true,
+            "color_scheme": "",
+            "background_media": "none",
+            "video_position": "cover",
+            "background_image_position": "cover",
+            "border": "none",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_radius": 0,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {
+            "product_list_text_zR8Cq9": {
+              "type": "_product-list-text",
+              "name": "t:names.collection_title",
+              "settings": {
+                "text": "<h2>BUY IN SETS</h2>",
+                "width": "100%",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "paragraph",
+                "font": "var(--font-primary--family)",
+                "font_size": "",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "color": "",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            }
+          },
+          "block_order": [
+            "product_list_text_zR8Cq9"
+          ]
+        },
+        "static-product-card": {
+          "type": "_product-card",
+          "name": "t:names.product_card",
+          "static": true,
+          "settings": {
+            "product_card_gap": 0,
+            "inherit_color_scheme": true,
+            "color_scheme": "",
+            "border": "none",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_radius": 0,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {
+            "product_card_gallery_4y78ah": {
+              "type": "_product-card-gallery",
+              "name": "t:names.product_card_media",
+              "settings": {
+                "image_ratio": "adapt",
+                "border": "none",
+                "border_width": 1,
+                "border_opacity": 100,
+                "border_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "group_JHtHYm": {
+              "type": "_product-card-group",
+              "settings": {
+                "content_direction": "column",
+                "vertical_on_mobile": true,
+                "horizontal_alignment": "space-between",
+                "vertical_alignment": "flex-start",
+                "align_baseline": false,
+                "horizontal_alignment_flex_direction_column": "flex-start",
+                "vertical_alignment_flex_direction_column": "center",
+                "gap": 0,
+                "width": "fill",
+                "custom_width": 100,
+                "width_mobile": "fill",
+                "custom_width_mobile": 100,
+                "height": "fit",
+                "custom_height": 100,
+                "inherit_color_scheme": true,
+                "color_scheme": "",
+                "background_media": "none",
+                "video_position": "cover",
+                "background_image_position": "cover",
+                "border": "none",
+                "border_width": 1,
+                "border_opacity": 100,
+                "border_radius": 0,
+                "toggle_overlay": false,
+                "overlay_color": "#00000026",
+                "overlay_style": "solid",
+                "gradient_direction": "to top",
+                "link": "",
+                "open_in_new_tab": false,
+                "padding-block-start": 2,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {
+                "group_KJDaTQ": {
+                  "type": "_product-card-group",
+                  "name": "t:names.group",
+                  "settings": {
+                    "content_direction": "column",
+                    "vertical_on_mobile": true,
+                    "horizontal_alignment": "flex-start",
+                    "vertical_alignment": "center",
+                    "align_baseline": false,
+                    "horizontal_alignment_flex_direction_column": "flex-start",
+                    "vertical_alignment_flex_direction_column": "flex-start",
+                    "gap": 6,
+                    "width": "fill",
+                    "custom_width": 70,
+                    "width_mobile": "fill",
+                    "custom_width_mobile": 100,
+                    "height": "fit",
+                    "custom_height": 100,
+                    "inherit_color_scheme": true,
+                    "color_scheme": "",
+                    "background_media": "none",
+                    "video_position": "cover",
+                    "background_image_position": "cover",
+                    "border": "none",
+                    "border_width": 1,
+                    "border_opacity": 100,
+                    "border_radius": 0,
+                    "toggle_overlay": false,
+                    "overlay_color": "#00000026",
+                    "overlay_style": "solid",
+                    "gradient_direction": "to top",
+                    "link": "",
+                    "open_in_new_tab": false,
+                    "padding-block-start": 10,
+                    "padding-block-end": 10,
+                    "padding-inline-start": 0,
+                    "padding-inline-end": 0
+                  },
+                  "blocks": {
+                    "product_title_iRxawi": {
+                      "type": "product-title",
+                      "name": "t:names.product_title",
+                      "settings": {
+                        "width": "fit-content",
+                        "max_width": "normal",
+                        "alignment": "left",
+                        "type_preset": "h5",
+                        "font": "var(--font-body--family)",
+                        "font_size": "1rem",
+                        "line_height": "normal",
+                        "letter_spacing": "normal",
+                        "case": "none",
+                        "wrap": "pretty",
+                        "color": "var(--color-foreground)",
+                        "background": false,
+                        "background_color": "#00000026",
+                        "corner_radius": 0,
+                        "padding-block-start": 0,
+                        "padding-block-end": 0,
+                        "padding-inline-start": 0,
+                        "padding-inline-end": 0
+                      },
+                      "blocks": {}
+                    },
+                    "price_4XkbjB": {
+                      "type": "price",
+                      "settings": {
+                        "show_sale_price_first": true,
+                        "show_installments": false,
+                        "show_tax_info": false,
+                        "show_save_badge": true,
+                        "type_preset": "h5",
+                        "width": "100%",
+                        "alignment": "left",
+                        "font": "var(--font-body--family)",
+                        "font_size": "1rem",
+                        "line_height": "normal",
+                        "letter_spacing": "normal",
+                        "case": "none",
+                        "color": "var(--color-foreground)",
+                        "padding-block-start": 0,
+                        "padding-block-end": 0,
+                        "padding-inline-start": 0,
+                        "padding-inline-end": 0
+                      },
+                      "blocks": {}
+                    }
+                  },
+                  "block_order": [
+                    "product_title_iRxawi",
+                    "price_4XkbjB"
+                  ]
+                },
+                "group_cPyTRf": {
+                  "type": "_product-card-group",
+                  "name": "t:names.group",
+                  "settings": {
+                    "content_direction": "column",
+                    "vertical_on_mobile": true,
+                    "horizontal_alignment": "flex-start",
+                    "vertical_alignment": "center",
+                    "align_baseline": false,
+                    "horizontal_alignment_flex_direction_column": "flex-start",
+                    "vertical_alignment_flex_direction_column": "flex-start",
+                    "gap": 0,
+                    "width": "fill",
+                    "custom_width": 40,
+                    "width_mobile": "fill",
+                    "custom_width_mobile": 100,
+                    "height": "fit",
+                    "custom_height": 100,
+                    "inherit_color_scheme": true,
+                    "color_scheme": "",
+                    "background_media": "none",
+                    "video_position": "cover",
+                    "background_image_position": "cover",
+                    "border": "none",
+                    "border_width": 1,
+                    "border_opacity": 100,
+                    "border_radius": 0,
+                    "toggle_overlay": false,
+                    "overlay_color": "#00000026",
+                    "overlay_style": "solid",
+                    "gradient_direction": "to top",
+                    "link": "",
+                    "open_in_new_tab": false,
+                    "padding-block-start": 0,
+                    "padding-block-end": 0,
+                    "padding-inline-start": 0,
+                    "padding-inline-end": 0
+                  },
+                  "blocks": {
+                    "swatches_tGqDq9": {
+                      "type": "swatches",
+                      "settings": {
+                        "product_swatches_alignment": "flex-start",
+                        "product_swatches_alignment_mobile": "flex-start",
+                        "hide_padding": false,
+                        "product_swatches_padding_top": 0,
+                        "product_swatches_padding_bottom": 0,
+                        "product_swatches_padding_left": 0,
+                        "product_swatches_padding_right": 0
+                      },
+                      "blocks": {}
+                    }
+                  },
+                  "block_order": [
+                    "swatches_tGqDq9"
+                  ]
+                }
+              },
+              "block_order": [
+                "group_KJDaTQ",
+                "group_cPyTRf"
+              ]
+            }
+          },
+          "block_order": [
+            "product_card_gallery_4y78ah",
+            "group_JHtHYm"
+          ]
+        }
+      },
+      "disabled": true,
+      "name": "Featured collection",
+      "settings": {
+        "collection": "duvet-sets",
+        "layout_type": "grid",
+        "carousel_on_mobile": true,
+        "max_products": 4,
+        "columns": 4,
+        "mobile_columns": "2",
+        "mobile_card_size": "60cqw",
+        "columns_gap": 26,
+        "rows_gap": 36,
+        "icons_style": "arrow",
+        "icons_shape": "none",
+        "section_width": "page-width",
+        "horizontal_alignment": "flex-start",
+        "gap": 28,
+        "color_scheme": "scheme-1",
+        "custom_bg_enable": false,
+        "custom_bg_color": "#f2f5f0",
+        "padding-block-start": 84,
+        "padding-block-end": 100
+      }
+    },
+    "editorial_image_text_6UFHF3": {
+      "type": "editorial-image-text",
+      "name": "Editorial Image + Text",
+      "settings": {
+        "layout": "image-left",
+        "image_col_width": 50,
+        "col_gap": 40,
+        "max_width": 1200,
+        "bg_color": "#f5f2ed",
+        "pad_x": 20,
+        "pad_top": 100,
+        "pad_bottom": 100,
+        "image_main": "shopify://shop_images/card1.png",
+        "main_image_ratio": "4/3",
+        "image_radius": 4,
+        "show_card": true,
+        "card_image_ratio": "1/1",
+        "card_label": "",
+        "card_text": "Harvested with conscience.",
+        "card_width": 35,
+        "card_offset": 8,
+        "card_offset_pad": 0,
+        "card_radius": 4,
+        "card_padding": 14,
+        "card_bg": "#ffffff",
+        "card_label_size": 10,
+        "card_label_color": "#999999",
+        "card_text_size": 18,
+        "card_text_weight": "400",
+        "card_text_color": "#111111",
+        "eyebrow": "",
+        "eyebrow_size": 10,
+        "eyebrow_color": "#999999",
+        "heading": "<p>The Swaddle, Grown Up.</p>",
+        "heading_tag": "h2",
+        "heading_size": 40,
+        "heading_weight": "400",
+        "heading_color": "#111111",
+        "body": "<p>The comfort you felt first, made for the bed you come home to.&nbsp;</p>",
+        "body_size": 15,
+        "body_color": "#555555",
+        "cta_text": "Our Sustainability Manifesto",
+        "cta_url": "shopify://pages/about-us",
+        "cta_size": 11,
+        "cta_color": "#111111",
+        "content_gap": 18
+      }
+    },
+    "shop_the_look_hotspots_MXH3Pa": {
+      "type": "shop-the-look-hotspots",
+      "blocks": {
+        "hotspot_YhL8X4": {
+          "type": "hotspot",
+          "settings": {
+            "product": "white-muslin-pillowcase",
+            "title_override": "",
+            "x": 12,
+            "y": 52,
+            "placement": "auto",
+            "x_mobile": 18,
+            "y_mobile": 58
+          }
+        },
+        "hotspot_XNRCHH": {
+          "type": "hotspot",
+          "settings": {
+            "product": "white-muslin-duvet-cover",
+            "title_override": "",
+            "x": 39,
+            "y": 77,
+            "placement": "auto",
+            "x_mobile": 48,
+            "y_mobile": 68
+          }
+        }
+      },
+      "block_order": [
+        "hotspot_YhL8X4",
+        "hotspot_XNRCHH"
+      ],
+      "disabled": true,
+      "name": "Shop the look",
+      "settings": {
+        "image": "shopify://shop_images/Group_3014.jpg",
+        "height": 560,
+        "height_mobile": 600,
+        "overlay": 25,
+        "heading": "Make your bed\nhotel-worthy",
+        "text": "Layered organic muslin, for comfort that says “do not disturb.”",
+        "button_label": "Shop the look",
+        "button_link": "shopify://collections/all",
+        "content_align": "center",
+        "text_color": "#ffffff",
+        "heading_font": "Cormorant Garamond",
+        "heading_size": 52,
+        "card_cta": "Shop now",
+        "open_first": true
+      }
+    },
+    "upcoming_products_a7RMiG": {
+      "type": "upcoming-products",
+      "blocks": {
+        "slide_eDnMFm": {
+          "type": "slide",
+          "settings": {
+            "slide_name": "Linen",
+            "image": "shopify://shop_images/linen-fabric.png"
+          }
+        },
+        "slide_fzqiqV": {
+          "type": "slide",
+          "settings": {
+            "slide_name": "Sateen",
+            "image": "shopify://shop_images/satee-fabric.png"
+          }
+        }
+      },
+      "block_order": [
+        "slide_eDnMFm",
+        "slide_fzqiqV"
+      ],
+      "disabled": true,
+      "name": "Furniture Hero",
+      "settings": {
+        "eyebrow": "UPCOMING COLLECTION 2026",
+        "heading": "A New Expression of Comfort Is Arriving Soon",
+        "subtext": "Sateen’s silky smoothness and linen’s airy comfort are almost here. A refined expression of everyday living",
+        "btn_label": "",
+        "btn_url": "",
+        "bottom_title": "",
+        "show_badge": true,
+        "badge_text": "SEASON STARTS • SALES •",
+        "show_scroll_cta": false,
+        "scroll_label": "SCROLL",
+        "autoplay": true,
+        "slide_duration": 5000,
+        "split_ratio": 60,
+        "section_height": 90,
+        "overlay_opacity": 40,
+        "bg_color": "#2b0f0f",
+        "panel_color": "#2b0f0f",
+        "accent_color": "#d4b8a8",
+        "text_color": "#f0e6dc",
+        "subtext_color": "#d4b8a8",
+        "btn_bg": "#f0e6dc",
+        "btn_text_color": "#2b0f0f",
+        "bottom_title_color": "#f0e6dc26",
+        "bottom_title_position": "bottom",
+        "panel_pad_top": 48,
+        "panel_pad_right": 40,
+        "panel_pad_bottom": 80,
+        "panel_pad_left": 40
+      }
+    },
+    "hero_zMUDja": {
+      "type": "hero",
+      "blocks": {
+        "text_6xfTfk": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Fabrics that earn its place over years, not occasions.</p>",
+            "width": "fit-content",
+            "max_width": "narrow",
+            "alignment": "left",
+            "type_preset": "h1",
+            "font": "var(--font-body--family)",
+            "font_size": "1rem",
+            "mobile_font_size": "",
+            "line_height": "normal",
+            "letter_spacing": "normal",
+            "case": "none",
+            "wrap": "pretty",
+            "color": "var(--color-foreground-heading)",
+            "background": false,
+            "background_color": "#00000026",
+            "corner_radius": 0,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {}
+        },
+        "text_WCDygU": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Long-staple organic cotton that improves with age, rigorously tested for quality. Tangelos turns your bedroom into a sanctuary worth returning to, night after night.</p>",
+            "width": "fit-content",
+            "max_width": "normal",
+            "alignment": "center",
+            "type_preset": "rte",
+            "font": "var(--font-body--family)",
+            "font_size": "1rem",
+            "mobile_font_size": "",
+            "line_height": "normal",
+            "letter_spacing": "normal",
+            "case": "none",
+            "wrap": "pretty",
+            "color": "var(--color-foreground)",
+            "background": false,
+            "background_color": "#00000026",
+            "corner_radius": 0,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {}
+        }
+      },
+      "block_order": [
+        "text_6xfTfk",
+        "text_WCDygU"
+      ],
+      "disabled": true,
+      "name": "t:names.hero",
+      "settings": {
+        "media_type_1": "image",
+        "media_type_2": "image",
+        "image_2": "shopify://shop_images/Fabric_Banner.png",
+        "stack_media_on_mobile": true,
+        "custom_mobile_media": false,
+        "media_type_1_mobile": "image",
+        "media_type_2_mobile": "image",
+        "link": "",
+        "open_in_new_tab": false,
+        "content_direction": "column",
+        "vertical_on_mobile": true,
+        "horizontal_alignment": "flex-start",
+        "vertical_alignment": "center",
+        "align_baseline": false,
+        "horizontal_alignment_flex_direction_column": "center",
+        "vertical_alignment_flex_direction_column": "center",
+        "gap": 16,
+        "section_width": "page-width",
+        "section_height": "medium",
+        "section_height_custom": 50,
+        "color_scheme": "scheme-5",
+        "toggle_overlay": true,
+        "overlay_color": "#00000038",
+        "overlay_style": "solid",
+        "gradient_direction": "to top",
+        "blurred_reflection": false,
+        "reflection_opacity": 75,
+        "padding-block-start": 40,
+        "padding-block-end": 40
+      }
+    },
+    "new_arrival_JFqejh": {
+      "type": "new-arrival",
+      "disabled": true,
+      "name": "New Arrival Products",
+      "settings": {
+        "section_label": "Upcoming products",
+        "product_left_title": "",
+        "product_right_title": "Linen",
+        "product_right_image": "shopify://shop_images/linen.webp",
+        "arriving_text": "arriving soon",
+        "cta_text": "Join the Waitlist",
+        "cta_url": "#",
+        "cta_new_tab": false,
+        "font_family": "",
+        "title_size_desktop": 64,
+        "title_size_mobile": 38,
+        "title_weight": "400",
+        "title_letter_spacing": -1,
+        "pill_radius": 80,
+        "btn_radius": 4,
+        "padding_vertical": 56,
+        "padding_horizontal": 24,
+        "bg_color": "#ffffff",
+        "text_color": "#5a5a5a",
+        "amp_color": "#888888",
+        "divider_color": "#d8d8d8",
+        "btn_bg_color": "#2b2b2b",
+        "btn_text_color": "#ffffff",
+        "btn_hover_bg": "#ffffff",
+        "btn_hover_text": "#2b2b2b"
+      }
+    },
+    "honest_price_yaCqAz": {
+      "type": "honest-price",
+      "name": "Honest Price Banner",
+      "settings": {
+        "heading": "Centuries old, made for now. ",
+        "body_text": "Once woven for royal courts. Now made for your bed.",
+        "button_label": "",
+        "button_url": "",
+        "background_image": "shopify://shop_images/card2.png",
+        "section_height": 500,
+        "overlay_color": "#000000",
+        "overlay_opacity": 0,
+        "heading_color": "#ffffff",
+        "body_color": "#f0ece6",
+        "mobile_image": "shopify://shop_images/mob.png",
+        "mobile_content_bg": "#f5f1ec"
+      }
+    },
+    "product_list_FTqNxC": {
+      "type": "product-list",
+      "blocks": {
+        "static-header": {
+          "type": "_product-list-content",
+          "name": "t:names.header",
+          "static": true,
+          "settings": {
+            "content_direction": "row",
+            "vertical_on_mobile": false,
+            "horizontal_alignment": "space-between",
+            "vertical_alignment": "flex-end",
+            "align_baseline": true,
+            "horizontal_alignment_flex_direction_column": "flex-start",
+            "vertical_alignment_flex_direction_column": "center",
+            "gap": 12,
+            "width": "fill",
+            "custom_width": 100,
+            "width_mobile": "fill",
+            "custom_width_mobile": 100,
+            "height": "fit",
+            "custom_height": 100,
+            "inherit_color_scheme": true,
+            "color_scheme": "",
+            "background_media": "none",
+            "video_position": "cover",
+            "background_image_position": "cover",
+            "border": "none",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_radius": 0,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {
+            "product_list_text_nY8mH8": {
+              "type": "_product-list-text",
+              "name": "t:names.collection_title",
+              "settings": {
+                "text": "<h3>Featured products</h3>",
+                "width": "fit-content",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "custom",
+                "font": "var(--font-heading--family)",
+                "font_size": "3rem",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "color": "var(--color-foreground)",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "product_list_button_9VWMUA": {
+              "type": "_product-list-button",
+              "name": "t:names.product_list_button",
+              "settings": {
+                "label": "View all",
+                "open_in_new_tab": false,
+                "style_class": "link",
+                "width": "fit-content",
+                "custom_width": 100,
+                "width_mobile": "fit-content",
+                "custom_width_mobile": 100
+              },
+              "blocks": {}
+            }
+          },
+          "block_order": [
+            "product_list_text_nY8mH8",
+            "product_list_button_9VWMUA"
+          ]
+        },
+        "static-product-card": {
+          "type": "_product-card",
+          "name": "t:names.product_card",
+          "static": true,
+          "settings": {
+            "product_card_gap": 4,
+            "inherit_color_scheme": true,
+            "color_scheme": "",
+            "border": "none",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_radius": 0,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {
+            "product_card_gallery_MCeMME": {
+              "type": "_product-card-gallery",
+              "name": "t:names.product_card_media",
+              "settings": {
+                "image_ratio": "adapt",
+                "border": "none",
+                "border_width": 1,
+                "border_opacity": 100,
+                "border_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "product_title_mmzidq": {
+              "type": "product-title",
+              "name": "t:names.product_title",
+              "settings": {
+                "width": "fit-content",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "custom",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "color": "var(--color-foreground)",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 4,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "price_TWG4Fr": {
+              "type": "price",
+              "name": "t:names.product_price",
+              "settings": {
+                "show_sale_price_first": true,
+                "show_installments": false,
+                "show_tax_info": false,
+                "show_save_badge": true,
+                "type_preset": "custom",
+                "width": "100%",
+                "alignment": "left",
+                "font": "var(--font-body--family)",
+                "font_size": "0.875rem",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "color": "var(--color-foreground)",
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            }
+          },
+          "block_order": [
+            "product_card_gallery_MCeMME",
+            "product_title_mmzidq",
+            "price_TWG4Fr"
+          ]
+        }
+      },
+      "name": "t:names.products_grid",
+      "settings": {
+        "collection": "all",
+        "layout_type": "carousel",
+        "carousel_on_mobile": true,
+        "max_products": 10,
+        "columns": 4,
+        "mobile_columns": "2",
+        "mobile_card_size": "60cqw",
+        "columns_gap": 4,
+        "rows_gap": 24,
+        "icons_style": "arrow",
+        "icons_shape": "square",
+        "section_width": "page-width",
+        "horizontal_alignment": "flex-start",
+        "gap": 28,
+        "color_scheme": "scheme-1",
+        "custom_bg_enable": false,
+        "custom_bg_color": "#ffffff",
+        "padding-block-start": 48,
+        "padding-block-end": 48
+      }
+    },
+    "collection_list_hMy3aC": {
+      "type": "collection-list",
+      "blocks": {
+        "group_Ch8MFi": {
+          "type": "group",
+          "name": "t:names.header",
+          "settings": {
+            "content_direction": "column",
+            "vertical_on_mobile": true,
+            "horizontal_alignment": "flex-start",
+            "vertical_alignment": "center",
+            "align_baseline": false,
+            "horizontal_alignment_flex_direction_column": "flex-start",
+            "vertical_alignment_flex_direction_column": "center",
+            "gap": 12,
+            "width": "fill",
+            "custom_width": 100,
+            "width_mobile": "fill",
+            "custom_width_mobile": 100,
+            "height": "fit",
+            "custom_height": 100,
+            "inherit_color_scheme": true,
+            "color_scheme": "",
+            "background_media": "none",
+            "video_position": "cover",
+            "background_image_position": "cover",
+            "border": "none",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_radius": 0,
+            "toggle_overlay": false,
+            "overlay_color": "#00000026",
+            "overlay_style": "solid",
+            "gradient_direction": "to top",
+            "link": "",
+            "open_in_new_tab": false,
+            "placeholder": "",
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {
+            "text_WRjNdR": {
+              "type": "text",
+              "name": "t:names.text",
+              "settings": {
+                "text": "<h4>Shop by Color</h4>",
+                "width": "fit-content",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "rte",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "mobile_font_size": "",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "color": "var(--color-foreground)",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 16,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            }
+          },
+          "block_order": [
+            "text_WRjNdR"
+          ]
+        },
+        "static-collection-card": {
+          "type": "_collection-card",
+          "name": "t:names.collection_card",
+          "static": true,
+          "settings": {
+            "placement": "below_image",
+            "horizontal_alignment": "flex-start",
+            "vertical_alignment": "center",
+            "collection_card_gap": 8,
+            "inherit_color_scheme": true,
+            "color_scheme": "",
+            "border": "none",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_radius": 0
+          },
+          "blocks": {
+            "collection_title_thJxqD": {
+              "type": "collection-title",
+              "name": "t:names.collection_title",
+              "settings": {
+                "width": "fit-content",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "rte",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "color": "var(--color-foreground)",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "collection-card-image": {
+              "type": "_collection-card-image",
+              "name": "t:names.collection_card_image",
+              "static": true,
+              "settings": {
+                "image_ratio": "portrait",
+                "toggle_overlay": false,
+                "overlay_color": "#00000026",
+                "overlay_style": "solid",
+                "gradient_direction": "to top",
+                "border": "none",
+                "border_width": 1,
+                "border_opacity": 100,
+                "border_radius": 0
+              },
+              "blocks": {}
+            }
+          },
+          "block_order": [
+            "collection_title_thJxqD"
+          ]
+        }
+      },
+      "block_order": [
+        "group_Ch8MFi"
+      ],
+      "disabled": true,
+      "name": "t:names.collections_carousel",
+      "settings": {
+        "collection_list": [
+          "white",
+          "ivory",
+          "sage",
+          "soft-blush",
+          "night-fall",
+          "light-grey"
+        ],
+        "layout_type": "carousel",
+        "carousel_on_mobile": false,
+        "columns": 4,
+        "mobile_columns": "2",
+        "mobile_card_size": "60cqw",
+        "columns_gap": 8,
+        "bento_gap": 8,
+        "rows_gap": 8,
+        "max_collections": 4,
+        "icons_style": "arrow",
+        "icons_shape": "circle",
+        "section_width": "page-width",
+        "gap": 12,
+        "color_scheme": "",
+        "padding-block-start": 48,
+        "padding-block-end": 48
+      }
+    },
+    "info_home_section_WTMDm9": {
+      "type": "info-home-section",
+      "name": "Info Home",
+      "settings": {
+        "layout": "image_right",
+        "min_height": 640,
+        "content_padding_top": 80,
+        "content_padding_bottom": 80,
+        "background_color": "#f5f0ea",
+        "text_color": "#1a1814",
+        "body_text_color": "#5c5750",
+        "link_color": "#1a1814",
+        "heading_size_desktop": 40,
+        "heading_size_mobile": 28,
+        "body_font_size": 15,
+        "eyebrow": "",
+        "heading": "Close to Your Skin, \nClose to Our Hearts.",
+        "body_text": "<p>Grown and made by us, so you never have to wonder.&nbsp;</p>",
+        "link_label": "Read Their Stories",
+        "link_url": "",
+        "link_style": "underline",
+        "link_new_tab": false,
+        "image": "shopify://shop_images/Card3.png",
+        "mobile_image_height": 360
+      }
+    },
+    "info_home_section_YCpVMy": {
+      "type": "info-home-section",
+      "name": "Info Home",
+      "settings": {
+        "layout": "image_left",
+        "min_height": 640,
+        "content_padding_top": 80,
+        "content_padding_bottom": 80,
+        "background_color": "#ffffff",
+        "text_color": "#1a1814",
+        "body_text_color": "#5c5750",
+        "link_color": "#1a1814",
+        "heading_size_desktop": 40,
+        "heading_size_mobile": 28,
+        "body_font_size": 15,
+        "eyebrow": "",
+        "heading": "Made for How You Sleep.",
+        "body_text": "<p>For warm nights and skin that notices everything.</p>",
+        "link_label": "Read Their Stories",
+        "link_url": "shopify://pages/about-us",
+        "link_style": "underline",
+        "link_new_tab": false,
+        "image": "shopify://shop_images/Card_3.png",
+        "mobile_image_height": 360
+      }
+    },
+    "editorial_journal_HUbaBh": {
+      "type": "editorial-journal",
+      "blocks": {
+        "card_FXej79": {
+          "type": "card",
+          "settings": {
+            "tag": "INTERIORS",
+            "title": "Light, Shadow, and the Morning Ritual.",
+            "cta_label": "Read Perspective",
+            "link": "#"
+          }
+        },
+        "card_DbxgYn": {
+          "type": "card",
+          "settings": {
+            "tag": "THE LOOM",
+            "title": "Porto: A Legacy of European Weaving.",
+            "cta_label": "Explore History",
+            "link": "#"
+          }
+        },
+        "card_eidKej": {
+          "type": "card",
+          "settings": {
+            "tag": "CURATION",
+            "title": "Less, but Better: Minimalist Rest.",
+            "cta_label": "Shop Curation",
+            "link": "#"
+          }
+        }
+      },
+      "block_order": [
+        "card_FXej79",
+        "card_DbxgYn",
+        "card_eidKej"
+      ],
+      "name": "Editorial Journal",
+      "settings": {
+        "heading": "Notes on Rest",
+        "heading_size": 32,
+        "subheading": "Editorial Journal",
+        "source": "blog",
+        "blog": "content",
+        "posts_limit": 3,
+        "cta_label": "Read More",
+        "bg_color": "#f2ede6",
+        "heading_color": "#1a1a18",
+        "subheading_color": "#8c8880",
+        "tag_color": "#8c8880",
+        "title_color": "#1a1a18",
+        "link_color": "#1a1a18",
+        "dot_color": "#1a1a18",
+        "card_title_size": 18,
+        "image_ratio": "3 / 2",
+        "image_radius": 4,
+        "section_padding": 64,
+        "section_padding_h": 60,
+        "card_gap": 32,
+        "cols_desktop": 3,
+        "cols_tablet": 2
+      }
+    },
+    "instagram_feed_FGhrV4": {
+      "type": "instagram-feed",
+      "blocks": {
+        "post_Lm6Pd8": {
+          "type": "post",
+          "settings": {
+            "image": "shopify://shop_images/ins3.webp",
+            "post_type": "photo",
+            "post_url": "https://www.instagram.com/tangelosuk/reel/DXMG-ihk4RN/"
+          }
+        },
+        "post_wyCkae": {
+          "type": "post",
+          "settings": {
+            "image": "shopify://shop_images/in2.jpg",
+            "post_type": "photo",
+            "post_url": "https://www.instagram.com/tangelosuk/reel/DNS984BTQwl/"
+          }
+        },
+        "post_FkbyWr": {
+          "type": "post",
+          "settings": {
+            "image": "shopify://shop_images/ins4.webp",
+            "post_type": "photo",
+            "post_url": "https://www.instagram.com/tangelosuk/reel/DQpKtU7k2eS/"
+          }
+        },
+        "post_8dEaF7": {
+          "type": "post",
+          "settings": {
+            "image": "shopify://shop_images/5.webp",
+            "post_type": "photo",
+            "post_url": "https://www.instagram.com/tangelosuk/reel/DW69KxTPiAH/"
+          }
+        },
+        "post_jAAhFY": {
+          "type": "post",
+          "settings": {
+            "image": "shopify://shop_images/ins5.jpg",
+            "post_type": "photo",
+            "post_url": "https://www.instagram.com/tangelosuk/reel/DWymoEEE11d/"
+          }
+        },
+        "post_9dEyF9": {
+          "type": "post",
+          "settings": {
+            "image": "shopify://shop_images/in1.webp",
+            "post_type": "photo",
+            "post_url": "https://www.instagram.com/tangelosuk/reel/DVtqCuAkx6o/"
+          }
+        }
+      },
+      "block_order": [
+        "post_Lm6Pd8",
+        "post_wyCkae",
+        "post_FkbyWr",
+        "post_8dEaF7",
+        "post_jAAhFY",
+        "post_9dEyF9"
+      ],
+      "custom_css": [],
+      "name": "Instagram Feed",
+      "settings": {
+        "brand_name": "@tangelosuk",
+        "brand_size": 18,
+        "tagline": "Shared Sanctuary",
+        "show_filters": false,
+        "label_all": "All",
+        "label_photo": "Photos",
+        "label_video": "Videos",
+        "label_album": "Albums",
+        "show_badge": true,
+        "show_hover": true,
+        "image_ratio": "1 / 1",
+        "card_radius": 0,
+        "show_cta": true,
+        "instagram_url": "",
+        "cta_label": "Follow on Instagram",
+        "bg_color": "#ffffff",
+        "text_color": "#1a1a18",
+        "filter_bg": "#f0ede8",
+        "filter_active": "#3a3a3a",
+        "filter_active_text": "#ffffff",
+        "pad_v": 52,
+        "pad_h": 0,
+        "grid_gap": 2,
+        "cols_desktop": 6,
+        "cols_tablet": 4,
+        "cols_mobile": 2,
+        "mob_peek_width": 60,
+        "mob_slide_gap": 12,
+        "mob_show_dots": true,
+        "mob_dot_size": 6,
+        "mob_dot_color": "#1a1a18"
+      }
+    }
+  },
+  "order": [
+    "section_kpbeca",
+    "hero_banner_PDTwJk",
+    "custom_liquid_MxpNNL",
+    "tangelos_promise_MUFVPQ",
+    "category_slider_Fh4kYn",
+    "collection_grid_iq8T7D",
+    "section_nMfyqw",
+    "product_list_UwRqN4",
+    "editorial_image_text_6UFHF3",
+    "shop_the_look_hotspots_MXH3Pa",
+    "upcoming_products_a7RMiG",
+    "hero_zMUDja",
+    "new_arrival_JFqejh",
+    "honest_price_yaCqAz",
+    "product_list_FTqNxC",
+    "collection_list_hMy3aC",
+    "info_home_section_WTMDm9",
+    "info_home_section_YCpVMy",
+    "editorial_journal_HUbaBh",
+    "instagram_feed_FGhrV4"
+  ]
+}

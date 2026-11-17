@@ -1,0 +1,167 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "type": "header",
+  "name": "Header",
+  "sections": {
+    "custom_liquid_bdGKTM": {
+      "type": "custom-liquid",
+      "name": "t:names.custom_liquid",
+      "settings": {
+        "custom_liquid": "{% comment %}\n  ============================================================================\n  Tangelos — header announcement bar (<marquee> version)\n  ============================================================================\n  Uses <marquee> as requested. Notes for whoever edits this next:\n\n  - <marquee> is non-standard and removed from the HTML spec. Every current\n    browser still renders it, so this works today, but it is not guaranteed.\n  - It has no CSS pause, so hover/blur pausing is done with the element's\n    own stop()/start() methods, and the reduced-motion fallback needs JS.\n  - scrollamount is pixels-per-frame, not a duration. Higher = faster.\n  ============================================================================\n{% endcomment %}\n\n<div class=\"announcement-bar\" role=\"region\" aria-label=\"Store announcements\">\n  <marquee\n    class=\"announcement-marquee\"\n    behavior=\"scroll\"\n    direction=\"left\"\n    scrollamount=\"4\"\n    scrolldelay=\"0\"\n    onmouseover=\"this.stop()\"\n    onmouseout=\"this.start()\">\n\n    <span class=\"announcement-item\">\n      365-Day Returns & Free UK Delivery\n    </span>\n\n    <span class=\"announcement-item announcement-rating\">\n      <img\n        src=\"https://cdn.shopify.com/s/files/1/0647/5930/0256/files/Trustpilot_Logo_1.png?v=1787729803&amp;width=200\"\n        alt=\"Trustpilot\"\n        width=\"88\" height=\"22\"\n        class=\"announcement-logo\">\n      <strong>4.5 / 5</strong>\n    </span>\n\n  </marquee>\n</div>\n\n<style>\n  .announcement-bar {\n    color: #ffffff;\n    /* Fixed height stops the bar resizing as fonts load, which otherwise\n       shoves the page down and hurts Core Web Vitals. */\n    height: 38px;\n    display: flex;\n    align-items: center;\n    overflow: hidden;\n  }\n\n  .announcement-marquee {\n    width: 100%;\n    /* marquee is inline by default; this keeps it vertically centred\n       inside the fixed-height bar. */\n    display: block;\n    line-height: 38px;\n  }\n\n  .announcement-item {\n    display: inline-flex;\n    align-items: center;\n    vertical-align: middle;\n    font-size: 13px;\n    letter-spacing: 0.4px;\n    padding: 0 22px;\n  }\n\n  .announcement-rating strong {\n    font-weight: 700;\n    margin-left: 2px;\nmargin-top: 7px;\n  }\n\n  /* Fixed px, not a percentage. A percentage resolves against the scrolling\n     container, so the logo changed size on every screen. */\n  .announcement-logo {\n    width: 88px;\n    height: 22px;\n    margin-right: 8px;\n    display: block;\n  }\n\n  @media screen and (max-width: 640px) {\n    .announcement-item { font-size: 12px; padding: 0 14px; }\n    .announcement-logo { width: 76px; height: 19px; }\n  }\n</style>\n\n<script>\n  /* prefers-reduced-motion can't be honoured in CSS here, since marquee\n     scrolling isn't a CSS animation. Stop it on load instead, and keep\n     listening in case the OS setting changes mid-session. */\n  (function () {\n    var el = document.querySelector('.announcement-marquee');\n    if (!el || typeof el.stop !== 'function') return;\n\n    var mq = window.matchMedia('(prefers-reduced-motion: reduce)');\n\n    function apply() {\n      if (mq.matches) {\n        el.stop();\n        el.setAttribute('scrollamount', '0');\n      } else {\n        el.setAttribute('scrollamount', '4');\n        el.start();\n      }\n    }\n\n    apply();\n    if (mq.addEventListener) mq.addEventListener('change', apply);\n    else if (mq.addListener) mq.addListener(apply);\n  })();\n</script>",
+        "color_scheme": "scheme-5",
+        "section_width": "page-width",
+        "padding-block-start": 0,
+        "padding-block-end": 0
+      }
+    },
+    "header_announcements_4f7U4J": {
+      "type": "header-announcements",
+      "blocks": {
+        "announcement_tHpg6W": {
+          "type": "_announcement",
+          "name": "t:names.announcement",
+          "settings": {
+            "text": "365 Nights Returns & Free UK Delivery",
+            "link": "#",
+            "font": "var(--font-subheading--family)",
+            "font_size": "0.75rem",
+            "weight": "",
+            "letter_spacing": "normal",
+            "case": "none"
+          },
+          "blocks": {}
+        },
+        "announcement_NmEHKg": {
+          "type": "_announcement",
+          "name": "t:names.announcement",
+          "disabled": true,
+          "settings": {
+            "text": "Shop our latest arrivals!",
+            "link": "",
+            "font": "var(--font-subheading--family)",
+            "font_size": "0.75rem",
+            "weight": "",
+            "letter_spacing": "normal",
+            "case": "none"
+          },
+          "blocks": {}
+        },
+        "announcement_fjpQjU": {
+          "type": "_announcement",
+          "name": "t:names.announcement",
+          "disabled": true,
+          "settings": {
+            "text": "Shop our latest arrivals!",
+            "link": "",
+            "font": "var(--font-subheading--family)",
+            "font_size": "0.75rem",
+            "weight": "",
+            "letter_spacing": "normal",
+            "case": "none"
+          },
+          "blocks": {}
+        }
+      },
+      "block_order": [
+        "announcement_tHpg6W",
+        "announcement_NmEHKg",
+        "announcement_fjpQjU"
+      ],
+      "disabled": true,
+      "name": "t:names.announcement_bar",
+      "settings": {
+        "speed": 5,
+        "section_width": "page-width",
+        "color_scheme": "scheme-5",
+        "divider_width": 0,
+        "padding-block-start": 15,
+        "padding-block-end": 15
+      }
+    },
+    "header_section": {
+      "type": "header",
+      "blocks": {
+        "header-logo": {
+          "type": "_header-logo",
+          "static": true,
+          "settings": {
+            "hide_logo_on_home_page": false,
+            "padding-block-start": 0,
+            "padding-block-end": 0
+          },
+          "blocks": {}
+        },
+        "header-menu": {
+          "type": "_header-menu",
+          "static": true,
+          "settings": {
+            "menu": "new-mail-menu",
+            "color_scheme": "",
+            "type_font_primary_size": "var(--font-size--body-sm)",
+            "menu_font_style": "inverse",
+            "type_font_primary_link": "primary",
+            "type_case_primary_link": "uppercase",
+            "menu_style": "text",
+            "featured_products_aspect_ratio": "4 / 5",
+            "featured_collections_aspect_ratio": "16 / 9",
+            "image_border_radius": 0,
+            "navigation_bar": false,
+            "color_scheme_navigation_bar": "",
+            "drawer_accordion": false,
+            "drawer_accordion_expand_first": false,
+            "drawer_dividers": false
+          },
+          "blocks": {}
+        }
+      },
+      "settings": {
+        "logo_position": "center",
+        "menu_position": "left",
+        "menu_row": "top",
+        "customer_account_menu": "customer-service",
+        "show_search": true,
+        "search_position": "right",
+        "search_row": "top",
+        "show_country": false,
+        "country_selector_style": false,
+        "show_language": false,
+        "localization_font": "body",
+        "localization_font_size": "0.875rem",
+        "localization_position": "right",
+        "localization_row": "top",
+        "section_width": "page-width",
+        "section_height": "standard",
+        "enable_sticky_header": "always",
+        "divider_width": 0,
+        "divider_size": "page-width",
+        "border_width": 0,
+        "actions_display_style": "icon",
+        "actions_font_size": "0.875rem",
+        "actions_font": "body",
+        "actions_text_case": "none",
+        "color_scheme_top": "scheme-2",
+        "color_scheme_bottom": "",
+        "color_scheme_transparent": "scheme-6",
+        "enable_transparent_header_home": false,
+        "home_color_scheme": "inverse",
+        "enable_transparent_header_product": false,
+        "product_color_scheme": "default",
+        "enable_transparent_header_collection": false,
+        "collection_color_scheme": "default"
+      }
+    }
+  },
+  "order": [
+    "custom_liquid_bdGKTM",
+    "header_announcements_4f7U4J",
+    "header_section"
+  ]
+}

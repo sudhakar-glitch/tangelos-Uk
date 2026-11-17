@@ -1,0 +1,177 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "settings": {}
+    },
+    "service_eh9xyp": {
+      "type": "service",
+      "blocks": {
+        "service_WFDVDH": {
+          "type": "service",
+          "disabled": true,
+          "settings": {
+            "bgblock": "#ffffff",
+            "title": "Address",
+            "description": "152, Harrison Way, Southampton, SO16 8NJ, UK",
+            "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewbox=\"0 0 24 24\" fill=\"currentColor\">\n  <path d=\"M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z\"></path>\n</svg>"
+          }
+        },
+        "service_CGUR8C": {
+          "type": "service",
+          "settings": {
+            "bgblock": "#ffffff",
+            "title": "Email",
+            "description": "care@tangelos.co.uk",
+            "icon": "<!-- Basic Mail -->\n<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" fill=\"none\" viewbox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\">\n  <path d=\"M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z\"></path>\n  <polyline points=\"22,6 12,13 2,6\"></polyline>\n</svg>"
+          }
+        }
+      },
+      "block_order": [
+        "service_WFDVDH",
+        "service_CGUR8C"
+      ],
+      "name": "Services",
+      "settings": {
+        "animation": "",
+        "setwidth": "container",
+        "bgsection": "#ffffff",
+        "title_top": "Sub Title Top",
+        "title": "Service",
+        "des": "",
+        "align-heading": "center",
+        "paddingbox": "0px 0px 0px 0px",
+        "iconcolor": "#222222",
+        "titlecolor": "#222222",
+        "subcolor": "#999999",
+        "size": 50,
+        "service_heading": "h5",
+        "layout": "style-1",
+        "enable_carousel": true,
+        "arrows": false,
+        "draggable": true,
+        "dots": true,
+        "infinite": true,
+        "paddingsection": "0px 0px 0px 0px",
+        "paddingmobile": "40px 0px 40px 0px",
+        "marginsection": "0px 0px 0px 0px",
+        "marginmobile": "0px 0px 0px 0px"
+      }
+    },
+    "form": {
+      "type": "section",
+      "blocks": {
+        "forms_inline_g6RBB9": {
+          "type": "shopify://apps/forms/blocks/inline/8744a304-fcb1-4347-b211-bb6b4759a76a",
+          "settings": {
+            "form_id": "639072",
+            "text_color": "#202020",
+            "button_background_color": "#202020",
+            "button_label_color": "#ffffff",
+            "links_color": "#1878b9",
+            "errors_color": "#e02229",
+            "text_alignment": "center",
+            "form_alignment": "center",
+            "padding_top": 0,
+            "padding_bottom": 24,
+            "padding_right": 0,
+            "padding_left": 0
+          }
+        },
+        "contact_form_UwiCkQ": {
+          "type": "contact-form",
+          "disabled": true,
+          "settings": {
+            "width": "custom",
+            "custom_width": 50,
+            "width_mobile": "custom",
+            "custom_width_mobile": 100,
+            "inherit_color_scheme": true,
+            "color_scheme": "",
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {
+            "submit-button": {
+              "type": "contact-form-submit-button",
+              "static": true,
+              "settings": {
+                "label": "Submit",
+                "style_class": "button",
+                "width": "fit-content",
+                "custom_width": 100,
+                "width_mobile": "fit-content",
+                "custom_width_mobile": 100
+              },
+              "blocks": {}
+            }
+          },
+          "block_order": []
+        }
+      },
+      "block_order": [
+        "forms_inline_g6RBB9",
+        "contact_form_UwiCkQ"
+      ],
+      "name": "t:names.contact_form",
+      "settings": {
+        "content_direction": "column",
+        "vertical_on_mobile": true,
+        "horizontal_alignment": "flex-start",
+        "vertical_alignment": "center",
+        "align_baseline": false,
+        "horizontal_alignment_flex_direction_column": "center",
+        "vertical_alignment_flex_direction_column": "center",
+        "gap": 32,
+        "section_width": "page-width",
+        "section_height": "",
+        "section_height_custom": 50,
+        "color_scheme": "scheme-1",
+        "background_media": "none",
+        "video_position": "cover",
+        "background_image_position": "cover",
+        "border": "none",
+        "border_width": 1,
+        "border_opacity": 100,
+        "border_radius": 0,
+        "toggle_overlay": false,
+        "overlay_color": "#00000026",
+        "overlay_style": "solid",
+        "gradient_direction": "to top",
+        "padding-block-start": 32,
+        "padding-block-end": 32
+      }
+    },
+    "map_4UwmyY": {
+      "type": "map",
+      "name": "Map",
+      "settings": {
+        "heading": "",
+        "address": "",
+        "map_address": "",
+        "button_text": "Get directions",
+        "show_pin": true,
+        "api_key": "",
+        "map_code": "<iframe src=\"https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2513.473663131957!2d-1.4500749231849486!3d50.95194625112863!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x487475ad4dee605f%3A0xe5cb7be5c60af09a!2s152%20Harrison%20Wy%2C%20Southampton%20SO16%208NJ%2C%20UK!5e0!3m2!1sen!2sin!4v1775731689027!5m2!1sen!2sin\" width=\"3600\" height=\"450\" style=\"border:0;\" allowfullscreen=\"\" loading=\"lazy\" referrerpolicy=\"no-referrer-when-downgrade\"></iframe>",
+        "background_image_position": "center center"
+      }
+    }
+  },
+  "order": [
+    "main",
+    "service_eh9xyp",
+    "form",
+    "map_4UwmyY"
+  ]
+}

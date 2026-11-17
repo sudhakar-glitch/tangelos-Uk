@@ -1,0 +1,1541 @@
+{%- comment -%}
+  PDP Offer Popup  —  sections/pdp-offer-popup.liquid
+  Offer-first popup for product and collection pages.
+  By default it shows ONLY on the Breathable Muslin Collection Bedding
+  collection page and on products in that collection. Picking collections
+  in the theme editor replaces this default.
+
+  Several offers: add this section once per offer (e.g. OFFER15, OFFER20,
+  OFFER30), each with its own collections, coupon code and customer tag.
+  Only ONE popup ever opens on a page. On a product page that sits in more
+  than one offer collection, the popup for the offer collection the shopper
+  came from wins (the /collections/... part of the address, or the last
+  offer collection page they viewed). If they didn't come from one, the
+  popup ticked "Default on product pages" wins, otherwise the first one.
+
+  OFFER PER COLLECTION (built in, see "OFFER CONDITIONS" below):
+    Breathable Muslin Collection Bedding -> OFFER50 (£50 off £125+, tag pdp-offer50)
+    Muslin Cooling Bedding               -> OFFER20 (£20 off £100+, tag pdp-offer20)
+    Hot Sleepers Muslin Bedding          -> OFFER30 (£30 off £100+, tag pdp-offer30)
+    Each offer sets its own pop-up heading (offer_heading).
+  The popup shows ONLY on /collections/breathable-muslin-collection-bedding
+  and on product pages of products in that collection (however the shopper
+  reached them). Every other collection and product shows no offer popup.
+  The OFFER15 popup is switched off; its tag stays in the
+  one-offer list below so earlier subscribers never get a second offer.
+
+  ONE OFFER PER CUSTOMER: after signing up through any offer popup, no other
+  offer popup shows in that browser, and a signed-in customer who already has
+  pdp-offer, pdp-offer15, pdp-offer20, pdp-offer30 or pdp-offer50 never sees one. A Shopify Flow rule
+  removes a second offer tag if someone signs up again on another device.
+{%- endcomment -%}
+
+{%- liquid
+  # Default collection: used when no collections are picked in the theme editor
+  assign default_collection_handle = 'breathable-muslin-collection-bedding'
+
+  # ================================================================
+  # OFFER CONDITIONS: which offer each collection shows.
+  # To add or change one, copy a "when" block and edit its values.
+  # The code must exist in Shopify admin > Discounts.
+  # ================================================================
+  assign offer_handle = ''
+  if collection
+    assign offer_handle = collection.handle
+  endif
+  # Product pages: a product in the offer collection always gets that offer,
+  # even when opened from search, the home page or another collection
+  if template.name == 'product' and product
+    assign tg_prod_handles = product.collections | map: 'handle'
+    if tg_prod_handles contains default_collection_handle
+      assign offer_handle = default_collection_handle
+    endif
+  endif
+  assign offer_mapped = false
+  assign offer_heading = ''
+  case offer_handle
+    when 'breathable-muslin-collection-bedding'
+      assign offer_mapped = true
+      assign offer_code = 'OFFER50'
+      assign offer_tag = 'pdp-offer50'
+      assign offer_badge = 'Get £50 OFF'
+      assign offer_desc = 'With an order value of £125+'
+      assign offer_success_text = '<p>Enjoy £50 OFF when you spend £125+ on your order.</p>'
+      assign offer_heading = '£50 OFF Your Order. More to Love, More to Refresh, and More to Save.'
+    when 'muslin-cooling-bedding'
+      assign offer_mapped = true
+      assign offer_code = 'OFFER20'
+      assign offer_tag = 'pdp-offer20'
+      assign offer_badge = 'Get £20 OFF'
+      assign offer_desc = 'With an order value of £100+'
+      assign offer_success_text = '<p>Enjoy £20 OFF when you spend £100+ on your order.</p>'
+      assign offer_heading = '£20 OFF Your Order. More to Love, More to Refresh, and More to Save.'
+    when 'hot-sleepers-muslin-bedding'
+      assign offer_mapped = true
+      assign offer_code = 'OFFER30'
+      assign offer_tag = 'pdp-offer30'
+      assign offer_badge = 'Get £30 OFF'
+      assign offer_desc = 'With an order value of £100+'
+      assign offer_success_text = '<p>Enjoy £30 OFF when you spend £100+ on your order.</p>'
+      assign offer_heading = 'Get £30 OFF! The perfect time to bring home a complete bedding set.'
+    # OFFER15 popup switched off (code expired 12 Nov 2026). To bring it back,
+    # add a "when" block for its collection here again.
+  endcase
+
+  # ONE OFFER PER CUSTOMER: every offer tag used above. A signed-in customer
+  # who already has any of these never sees an offer popup again.
+  assign all_offer_tags = 'pdp-offer,pdp-offer15,pdp-offer20,pdp-offer30,pdp-offer50' | split: ','
+  assign customer_has_offer = false
+  if customer
+    for t in customer.tags
+      if all_offer_tags contains t
+        assign customer_has_offer = true
+        break
+      endif
+    endfor
+  endif
+
+  # Not one of the collections above: use the theme editor settings
+  if offer_mapped
+    assign offer_success_heading = 'Coupon code (' | append: offer_code | append: ') applied successfully'
+  else
+    assign offer_code = section.settings.success_code | strip
+    assign offer_tag = section.settings.customer_tag
+    assign offer_success_text = section.settings.success_text
+    assign offer_success_heading = section.settings.success_heading | replace: '[code]', offer_code
+  endif
+
+  assign show_popup = false
+  if template.name == 'collection' and collection and section.settings.show_on_collection
+    # Collection page: show on the offer collections above, the default collection, or the picked ones
+    if offer_mapped
+      assign show_popup = true
+    elsif section.settings.collections == blank
+      if collection.handle == default_collection_handle
+        assign show_popup = true
+      endif
+    else
+      for c in section.settings.collections
+        if c.handle == collection.handle
+          assign show_popup = true
+          break
+        endif
+      endfor
+    endif
+  elsif template.name == 'product' and product and section.settings.show_on_product
+    # Product page: show only when the product belongs to the default collection or a picked one
+    assign product_collections = product.collections | map: 'handle'
+    if offer_mapped and product_collections contains offer_handle
+      # Opened from one of the offer collections above
+      assign show_popup = true
+    elsif section.settings.collections == blank
+      if product_collections contains default_collection_handle
+        assign show_popup = true
+      endif
+    else
+      for c in section.settings.collections
+        if product_collections contains c.handle
+          assign show_popup = true
+          break
+        endif
+      endfor
+    endif
+  endif
+
+  # Collections this popup belongs to, and the collection the shopper is browsing (if any)
+  assign popup_handles = default_collection_handle
+  if section.settings.collections != blank
+    assign popup_handles = section.settings.collections | map: 'handle' | join: ','
+  endif
+  if offer_mapped
+    assign popup_handles = popup_handles | append: ',' | append: offer_handle
+  endif
+  assign context_handle = ''
+  if collection
+    assign context_handle = collection.handle
+  endif
+
+  assign popup_id = 'PdpOfferPopup-' | append: section.id
+  assign form_id = 'PdpOfferForm-' | append: section.id
+  assign popup_image = section.settings.image
+  assign s = section.settings
+-%}
+
+{%- if show_popup -%}
+  {%- style -%}
+    #{{ popup_id }} {
+      --pop-bg: {{ s.color_bg }};
+      --pop-heading: {{ s.color_heading }};
+      --pop-text: {{ s.color_text }};
+      --pop-ticket-bg: {{ s.color_ticket_bg }};
+      --pop-ticket-text: {{ s.color_ticket_text }};
+      --pop-input-border: {{ s.color_input_border }};
+      --pop-btn-bg: {{ s.color_button }};
+      --pop-btn-text: {{ s.color_button_text }};
+      --pop-width: {{ s.popup_width }}%;
+      --pop-width-mobile: {{ s.popup_width_mobile }}%;
+      --pop-max-width: {{ s.popup_max_width }}px;      --pop-image-width: {{ s.image_width }}%;
+      --pop-image-height-mobile: {{ s.image_height_mobile }}px;
+      --pop-radius: {{ s.popup_radius }}px;
+      --pop-control-radius: {{ s.control_radius }}px;
+      --pop-heading-size: {{ s.heading_size }}px;
+      --pop-heading-size-mobile: {{ s.heading_size_mobile }}px;
+      --pop-text-size: {{ s.text_size }}px;
+      --pop-badge-size: {{ s.badge_size }}px;
+      --pop-desc-size: {{ s.desc_size }}px;
+      --pop-subscribe-size: {{ s.subscribe_size }}px;
+      --pop-btn-size: {{ s.button_size }}px;
+      --pop-align: {{ s.text_align }};
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: {{ s.color_overlay | color_modify: 'alpha', s.overlay_opacity | divided_by: 100.0 }};
+      {%- if s.overlay_blur > 0 %}
+      -webkit-backdrop-filter: blur({{ s.overlay_blur }}px);
+      backdrop-filter: blur({{ s.overlay_blur }}px);
+      {%- endif %}
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .35s ease, visibility .35s ease;
+    }
+    #{{ popup_id }}.is-open { opacity: 1; visibility: visible; }
+
+    /* ---------- Dialog ---------- */
+    #{{ popup_id }} .pop__dialog {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr);
+      width: var(--pop-width);
+      max-width: 560px;
+      max-height: 90dvh;
+      overflow: hidden;
+      border-radius: var(--pop-radius);
+      background: var(--pop-bg);
+      color: var(--pop-text);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .35);
+      transform: translateY(20px) scale(.97);
+      transition: transform .45s cubic-bezier(.2, .8, .2, 1);
+      box-sizing: border-box;
+    }
+    #{{ popup_id }} .pop__dialog--media {
+      max-width: var(--pop-max-width);
+      grid-template-columns: var(--pop-image-width) minmax(0, 1fr);
+    }
+    #{{ popup_id }} .pop__dialog--media-right {
+      grid-template-columns: minmax(0, 1fr) var(--pop-image-width);
+    }
+    #{{ popup_id }} .pop__dialog--media-right .pop__media { order: 2; }
+    #{{ popup_id }}.is-open .pop__dialog { transform: none; }
+    #{{ popup_id }} .pop__dialog:focus { outline: none; }
+
+    {%- if s.height_mode == 'custom' -%}
+      /* Custom desktop height: percentage of the screen height */
+      @media (min-width: 750px) {
+        #{{ popup_id }} .pop__dialog {
+          height: {{ s.popup_height_percent }}vh;
+          height: {{ s.popup_height_percent }}dvh;
+          max-height: {{ s.popup_height_percent }}vh;
+          max-height: {{ s.popup_height_percent }}dvh;
+        }
+      }
+    {%- endif -%}
+
+    /* ---------- Image panel ---------- */
+    #{{ popup_id }} .pop__media {
+      position: relative;
+      overflow: hidden;
+    }
+    #{{ popup_id }} .pop__media img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(1.06);
+      transition: transform 1.4s cubic-bezier(.2, .8, .2, 1);
+    }
+    #{{ popup_id }}.is-open .pop__media img { transform: none; }
+
+    /* ---------- Content panel ---------- */
+    #{{ popup_id }} .pop__content {
+      min-height: 0;
+      overflow-y: auto;
+      display: flex;
+      padding: 56px 48px 44px;
+      text-align: var(--pop-align);
+      box-sizing: border-box;
+    }
+    #{{ popup_id }} .pop__inner {
+      width: 100%;
+      max-width: 520px;
+      margin: auto;
+    }
+    #{{ popup_id }} .pop__close {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      z-index: 2;
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: 50%;
+      background: var(--pop-bg);
+      color: var(--pop-text);
+      cursor: pointer;
+      transition: transform .3s ease;
+    }
+    #{{ popup_id }} .pop__close:hover { transform: rotate(90deg); }
+
+    #{{ popup_id }} .pop__heading {
+      margin: 0 0 14px;
+      font-size: var(--pop-heading-size);
+      line-height: 1.1;
+      font-weight: 400;
+      color: var(--pop-heading);
+    }
+    #{{ popup_id }} .pop__text {
+      margin: 0 0 26px;
+      font-size: var(--pop-text-size);
+      line-height: 1.6;
+    }
+    #{{ popup_id }} .pop__text p { margin: 0; }
+
+    /* ---------- Offer tickets (the highlight) ---------- */
+    #{{ popup_id }} .pop__offers {
+      list-style: none;
+      margin: 0 0 30px;
+      padding: 0;
+      display: grid;
+      gap: 12px;
+    }
+    #{{ popup_id }} .pop__offer {
+      position: relative;
+      display: flex;
+      align-items: stretch;
+      background: var(--pop-ticket-bg);
+      color: var(--pop-ticket-text);
+      text-align: left;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity .5s ease, transform .5s ease;
+    }
+    #{{ popup_id }}.is-open .pop__offer { opacity: 1; transform: none; }
+    #{{ popup_id }} .pop__offer:nth-child(1) { transition-delay: .2s; }
+    #{{ popup_id }} .pop__offer:nth-child(2) { transition-delay: .3s; }
+    #{{ popup_id }} .pop__offer:nth-child(3) { transition-delay: .4s; }
+    #{{ popup_id }} .pop__offer:nth-child(4) { transition-delay: .5s; }
+    /* punched notches on both ends of the ticket */
+    #{{ popup_id }} .pop__offer::before,
+    #{{ popup_id }} .pop__offer::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 18px;
+      height: 18px;
+      margin-top: -9px;
+      border-radius: 50%;
+      background: var(--pop-bg);
+    }
+    #{{ popup_id }} .pop__offer::before { left: -9px; }
+    #{{ popup_id }} .pop__offer::after { right: -9px; }
+    #{{ popup_id }} .pop__offer-badge {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      padding: 20px 20px 20px 28px;
+      border-right: 1px dashed currentColor;
+      font-family: var(--font-heading-family, inherit);
+      font-size: var(--pop-badge-size);
+      line-height: 1;
+      white-space: nowrap;
+    }
+    #{{ popup_id }} .pop__offer-desc {
+      flex: 1 1 auto;
+      display: flex;
+      align-items: center;
+      padding: 16px 28px 16px 18px;
+      font-size: var(--pop-desc-size);
+      line-height: 1.45;
+    }
+
+    /* ---------- Subscribe (kept quiet, below the offers) ---------- */
+    #{{ popup_id }} .pop__subscribe-text {
+      margin: 0 0 12px;
+      font-size: var(--pop-subscribe-size);
+      line-height: 1.5;
+    }
+    #{{ popup_id }} .pop__subscribe-text p { margin: 0; }
+    #{{ popup_id }} .pop__form-row {
+      display: flex;
+      gap: 8px;
+    }
+    #{{ popup_id }} .pop__field { position: relative; flex: 1 1 auto; min-width: 0; }
+    #{{ popup_id }} .pop__field svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: .6;
+      pointer-events: none;
+    }
+    #{{ popup_id }} .pop__input {
+      width: 100%;
+      height: 50px;
+      padding: 0 14px 0 44px;
+      border: 1px solid var(--pop-input-border);
+      border-radius: var(--pop-control-radius);
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      font-size: 16px; /* 16px stops iOS zoom on focus */
+      box-sizing: border-box;
+      appearance: none;
+    }
+    #{{ popup_id }} .pop__input:focus-visible { outline: 2px solid var(--pop-input-border); outline-offset: 2px; }
+    #{{ popup_id }} .pop__submit {
+      flex: 0 0 auto;
+      height: 50px;
+      padding: 0 26px;
+      border: 0;
+      border-radius: var(--pop-control-radius);
+      background: var(--pop-btn-bg);
+      color: var(--pop-btn-text);
+      font: inherit;
+      font-size: var(--pop-btn-size);
+      white-space: nowrap;
+      cursor: pointer;
+      transition: opacity .2s ease;
+    }
+    #{{ popup_id }} .pop__submit:hover { opacity: .85; }
+    #{{ popup_id }} .pop__submit:focus-visible { outline: 2px solid var(--pop-input-border); outline-offset: 2px; }
+    #{{ popup_id }} .pop__submit--full { width: 100%; }
+    #{{ popup_id }} .pop__decline {
+      margin-top: 16px;
+      padding: 6px 0;
+      background: none;
+      border: 0;
+      color: inherit;
+      font: inherit;
+      font-size: var(--pop-subscribe-size);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      opacity: .75;
+      cursor: pointer;
+    }
+    #{{ popup_id }} .pop__decline:hover { opacity: 1; }
+    #{{ popup_id }} .pop__error {
+      margin: 0 0 12px;
+      font-size: 14px;
+      color: #b3261e;
+    }
+    #{{ popup_id }} .pop__terms {
+      margin: 12px 0 0;
+      font-size: 12px;
+      line-height: 1.5;
+      opacity: .65;
+    }
+    #{{ popup_id }} .pop__terms p { margin: 0; }
+
+    /* ---------- Success (coupon applied) ---------- */
+    #{{ popup_id }} .pop__success { text-align: var(--pop-align); }
+    #{{ popup_id }} .pop__tick {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 52px;
+      height: 52px;
+      margin: 0 0 18px;
+      border-radius: 50%;
+      background: {{ s.color_success }};
+      color: #ffffff;
+      transform: scale(.6);
+      opacity: 0;
+      transition: transform .45s cubic-bezier(.2, .8, .2, 1) .15s, opacity .3s ease .15s;
+    }
+    #{{ popup_id }}.is-open .pop__tick { transform: none; opacity: 1; }
+    #{{ popup_id }} .pop__success-heading { margin-bottom: 8px; }
+    #{{ popup_id }} .pop__success-sub {
+      margin: 0 0 10px;
+      font-size: calc(var(--pop-text-size) + 2px);
+      font-weight: 600;
+      color: {{ s.color_success }};
+    }
+
+    /* ---------- Countdown timer ---------- */
+    #{{ popup_id }} .pop__timer { margin: 0 0 24px; }
+    #{{ popup_id }} .pop__timer-label {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      opacity: .8;
+    }
+    #{{ popup_id }} .pop__timer-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      max-width: 360px;
+      margin: 0 {% if s.text_align == 'center' %}auto{% else %}0{% endif %};
+    }
+    #{{ popup_id }} .pop__timer-label { text-align: var(--pop-align); }
+    #{{ popup_id }} .pop__timer-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 14px 4px 11px;
+      border-radius: max(var(--pop-control-radius), 4px);
+      background: var(--pop-ticket-bg);
+      color: var(--pop-ticket-text);
+    }
+    #{{ popup_id }} .pop__timer-num {
+      font-family: var(--font-heading-family, inherit);
+      font-size: var(--pop-badge-size);
+      line-height: 1;
+      font-variant-numeric: lining-nums tabular-nums;
+      font-feature-settings: "lnum" 1, "tnum" 1;
+    }
+    #{{ popup_id }} .pop__timer-num.is-tick { animation: pop-tick .35s ease; }
+    @keyframes pop-tick {
+      from { opacity: .35; transform: translateY(-3px); }
+      to   { opacity: 1; transform: none; }
+    }
+    #{{ popup_id }} .pop__timer-name {
+      font-size: 10px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      opacity: .75;
+    }
+    #{{ popup_id }} .pop__timer-ended {
+      margin: 0;
+      font-size: var(--pop-subscribe-size);
+      text-align: var(--pop-align);
+    }
+
+    /* ---------- Mobile ---------- */
+    @media (max-width: 749px) {
+      #{{ popup_id }} .pop__dialog,
+      #{{ popup_id }} .pop__dialog--media {
+        display: block;
+        width: var(--pop-width-mobile);
+        max-height: 88dvh;
+        overflow-y: auto;
+      }
+      #{{ popup_id }} .pop__media {
+        min-height: 0;
+        height: var(--pop-image-height-mobile);
+      }
+      #{{ popup_id }} .pop__media--hide-mobile { display: none; }
+      #{{ popup_id }} .pop__close {
+        top: 8px;
+        right: 8px;
+        width: 36px;
+        height: 36px;
+      }
+      #{{ popup_id }} .pop__content {
+        display: block;
+        overflow: visible;
+        padding: 28px 20px 24px;
+      }
+      #{{ popup_id }} .pop__dialog:not(.pop__dialog--media) .pop__content,
+      #{{ popup_id }} .pop__media--hide-mobile + .pop__content { padding-top: 50px; }
+      #{{ popup_id }} .pop__heading { font-size: var(--pop-heading-size-mobile); }
+      #{{ popup_id }} .pop__text { margin-bottom: 20px; }
+      #{{ popup_id }} .pop__offers { margin-bottom: 24px; gap: 10px; }
+      #{{ popup_id }} .pop__offer-badge {
+        padding: 16px 14px 16px 22px;
+        font-size: calc(var(--pop-badge-size) * .8);
+      }
+      #{{ popup_id }} .pop__offer-desc { padding: 14px 22px 14px 14px; }
+      #{{ popup_id }} .pop__form-row { flex-direction: column; }
+      #{{ popup_id }} .pop__submit { width: 100%; }
+      #{{ popup_id }} .pop__tick { width: 44px; height: 44px; margin-bottom: 14px; }
+      #{{ popup_id }} .pop__timer { margin-bottom: 20px; }
+      #{{ popup_id }} .pop__timer-grid { gap: 6px; }
+      #{{ popup_id }} .pop__timer-unit { padding: 11px 2px 9px; }
+      #{{ popup_id }} .pop__timer-num { font-size: calc(var(--pop-badge-size) * .8); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #{{ popup_id }},
+      #{{ popup_id }} * { transition: none !important; }
+      #{{ popup_id }} .pop__tick { transform: none; opacity: 1; }
+      #{{ popup_id }} .pop__timer-num.is-tick { animation: none; }
+    }
+  {%- endstyle -%}
+
+  <div
+    id="{{ popup_id }}"
+    data-delay="{{ s.delay }}"
+    data-days="{{ s.reshow_days }}"
+    data-template="{{ template.name }}"
+    data-handles="{{ popup_handles | escape }}"
+    data-context="{{ context_handle | escape }}"
+    {% if s.default_on_product %}data-default-product{% endif %}
+    {% if customer_has_offer %}data-has-offer{% endif %}
+    {% if s.show_timer and s.timer_end != blank %}data-timer-end="{{ s.timer_end | strip | escape }}"{% endif %}
+    {% if s.hide_when_ended %}data-hide-when-ended{% endif %}
+    aria-hidden="true"
+  >
+    <div
+      class="pop__dialog{% if popup_image != blank %} pop__dialog--media{% if s.image_position == 'right' %} pop__dialog--media-right{% endif %}{% endif %}"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="{{ popup_id }}-title"
+      tabindex="-1"
+    >
+      <button type="button" class="pop__close" data-pop-close aria-label="Close">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.3"/>
+        </svg>
+      </button>
+
+      {%- if popup_image != blank -%}
+        <div class="pop__media{% unless s.show_image_mobile %} pop__media--hide-mobile{% endunless %}">
+          {{
+            popup_image
+            | image_url: width: 1600
+            | image_tag:
+              loading: 'lazy',
+              widths: '400, 600, 900, 1200, 1600',
+              sizes: '(max-width: 749px) 100vw, 50vw',
+              alt: popup_image.alt
+          }}
+        </div>
+      {%- endif -%}
+
+      {%- capture pop_timer -%}
+        {%- if s.show_timer and s.timer_end != blank -%}
+          <div class="pop__timer" data-pop-timer hidden>
+            <p class="pop__timer-label">{{ s.timer_label | escape }}</p>
+            <div class="pop__timer-grid" role="timer" aria-live="off" data-pop-timer-grid>
+              <span class="pop__timer-unit"><span class="pop__timer-num" data-t="d">00</span><span class="pop__timer-name">Days</span></span>
+              <span class="pop__timer-unit"><span class="pop__timer-num" data-t="h">00</span><span class="pop__timer-name">Hours</span></span>
+              <span class="pop__timer-unit"><span class="pop__timer-num" data-t="m">00</span><span class="pop__timer-name">Mins</span></span>
+              <span class="pop__timer-unit"><span class="pop__timer-num" data-t="s">00</span><span class="pop__timer-name">Secs</span></span>
+            </div>
+            <p class="pop__timer-ended" data-pop-timer-ended hidden>{{ s.timer_ended_text | escape }}</p>
+          </div>
+        {%- endif -%}
+      {%- endcapture -%}
+
+      <div class="pop__content">
+        <div class="pop__inner">
+          {%- form 'customer', id: form_id -%}
+            {%- if form.posted_successfully? -%}
+              {%- comment -%} Success state {%- endcomment -%}
+              {%- liquid
+                assign success_code = offer_code
+                assign success_heading = offer_success_heading
+                assign success_fallback = s.success_fallback | replace: '[code]', success_code
+                if success_fallback == blank
+                  assign success_fallback = 'Use code ' | append: success_code | append: ' at checkout'
+                endif
+              -%}
+              <div
+                class="pop__success"
+                data-pop-success
+                {% if s.apply_code and success_code != blank %}data-pop-code="{{ success_code | escape }}"{% endif %}
+                data-pop-fallback="{{ success_fallback | escape }}"
+              >
+                <span class="pop__tick" aria-hidden="true">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+                </span>
+                <h2 class="pop__heading pop__success-heading h2" id="{{ popup_id }}-title" data-pop-success-heading>{{ success_heading | escape }}</h2>
+                {%- if s.success_subheading != blank -%}
+                  <p class="pop__success-sub">{{ s.success_subheading | escape }}</p>
+                {%- endif -%}
+                <div class="pop__text">{{ offer_success_text }}</div>
+                {%- if s.timer_on_success -%}{{ pop_timer }}{%- endif -%}
+                <button type="button" class="pop__submit pop__submit--full" data-pop-close>
+                  {{ s.success_button | escape }}
+                </button>
+              </div>
+            {%- else -%}
+              <h2 class="pop__heading h2" id="{{ popup_id }}-title">{{ offer_heading | default: s.heading | escape }}</h2>
+
+              {%- if s.text != blank -%}
+                <div class="pop__text">{{ s.text }}</div>
+              {%- endif -%}
+
+              {{ pop_timer }}
+
+              {%- if offer_mapped -%}
+                {%- comment -%} Offer from OFFER CONDITIONS at the top of this file {%- endcomment -%}
+                <ul class="pop__offers">
+                  <li class="pop__offer">
+                    <span class="pop__offer-badge">{{ offer_badge | escape }}</span>
+                    <span class="pop__offer-desc">{{ offer_desc | escape }}</span>
+                  </li>
+                </ul>
+              {%- elsif section.blocks.size > 0 -%}
+                <ul class="pop__offers">
+                  {%- for block in section.blocks -%}
+                    <li class="pop__offer" {{ block.shopify_attributes }}>
+                      <span class="pop__offer-badge">{{ block.settings.badge | escape }}</span>
+                      <span class="pop__offer-desc">{{ block.settings.description | escape }}</span>
+                    </li>
+                  {%- endfor -%}
+                </ul>
+              {%- endif -%}
+
+              {%- if s.subscribe_text != blank -%}
+                <div class="pop__subscribe-text">{{ s.subscribe_text }}</div>
+              {%- endif -%}
+
+              {%- if form.errors -%}
+                <p class="pop__error" data-pop-error role="alert">
+                  {{ form.errors.translated_fields.email | capitalize }}
+                  {{ form.errors.messages.email }}
+                </p>
+              {%- endif -%}
+
+              <input type="hidden" name="contact[tags]" value="newsletter{% if offer_tag != blank %},{{ offer_tag | escape }}{% endif %}">
+
+              <div class="pop__form-row">
+                <div class="pop__field">
+                  <svg width="20" height="15" viewBox="0 0 22 16" fill="none" aria-hidden="true">
+                    <rect x=".6" y=".6" width="20.8" height="14.8" rx="1.4" stroke="currentColor" stroke-width="1.2"/>
+                    <path d="M1 1.5l10 7.5 10-7.5" stroke="currentColor" stroke-width="1.2"/>
+                  </svg>
+                  <input
+                    class="pop__input"
+                    type="email"
+                    name="contact[email]"
+                    value="{{ form.email }}"
+                    placeholder="{{ s.placeholder | escape }}"
+                    aria-label="{{ s.placeholder | escape }}"
+                    autocomplete="email"
+                    autocapitalize="off"
+                    autocorrect="off"
+                    required
+                  >
+                </div>
+                <button type="submit" class="pop__submit">{{ s.button_label | escape }}</button>
+              </div>
+
+              {%- if s.terms != blank -%}
+                <div class="pop__terms">{{ s.terms }}</div>
+              {%- endif -%}
+
+              {%- if s.decline_label != blank -%}
+                <button type="button" class="pop__decline" data-pop-close>
+                  {{ s.decline_label | escape }}
+                </button>
+              {%- endif -%}
+            {%- endif -%}
+          {%- endform -%}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var popup = document.getElementById({{ popup_id | json }});
+      if (!popup) return;
+
+      var dialog = popup.querySelector('.pop__dialog');
+      var KEY_DISMISSED = 'pdpOfferPopup:dismissedAt';
+      var KEY_SUBSCRIBED = 'pdpOfferPopup:subscribed';
+      var delay = (parseInt(popup.dataset.delay, 10) || 0) * 1000;
+      var days = parseInt(popup.dataset.days, 10) || 7;
+      var isSuccess = !!popup.querySelector('[data-pop-success]');
+      var hasError = !!popup.querySelector('[data-pop-error]');
+      var designMode = window.Shopify && Shopify.designMode;
+      var lastFocus = null;
+      var KEY_LAST_COLLECTION = 'pdpOfferPopup:lastCollection';
+
+      // ---------- Several offer popups on one page: only one may open ----------
+      var me = {
+        el: popup,
+        handles: (popup.getAttribute('data-handles') || '').split(',').filter(Boolean),
+        isDefault: popup.hasAttribute('data-default-product')
+      };
+      var registry = window.PdpOfferPopups = window.PdpOfferPopups || [];
+      registry.push(me);
+
+      function isKnownOfferCollection(handle) {
+        for (var i = 0; i < registry.length; i++) {
+          if (registry[i].handles.indexOf(handle) > -1) return true;
+        }
+        return false;
+      }
+
+      function pickWinner() {
+        // 1. Collection in the page address, 2. last offer collection viewed
+        var ctx = popup.getAttribute('data-context') || '';
+        if (!ctx || !isKnownOfferCollection(ctx)) {
+          var last = store(KEY_LAST_COLLECTION);
+          ctx = last && isKnownOfferCollection(last) ? last : '';
+        }
+        var i;
+        if (ctx) {
+          for (i = 0; i < registry.length; i++) {
+            if (registry[i].handles.indexOf(ctx) > -1) return registry[i];
+          }
+        }
+        // 3. Popup ticked "Default on product pages", 4. first popup on the page
+        for (i = 0; i < registry.length; i++) {
+          if (registry[i].isDefault) return registry[i];
+        }
+        return registry[0];
+      }
+
+      // Wait until every popup section on the page has registered
+      function whenReady(fn) {
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+        else fn();
+      }
+
+      function store(key, value) {
+        try {
+          if (value === undefined) return localStorage.getItem(key);
+          localStorage.setItem(key, value);
+        } catch (e) { return null; }
+      }
+
+      // ---------- Countdown timer ----------
+      // The end time is entered in UK time (Europe/London), so it is the same moment for every shopper.
+      var TIMER_TZ = 'Europe/London';
+      var timerTimer = null;
+
+      function tzOffset(ts) {
+        try {
+          var parts = new Intl.DateTimeFormat('en-GB', {
+            timeZone: TIMER_TZ, hourCycle: 'h23',
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+          }).formatToParts(new Date(ts));
+          var o = {};
+          for (var i = 0; i < parts.length; i++) o[parts[i].type] = parts[i].value;
+          return Date.UTC(+o.year, +o.month - 1, +o.day, +o.hour, +o.minute, +o.second) - ts;
+        } catch (e) { return 0; }
+      }
+
+      function parseEnd(str) {
+        var m = String(str || '').trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2}))?$/);
+        if (!m) return null;
+        var wall = Date.UTC(+m[1], +m[2] - 1, +m[3], m[4] ? +m[4] : 23, m[5] ? +m[5] : 59);
+        var off = tzOffset(wall);
+        var ts = wall - off;
+        var off2 = tzOffset(ts);
+        if (off2 !== off) ts = wall - off2;
+        return ts;
+      }
+
+      var timerEnd = parseEnd(popup.getAttribute('data-timer-end'));
+      var hideWhenEnded = popup.hasAttribute('data-hide-when-ended');
+
+      function pad(n) { return n < 10 ? '0' + n : String(n); }
+
+      function renderTimer() {
+        var boxes = popup.querySelectorAll('[data-pop-timer]');
+        if (!boxes.length) return;
+        var left = timerEnd === null ? -1 : Math.max(0, timerEnd - Date.now());
+        var secs = Math.floor(left / 1000);
+        var vals = {
+          d: String(Math.floor(secs / 86400)).length < 2 ? pad(Math.floor(secs / 86400)) : String(Math.floor(secs / 86400)),
+          h: pad(Math.floor(secs % 86400 / 3600)),
+          m: pad(Math.floor(secs % 3600 / 60)),
+          s: pad(secs % 60)
+        };
+        for (var b = 0; b < boxes.length; b++) {
+          var box = boxes[b];
+          var grid = box.querySelector('[data-pop-timer-grid]');
+          var ended = box.querySelector('[data-pop-timer-ended]');
+          if (timerEnd === null) {
+            // Wrong date format: only explain it in the theme editor
+            if (designMode && ended) {
+              ended.textContent = 'Countdown: enter the end as YYYY-MM-DD HH:MM, e.g. 2026-11-30 23:59';
+              ended.hidden = false;
+              grid.hidden = true;
+              box.hidden = false;
+            } else {
+              box.hidden = true;
+            }
+            continue;
+          }
+          box.hidden = false;
+          var isOver = left <= 0;
+          grid.hidden = isOver;
+          if (ended) ended.hidden = !isOver;
+          if (isOver) continue;
+          var nums = grid.querySelectorAll('[data-t]');
+          for (var n = 0; n < nums.length; n++) {
+            var el = nums[n];
+            var v = vals[el.getAttribute('data-t')];
+            if (el.textContent !== v) {
+              el.textContent = v;
+              el.classList.remove('is-tick');
+              void el.offsetWidth;
+              el.classList.add('is-tick');
+            }
+          }
+          grid.setAttribute('aria-label', vals.d + ' days ' + vals.h + ' hours ' + vals.m + ' minutes left');
+        }
+      }
+
+      function startTimer() {
+        renderTimer();
+        clearInterval(timerTimer);
+        timerTimer = setInterval(renderTimer, 1000);
+      }
+
+      function stopTimer() { clearInterval(timerTimer); }
+
+      function open() {
+        startTimer();
+        lastFocus = document.activeElement;
+        popup.classList.add('is-open');
+        popup.setAttribute('aria-hidden', 'false');
+        document.documentElement.style.overflow = 'hidden';
+        dialog.focus({ preventScroll: true });
+      }
+
+      function close() {
+        stopTimer();
+        popup.classList.remove('is-open');
+        popup.setAttribute('aria-hidden', 'true');
+        document.documentElement.style.overflow = '';
+        if (!designMode && !isSuccess) store(KEY_DISMISSED, String(Date.now()));
+        if (lastFocus && lastFocus.focus) lastFocus.focus();
+      }
+
+      // Close: X button, "No thanks", overlay click, Escape
+      popup.addEventListener('click', function (e) {
+        if (e.target === popup || e.target.closest('[data-pop-close]')) close();
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (!popup.classList.contains('is-open')) return;
+        if (e.key === 'Escape') return close();
+        if (e.key !== 'Tab') return;
+        // Keep keyboard focus inside the popup
+        var items = dialog.querySelectorAll('button, input:not([type="hidden"]), a[href]');
+        if (!items.length) return;
+        var first = items[0];
+        var last = items[items.length - 1];
+        if (e.shiftKey && (document.activeElement === first || document.activeElement === dialog)) {
+          e.preventDefault(); last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault(); first.focus();
+        }
+      });
+
+      // Theme editor: open when the section is selected
+      if (designMode) {
+        document.addEventListener('shopify:section:select', function (e) {
+          if (e.target.contains(popup)) open();
+        });
+        document.addEventListener('shopify:section:deselect', function (e) {
+          if (e.target.contains(popup)) close();
+        });
+        return;
+      }
+
+      // Apply the coupon to this shopper's session so it is already on at checkout.
+      // If that fails, say "use code … at checkout" instead of "applied".
+      function applyCode() {
+        var box = popup.querySelector('[data-pop-success]');
+        var code = box && box.getAttribute('data-pop-code');
+        if (!code) return;
+        var root = {{ routes.root_url | json }} || '/';
+        var url = root.replace(/\/$/, '') + '/discount/' + encodeURIComponent(code) + '?redirect=' + encodeURIComponent(root);
+        function fallback() {
+          var h = box.querySelector('[data-pop-success-heading]');
+          var text = box.getAttribute('data-pop-fallback');
+          if (h && text) h.textContent = text;
+        }
+        fetch(url, { credentials: 'same-origin', redirect: 'follow' })
+          .then(function (r) { if (!r.ok) fallback(); })
+          .catch(fallback);
+      }
+
+      // On an offer collection page, remember it so its products show the same offer
+      if (popup.getAttribute('data-template') === 'collection' && popup.getAttribute('data-context')) {
+        store(KEY_LAST_COLLECTION, popup.getAttribute('data-context'));
+      }
+
+      whenReady(function () {
+        // Another offer popup on this page takes priority
+        if (pickWinner() !== me) return;
+
+        // Came back after submitting the form
+        if (isSuccess) {
+          applyCode();
+          store(KEY_SUBSCRIBED, '1');
+          try {
+            var url = new URL(window.location.href);
+            url.searchParams.delete('customer_posted');
+            url.hash = '';
+            history.replaceState({}, '', url);
+          } catch (e) {}
+          return open();
+        }
+        if (hasError) return open();
+
+        // One offer per customer: a signed-in customer who already has an offer tag
+        if (popup.hasAttribute('data-has-offer')) return;
+
+        // Normal visit: skip if already subscribed (to ANY offer popup in this browser) or recently dismissed
+        if (store(KEY_SUBSCRIBED)) return;
+        var dismissedAt = parseInt(store(KEY_DISMISSED), 10);
+        if (dismissedAt && Date.now() - dismissedAt < days * 86400000) return;
+
+        // Don't offer something that has already ended
+        if (hideWhenEnded && timerEnd !== null && Date.now() >= timerEnd) return;
+
+        setTimeout(open, delay);
+      });
+    })();
+  </script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "PDP offer popup",
+  "tag": "div",
+  "enabled_on": {
+    "templates": ["product", "collection"]
+  },
+  "max_blocks": 4,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Where to show"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_on_product",
+      "label": "Show on product pages",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_on_collection",
+      "label": "Show on product list (collection) pages",
+      "default": true,
+      "info": "The section must also be added to the collection template in the theme editor."
+    },
+    {
+      "type": "collection_list",
+      "id": "collections",
+      "label": "Collections",
+      "info": "The popup shows on these collection pages and on products from these collections. Leave empty to use the Breathable Muslin Collection Bedding collection.",
+      "limit": 50
+    },
+    {
+      "type": "checkbox",
+      "id": "default_on_product",
+      "label": "Default on product pages",
+      "default": false,
+      "info": "With several offer popups: on a product page the shopper didn't reach from an offer collection (e.g. straight from an ad), this popup is shown. Tick it on one popup only."
+    },
+    {
+      "type": "range",
+      "id": "delay",
+      "label": "Open after",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "s",
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "reshow_days",
+      "label": "Show again after closing",
+      "min": 1,
+      "max": 60,
+      "step": 1,
+      "unit": "d",
+      "default": 7
+    },
+    {
+      "type": "header",
+      "content": "Popup size"
+    },
+    {
+      "type": "range",
+      "id": "popup_width",
+      "label": "Width on desktop",
+      "min": 50,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 85
+    },
+    {
+      "type": "range",
+      "id": "popup_max_width",
+      "label": "Maximum width on desktop",
+      "min": 600,
+      "max": 1600,
+      "step": 50,
+      "unit": "px",
+      "default": 1400
+    },
+    {
+      "type": "select",
+      "id": "height_mode",
+      "label": "Height on desktop",
+      "options": [
+        { "value": "auto", "label": "Default (fits the content)" },
+        { "value": "custom", "label": "Custom (% of screen height)" }
+      ],
+      "default": "auto"
+    },
+    {
+      "type": "range",
+      "id": "popup_height_percent",
+      "label": "Custom height",
+      "min": 40,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 80,
+      "info": "Used only when Height on desktop is set to Custom."
+    },
+    {
+      "type": "range",
+      "id": "popup_width_mobile",
+      "label": "Width on mobile",
+      "min": 80,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 90
+    },
+    {
+      "type": "range",
+      "id": "popup_radius",
+      "label": "Popup corner radius",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image",
+      "info": "Upload your own image. Without an image the popup shows as a single column."
+    },
+    {
+      "type": "select",
+      "id": "image_position",
+      "label": "Image position on desktop",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "range",
+      "id": "image_width",
+      "label": "Image width on desktop",
+      "min": 30,
+      "max": 60,
+      "step": 5,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "checkbox",
+      "id": "show_image_mobile",
+      "label": "Show image on mobile",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "image_height_mobile",
+      "label": "Image height on mobile",
+      "min": 100,
+      "max": 300,
+      "step": 10,
+      "unit": "px",
+      "default": 180
+    },
+    {
+      "type": "header",
+      "content": "Offer content"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Exclusive Offers For You"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "<p>Special prices on this collection, for a limited time.</p>"
+    },
+    {
+      "type": "select",
+      "id": "text_align",
+      "label": "Text alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "header",
+      "content": "Countdown timer"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_timer",
+      "label": "Show countdown timer",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "timer_end",
+      "label": "Offer ends (UK time)",
+      "default": "2026-11-30 23:59",
+      "info": "Format: YYYY-MM-DD HH:MM, e.g. 2026-11-30 23:59. Use the same end date as the discount in Shopify admin."
+    },
+    {
+      "type": "text",
+      "id": "timer_label",
+      "label": "Timer heading",
+      "default": "Offer ends in"
+    },
+    {
+      "type": "checkbox",
+      "id": "timer_on_success",
+      "label": "Also show the timer after signup",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_when_ended",
+      "label": "Stop showing the popup once the offer ends",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "timer_ended_text",
+      "label": "Text once the offer has ended",
+      "default": "This offer has ended."
+    },
+    {
+      "type": "header",
+      "content": "Subscribe"
+    },
+    {
+      "type": "richtext",
+      "id": "subscribe_text",
+      "label": "Subscribe text",
+      "default": "<p>Subscribe below and we'll email your one-time coupon code.</p>"
+    },
+    {
+      "type": "text",
+      "id": "placeholder",
+      "label": "Email placeholder",
+      "default": "Enter your email address"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Subscribe"
+    },
+    {
+      "type": "text",
+      "id": "decline_label",
+      "label": "Decline label",
+      "default": "No thanks"
+    },
+    {
+      "type": "richtext",
+      "id": "terms",
+      "label": "Small print"
+    },
+    {
+      "type": "header",
+      "content": "After signup"
+    },
+    {
+      "type": "text",
+      "id": "success_code",
+      "label": "Coupon code",
+      "default": "OFFER15",
+      "info": "Must match a discount code in Shopify admin › Discounts (e.g. £15 off, minimum £80)."
+    },
+    {
+      "type": "checkbox",
+      "id": "apply_code",
+      "label": "Apply the code automatically after signup",
+      "default": true,
+      "info": "The code is added to the shopper's session, so it is already on at checkout."
+    },
+    {
+      "type": "text",
+      "id": "success_heading",
+      "label": "Success heading",
+      "default": "Coupon code ([code]) applied successfully!",
+      "info": "[code] is replaced with the coupon code."
+    },
+    {
+      "type": "text",
+      "id": "success_fallback",
+      "label": "Heading if the code can't be applied",
+      "default": "Use code [code] at checkout"
+    },
+    {
+      "type": "text",
+      "id": "success_subheading",
+      "label": "Success subheading",
+      "default": "You're all set!"
+    },
+    {
+      "type": "richtext",
+      "id": "success_text",
+      "label": "Success text",
+      "default": "<p>Enjoy £15 OFF when you spend £80+ on your orders.</p>"
+    },
+    {
+      "type": "color",
+      "id": "color_success",
+      "label": "Tick and subheading colour",
+      "default": "#2f6b45"
+    },
+    {
+      "type": "text",
+      "id": "success_button",
+      "label": "Success button label",
+      "default": "Continue shopping"
+    },
+    {
+      "type": "text",
+      "id": "customer_tag",
+      "label": "Customer tag",
+      "default": "pdp-offer",
+      "info": "Added to the subscriber so you can target them in your coupon email automation."
+    },
+    {
+      "type": "header",
+      "content": "Font sizes"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Heading (desktop)",
+      "min": 20,
+      "max": 72,
+      "step": 2,
+      "unit": "px",
+      "default": 44
+    },
+    {
+      "type": "range",
+      "id": "heading_size_mobile",
+      "label": "Heading (mobile)",
+      "min": 18,
+      "max": 48,
+      "step": 1,
+      "unit": "px",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "text_size",
+      "label": "Text",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "badge_size",
+      "label": "Offer value",
+      "min": 16,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "desc_size",
+      "label": "Offer description",
+      "min": 11,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "subscribe_size",
+      "label": "Subscribe text",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "button_size",
+      "label": "Button text",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "color_bg",
+      "label": "Popup background",
+      "default": "#f5f2ec"
+    },
+    {
+      "type": "color",
+      "id": "color_heading",
+      "label": "Heading",
+      "default": "#1c1c17"
+    },
+    {
+      "type": "color",
+      "id": "color_text",
+      "label": "Text",
+      "default": "#1c1c17"
+    },
+    {
+      "type": "color",
+      "id": "color_ticket_bg",
+      "label": "Offer background",
+      "default": "#1c1c17"
+    },
+    {
+      "type": "color",
+      "id": "color_ticket_text",
+      "label": "Offer text",
+      "default": "#f5f2ec"
+    },
+    {
+      "type": "color",
+      "id": "color_input_border",
+      "label": "Email field border",
+      "default": "#1c1c17"
+    },
+    {
+      "type": "color",
+      "id": "color_button",
+      "label": "Button",
+      "default": "#1c1c17"
+    },
+    {
+      "type": "color",
+      "id": "color_button_text",
+      "label": "Button text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "control_radius",
+      "label": "Button and field corner radius",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "color",
+      "id": "color_overlay",
+      "label": "Overlay",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay darkness",
+      "min": 10,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "overlay_blur",
+      "label": "Background blur",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 6,
+      "info": "Blurs the page behind the popup. Set to 0 to turn it off."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "offer",
+      "name": "Offer",
+      "settings": [
+        {
+          "type": "text",
+          "id": "badge",
+          "label": "Offer value",
+          "default": "10% OFF"
+        },
+        {
+          "type": "text",
+          "id": "description",
+          "label": "Description",
+          "default": "On your first order from this collection"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "PDP offer popup",
+      "blocks": [
+        {
+          "type": "offer",
+          "settings": {
+            "badge": "10% OFF",
+            "description": "On your first order from this collection"
+          }
+        },
+        {
+          "type": "offer",
+          "settings": {
+            "badge": "FREE SHIPPING",
+            "description": "On every order from this collection"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

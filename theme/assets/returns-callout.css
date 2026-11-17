@@ -1,0 +1,208 @@
+.returns-callout {
+  position: relative;
+  max-width: 100%;
+  margin-top: 12px;
+  font-family: inherit;
+}
+
+/* STEP 1 — trigger callout */
+.returns-callout__trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #e5f4e3;
+  border: 1px solid #cfe9cb;
+  border-radius: 10px;
+  color: #2e7d32;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+    
+}
+
+.returns-callout__trigger:hover {
+  background: #dcefd9;
+}
+
+.returns-callout__trigger-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin:auto;
+}
+
+.returns-callout__trigger-left svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+.returns-callout__trigger-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.returns-callout__chevron {
+  transition: transform 0.2s ease;
+}
+
+.returns-callout__trigger[aria-expanded="true"] .returns-callout__chevron {
+  transform: rotate(180deg);
+}
+
+/* STEP 2 — drawer panel */
+.returns-callout__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 40;
+}
+
+.returns-callout.is-open .returns-callout__backdrop {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.returns-callout__drawer {
+  position: fixed;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18);
+  padding: 20px;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+
+.returns-callout.is-open .returns-callout__drawer {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.returns-callout__drawer[hidden] {
+  display: block; /* keep transitions working; visibility handled via opacity/aria */
+}
+
+.returns-callout__drawer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 14px;
+}
+
+.returns-callout__drawer-title {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0 0 4px;
+}
+
+.returns-callout__drawer-subtitle {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.returns-callout__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px !important;
+  height: 24px;
+  margin-top: 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #888;
+  padding: 0;
+}
+
+.returns-callout__close svg {
+  display: block;
+}
+
+.returns-callout__list {
+  display: flex;
+  flex-direction: column;
+}
+
+.returns-callout__item {
+  display: flex;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.returns-callout__item:last-child {
+  border-bottom: none;
+}
+
+.returns-callout__item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2e7d32;
+  flex-shrink: 0;
+  width: 18px;
+  margin-top: 3px;
+}
+
+.returns-callout__item-icon svg {
+  display: block;
+}
+
+.returns-callout__item-question {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.returns-callout__item-answer {
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.returns-callout__cta {
+  width: 100%;
+  margin-top: 8px;
+  padding: 13px 16px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.returns-callout__cta:hover {
+  background: #f7f7f7;
+}
+
+.returns-callout__policy-link {
+  display: block;
+  text-align: center;
+  margin-top: 12px;
+  font-size: 12px;
+  color: #888;
+  text-decoration: underline;
+}

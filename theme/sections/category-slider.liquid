@@ -1,0 +1,918 @@
+{%- liquid
+  assign lcp_img = nil
+  assign fb = section.blocks.first
+  if fb
+    if fb.settings.custom_image != blank
+      assign lcp_img = fb.settings.custom_image
+    elsif fb.settings.collection != blank and fb.settings.collection.image != blank
+      assign lcp_img = fb.settings.collection.image
+    endif
+  endif
+-%}
+
+{%- if lcp_img != blank -%}
+<link rel="preload" as="image"
+  href="{{ lcp_img | image_url: width: 900 }}"
+  imagesrcset="{{ lcp_img | image_url: width: 400 }} 400w,{{ lcp_img | image_url: width: 700 }} 700w,{{ lcp_img | image_url: width: 900 }} 900w"
+  imagesizes="(max-width:749px) 85vw,(max-width:1024px) 50vw,33vw"
+  fetchpriority="high">
+{%- endif -%}
+
+<section
+  class="cs"
+  id="cs-{{ section.id }}"
+  style="
+    --cs-desk:    {{ section.settings.cards_desktop }};
+    --cs-tab:     {{ section.settings.cards_tablet }};
+    --cs-mob:     {{ section.settings.cards_mobile }};
+    --cs-gap:     {{ section.settings.gap }}px;
+    --cs-ratio:   {{ section.settings.image_ratio }};
+    --cs-radius:  {{ section.settings.image_radius }}px;
+    --cs-hc:      {{ section.settings.heading_color }};
+    --cs-lc:      {{ section.settings.label_color }};
+    --cs-sb-h:    {{ section.settings.scrollbar_height }}px;
+    --cs-sb-c:    {{ section.settings.scrollbar_color }};
+    --cs-sb-bg:   {{ section.settings.scrollbar_bg }};
+    background:   {{ section.settings.section_bg }};
+    padding: {{ section.settings.pad_top }}px {{ section.settings.pad_x }}px {{ section.settings.pad_bottom }}px;
+  "
+  data-mob-nav="{{ section.settings.mobile_nav }}"
+>
+
+  <!-- Section Header -->
+  {%- if section.settings.heading != blank or section.settings.show_toplink -%}
+  <div class="cs__head">
+    {%- if section.settings.heading != blank -%}
+      <{{ section.settings.heading_tag }} class="cs__title"
+        style="font-size:{{ section.settings.heading_size }}px;font-weight:{{ section.settings.heading_weight }};">
+        {{ section.settings.heading | escape }}
+      </{{ section.settings.heading_tag }}>
+    {%- endif -%}
+    {%- if section.settings.show_toplink -%}
+      {%- if section.settings.toplink_url != blank -%}
+        <a class="cs__toplink" href="{{ section.settings.toplink_url }}">
+          {{ section.settings.toplink_text | default: 'View all' | escape }}
+        </a>
+      {%- else -%}
+        <span class="cs__toplink">
+          {% comment %} {{ section.settings.toplink_text | default: 'SELECT ITEM' | escape }} {% endcomment %}
+        </span>
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+  {%- endif -%}
+
+  <!-- Slider wrapper -->
+  <div class="cs__wrap">
+
+    <!-- Prev Arrow -->
+    {%- if section.settings.show_arrows -%}
+    <button class="cs__btn cs__btn--prev" aria-label="Previous" type="button" disabled>
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M13 16L7 10l6-6" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    {%- endif -%}
+
+    <!-- Track -->
+    <div class="cs__track" id="cs-track-{{ section.id }}">
+      {%- for block in section.blocks -%}
+        {%- liquid
+          assign col  = block.settings.collection
+          assign cimg = block.settings.custom_image
+          assign lbl  = block.settings.label
+          assign url  = block.settings.link
+
+          if lbl == blank and col != blank
+            assign lbl = col.title
+          endif
+          if url == blank and col != blank
+            assign url = col.url
+          endif
+
+          assign img = nil
+          if cimg != blank
+            assign img = cimg
+          elsif col != blank and col.image != blank
+            assign img = col.image
+          elsif col != blank and col.products.first != blank
+            assign img = col.products.first.featured_image
+          endif
+        -%}
+
+        <div class="cs__item" {{ block.shopify_attributes }}>
+          <a class="cs__card"
+            href="{{ url | default: '#' }}"
+            {% if lbl != blank %}aria-label="{{ lbl | escape }}"{% endif %}>
+
+            <div class="cs__imgbox">
+              {%- if img != blank -%}
+                {%- if forloop.first -%}
+                  {{ img | image_url: width: 900
+                    | image_tag:
+                      class: 'cs__img',
+                      loading: 'eager',
+                      fetchpriority: 'high',
+                      decoding: 'sync',
+                      widths: '300,500,700,900',
+                      sizes: '(max-width:749px) 85vw,(max-width:1024px) 50vw,33vw',
+                      alt: lbl }}
+                {%- else -%}
+                  {{ img | image_url: width: 900
+                    | image_tag:
+                      class: 'cs__img',
+                      loading: 'lazy',
+                      fetchpriority: 'low',
+                      decoding: 'async',
+                      widths: '300,500,700,900',
+                      sizes: '(max-width:749px) 85vw,(max-width:1024px) 50vw,33vw',
+                      alt: lbl }}
+                {%- endif -%}
+              {%- else -%}
+                <div class="cs__ph">
+                  {{- 'collection-1' | placeholder_svg_tag: 'cs__phsvg' -}}
+                </div>
+              {%- endif -%}
+
+              {%- if section.settings.show_overlay -%}
+                <div class="cs__overlay"
+                  style="background:{{ section.settings.overlay_color }};opacity:{{ section.settings.overlay_opacity | divided_by: 100.0 }};"></div>
+              {%- endif -%}
+
+              {%- if section.settings.label_pos == 'over' and lbl != blank -%}
+                <span class="cs__lbl cs__lbl--over"
+                  style="font-size:{{ section.settings.label_size }}px;font-weight:{{ section.settings.label_weight }};letter-spacing:{{ section.settings.label_spacing | divided_by: 100.0 }}em;text-transform:{{ section.settings.label_case }};">
+                  {{ lbl | escape }}
+                </span>
+              {%- endif -%}
+            </div>
+
+            {%- if section.settings.label_pos == 'below' and lbl != blank -%}
+              <span class="cs__lbl cs__lbl--below"
+                style="font-size:{{ section.settings.label_size }}px;font-weight:{{ section.settings.label_weight }};letter-spacing:{{ section.settings.label_spacing | divided_by: 100.0 }}em;text-transform:{{ section.settings.label_case }};margin-top:{{ section.settings.label_gap }}px;">
+                {{ lbl | escape }}
+              </span>
+            {%- endif -%}
+          </a>
+        </div>
+
+      {%- else -%}
+        <p style="padding:2rem;opacity:.4;font-size:.9rem;">
+          Add category blocks in the theme editor.
+        </p>
+      {%- endfor -%}
+    </div>
+
+    <!-- Next Arrow -->
+    {%- if section.settings.show_arrows -%}
+    <button class="cs__btn cs__btn--next" aria-label="Next" type="button">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    {%- endif -%}
+
+  </div>
+
+  <!-- Custom scrollbar track (desktop always, mobile if setting = scrollbar) -->
+  {%- if section.settings.show_scrollbar -%}
+  <div class="cs__sb-wrap">
+    <div class="cs__sb-track">
+      <div class="cs__sb-thumb" id="cs-thumb-{{ section.id }}"></div>
+    </div>
+  </div>
+  {%- endif -%}
+
+  <!-- Dots (desktop if show_dots, mobile if mobile_nav = dots) -->
+  {%- if section.settings.show_dots or section.settings.mobile_nav == 'dots' -%}
+  <div class="cs__dots" id="cs-dots-{{ section.id }}">
+    {%- for block in section.blocks -%}
+      <button
+        class="cs__dot{% if forloop.first %} is-on{% endif %}"
+        data-i="{{ forloop.index0 }}"
+        aria-label="Go to slide {{ forloop.index }}"
+        type="button">
+      </button>
+    {%- endfor -%}
+  </div>
+  {%- endif -%}
+
+</section>
+
+<style>
+.cs, .cs * { box-sizing: border-box; }
+
+/* ── Section ── */
+.cs { width: 100%; overflow: hidden; }
+
+/* ── Header ── */
+.cs__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+}
+.cs__title {
+  margin: 0;
+  color: var(--cs-hc, #111);
+  line-height: 1.2;
+}
+.cs__toplink {
+  font-size: .65rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--cs-lc, #111);
+  text-decoration: none;
+  opacity: .5;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+a.cs__toplink:hover { opacity: 1; }
+
+/* ── Wrapper: flex row with arrows outside ── */
+.cs__wrap {
+  display: flex;
+  align-items: center;
+  position:relative
+  /* ──gap: 10px;── */
+}
+
+.cs__btn.cs__btn--prev {
+    position: absolute;
+    z-index: 99;
+    top: 45%;
+}
+
+.cs__btn.cs__btn--next {
+    position: absolute;
+    z-index: 99;
+    top: 45%;
+    right: 0;
+}
+
+/* ── Track ── */
+.cs__track {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: var(--cs-gap, 16px);
+  overflow-x: scroll;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  /* Peek: shows ~40px of next card */
+  padding-right: 40px;
+}
+.cs__track::-webkit-scrollbar { display: none; }
+
+/* ── Items ── */
+.cs__item {
+  flex: 0 0 calc((100% - var(--cs-gap,16px) * (var(--cs-desk,3) - 1) - 40px) / var(--cs-desk,3));
+  scroll-snap-align: start;
+  min-width: 0;
+}
+@media (max-width: 1024px) {
+  .cs__item {
+    flex: 0 0 calc((100% - var(--cs-gap,16px) * (var(--cs-tab,2) - 1) - 40px) / var(--cs-tab,2));
+  }
+}
+@media (max-width: 749px) {
+  .cs__item {
+    flex: 0 0 calc((100% - var(--cs-gap,16px) * (var(--cs-mob,1) - 1) - 40px) / var(--cs-mob,1));
+  }
+}
+
+/* ── Card ── */
+.cs__card { display: block; text-decoration: none; color: inherit; }
+
+/* ── Image box ── */
+.cs__imgbox {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--cs-ratio, 3/4);
+  overflow: hidden;
+  border-radius: var(--cs-radius, 0px);
+  background: #e8e4de;
+}
+.cs__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .55s ease;
+  will-change: transform;
+  display: block;
+}
+.cs__card:hover .cs__img { transform: scale(1.04); }
+.cs__ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.cs__phsvg { width: 52%; height: 52%; opacity: .2; }
+.cs__overlay { position: absolute; inset: 0; pointer-events: none; }
+
+/* ── Labels ── */
+.cs__lbl { display: block; color: var(--cs-lc, #111); }
+.cs__lbl--over {
+  position: absolute;
+  bottom: 12px;
+  left: 0; right: 0;
+  text-align: center;
+  padding: 0 .75rem;
+  color: #fff;
+}
+
+/* ── Arrows ── */
+.cs__btn {
+  position: absolute;
+    top: calc(var(--hbs-hoff) + (100% - var(--hbs-hoff)) / 2);
+    transform: translateY(-50%);
+    z-index: 5;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgb(0 0 0 / 6%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+    outline: none;
+}
+
+.cs__btn:hover:not(:disabled) {     background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.75);
+    transform: translateY(-50%) scale(1.08);
+ }
+.cs__btn:disabled { opacity: .25; cursor: default; }
+@media (max-width: 749px) {
+  .cs__btn { width: 36px; height: 36px; }
+}
+
+/* ── Custom Scrollbar ── */
+.cs__sb-wrap {
+  margin-top: 30px;
+  padding: 0 52px; /* align with track (arrow width + gap) */
+}
+.cs__sb-track {
+  width: 100%;
+  height: var(--cs-sb-h, 3px);
+  background: var(--cs-sb-bg, rgba(0,0,0,.12));
+  border-radius: 99px;
+  position: relative;
+  cursor: pointer;
+}
+.cs__sb-thumb {
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%;
+  background: var(--cs-sb-c, #111);
+  border-radius: 99px;
+  transition: left .15s ease, width .15s ease;
+  pointer-events: none;
+}
+
+/* ── Dots ── */
+.cs__dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 14px;
+}
+.cs__dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.2);
+  border: none; cursor: pointer; padding: 0;
+  transition: background .25s, transform .25s;
+}
+.cs__dot.is-on { background: #111; transform: scale(1.5); }
+
+/* ── Mobile nav visibility rules ── */
+@media (max-width: 749px) {
+  /* dots: show dots only */
+  .cs[data-mob-nav="dots"]    .cs__btn     { display: none; }
+  .cs[data-mob-nav="dots"]    .cs__sb-wrap { display: none; }
+  .cs[data-mob-nav="dots"]    .cs__dots    { display: flex; }
+
+  /* scrollbar: show scrollbar only */
+  .cs[data-mob-nav="scrollbar"] .cs__btn  { display: none; }
+  .cs[data-mob-nav="scrollbar"] .cs__dots { display: none; }
+
+  /* arrows: show arrows only */
+  .cs[data-mob-nav="arrows"]  .cs__sb-wrap { display: none; }
+  .cs[data-mob-nav="arrows"]  .cs__dots    { display: none; }
+
+  /* none: hide all nav */
+  .cs[data-mob-nav="none"]    .cs__btn     { display: none; }
+  .cs[data-mob-nav="none"]    .cs__sb-wrap { display: none; }
+  .cs[data-mob-nav="none"]    .cs__dots    { display: none; }
+
+  /* all: show everything */
+  .cs[data-mob-nav="all"]     .cs__dots    { display: flex; }
+}
+
+/* Desktop: hide dots unless show_dots is on (handled by Liquid) */
+/* Desktop: show scrollbar if show_scrollbar is on (handled by Liquid) */
+</style>
+
+<script>
+(function () {
+  var sec   = document.getElementById('cs-{{ section.id }}');
+  var track = document.getElementById('cs-track-{{ section.id }}');
+  if (!sec || !track) return;
+
+  var items = Array.from(track.querySelectorAll('.cs__item'));
+  var btnP  = sec.querySelector('.cs__btn--prev');
+  var btnN  = sec.querySelector('.cs__btn--next');
+  var dots  = Array.from(sec.querySelectorAll('.cs__dot'));
+  var sbThumb = document.getElementById('cs-thumb-{{ section.id }}');
+  var sbTrack = sbThumb ? sbThumb.parentElement : null;
+
+  if (!items.length) return;
+
+  /* ── How many cards visible at current breakpoint ── */
+  function perView() {
+    var w = window.innerWidth;
+    var cs = getComputedStyle(sec);
+    if (w <= 749)  return parseInt(cs.getPropertyValue('--cs-mob'))  || 1;
+    if (w <= 1024) return parseInt(cs.getPropertyValue('--cs-tab'))  || 2;
+    return              parseInt(cs.getPropertyValue('--cs-desk'))   || 3;
+  }
+
+  /* ── Current active index (0-based, per item) ── */
+  var idx = 0;
+
+  /* ── Scroll so item[i] is at left edge of track ── */
+  function goTo(i) {
+    i = Math.max(0, Math.min(i, items.length - 1));
+    idx = i;
+
+    var item = items[idx];
+    /* offsetLeft relative to track's scroll origin */
+    track.scrollTo({ left: item.offsetLeft, behavior: 'smooth' });
+
+    updateUI();
+  }
+
+  /* ── Update arrows / dots / scrollbar ── */
+  function updateUI() {
+    var pv    = perView();
+    var atStart = idx === 0;
+    var atEnd   = idx >= items.length - pv;
+
+    /* Arrows: disabled at boundaries, never hidden */
+    if (btnP) btnP.disabled = atStart;
+    if (btnN) btnN.disabled = atEnd;
+
+    /* Dots */
+    dots.forEach(function (d, i) {
+      d.classList.toggle('is-on', i === idx);
+    });
+
+    /* Custom scrollbar thumb */
+    updateScrollbar();
+  }
+
+  function updateScrollbar() {
+    if (!sbThumb || !sbTrack) return;
+    var ratio = track.scrollLeft / (track.scrollWidth - track.clientWidth || 1);
+    var tw    = sbTrack.clientWidth;
+    var thumbW = Math.max(30, tw * (track.clientWidth / track.scrollWidth));
+    var thumbL = (tw - thumbW) * ratio;
+    sbThumb.style.width = thumbW + 'px';
+    sbThumb.style.left  = thumbL + 'px';
+  }
+
+  /* ── Arrow clicks: move ONE card at a time ── */
+  if (btnP) btnP.addEventListener('click', function () { goTo(idx - 1); });
+  if (btnN) btnN.addEventListener('click', function () { goTo(idx + 1); });
+
+  /* ── Dot clicks ── */
+  dots.forEach(function (d) {
+    d.addEventListener('click', function () { goTo(parseInt(d.dataset.i, 10)); });
+  });
+
+  /* ── Scrollbar drag ── */
+  if (sbTrack) {
+    var draggingSb = false, sbStartX = 0, sbStartScroll = 0;
+    sbTrack.addEventListener('mousedown', function (e) {
+      draggingSb = true;
+      sbStartX = e.clientX;
+      sbStartScroll = track.scrollLeft;
+    });
+    window.addEventListener('mousemove', function (e) {
+      if (!draggingSb) return;
+      var dx = e.clientX - sbStartX;
+      var ratio = dx / sbTrack.clientWidth;
+      track.scrollLeft = sbStartScroll + ratio * (track.scrollWidth - track.clientWidth);
+    });
+    window.addEventListener('mouseup', function () { draggingSb = false; });
+
+    /* Click on track to jump */
+    sbTrack.addEventListener('click', function (e) {
+      if (e.target === sbThumb) return;
+      var r = e.offsetX / sbTrack.clientWidth;
+      track.scrollLeft = r * (track.scrollWidth - track.clientWidth);
+    });
+  }
+
+  /* ── Sync idx when user scrolls manually / touch swipes ── */
+  var scrollTimer;
+  track.addEventListener('scroll', function () {
+    updateScrollbar();
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(function () {
+      /* Find item closest to left edge */
+      var best = 0, minDist = Infinity;
+      items.forEach(function (item, i) {
+        var dist = Math.abs(item.offsetLeft - track.scrollLeft);
+        if (dist < minDist) { minDist = dist; best = i; }
+      });
+      if (best !== idx) { idx = best; updateUI(); }
+    }, 80);
+  }, { passive: true });
+
+  /* ── Keyboard ── */
+  sec.setAttribute('tabindex', '-1');
+  sec.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowLeft')  goTo(idx - 1);
+    if (e.key === 'ArrowRight') goTo(idx + 1);
+  });
+
+  /* ── Resize: recalculate ── */
+  var resizeTimer;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () { goTo(0); }, 250);
+  });
+
+  /* ── Init ── */
+  goTo(0);
+
+}());
+</script>
+
+{% schema %}
+{
+  "name": "Category Slider",
+  "tag": "section",
+  "class": "cs-section",
+  "disabled_on": { "groups": ["header","footer"] },
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Shop by Category"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "Heading Tag",
+      "options": [
+        {"value":"h1","label":"H1"},
+        {"value":"h2","label":"H2"},
+        {"value":"h3","label":"H3"}
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Heading Size",
+      "min": 16, "max": 56, "step": 2, "default": 30, "unit": "px"
+    },
+    {
+      "type": "select",
+      "id": "heading_weight",
+      "label": "Heading Weight",
+      "options": [
+        {"value":"300","label":"Light"},
+        {"value":"400","label":"Regular"},
+        {"value":"500","label":"Medium"},
+        {"value":"600","label":"Semibold"},
+        {"value":"700","label":"Bold"}
+      ],
+      "default": "400"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading Color",
+      "default": "#111111"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_toplink",
+      "label": "Show Top-Right Label / Link",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "toplink_text",
+      "label": "Label Text",
+      "default": "SELECT ITEM"
+    },
+    {
+      "type": "url",
+      "id": "toplink_url",
+      "label": "Link URL",
+      "info": "Leave blank for non-clickable label."
+    },
+    {
+      "type": "header",
+      "content": "Cards Per Row"
+    },
+    {
+      "type": "select",
+      "id": "cards_desktop",
+      "label": "Desktop (≥1025px)",
+      "options": [
+        {"value":"2","label":"2 cards"},
+        {"value":"3","label":"3 cards"},
+        {"value":"4","label":"4 cards"},
+        {"value":"5","label":"5 cards"},
+        {"value":"6","label":"6 cards"}
+      ],
+      "default": "3"
+    },
+    {
+      "type": "select",
+      "id": "cards_tablet",
+      "label": "Tablet (750–1024px)",
+      "options": [
+        {"value":"1","label":"1 card"},
+        {"value":"2","label":"2 cards"},
+        {"value":"3","label":"3 cards"},
+        {"value":"4","label":"4 cards"}
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "cards_mobile",
+      "label": "Mobile (≤749px)",
+      "options": [
+        {"value":"1","label":"1 card"},
+        {"value":"2","label":"2 cards"},
+        {"value":"3","label":"3 cards"}
+      ],
+      "default": "1"
+    },
+    {
+      "type": "header",
+      "content": "Spacing & Background"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Gap Between Cards",
+      "min": 4, "max": 48, "step": 2, "default": 16, "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "pad_x",
+      "label": "Side Padding",
+      "min": 0, "max": 120, "step": 4, "default": 40, "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "pad_top",
+      "label": "Padding Top",
+      "min": 0, "max": 120, "step": 4, "default": 48, "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "pad_bottom",
+      "label": "Padding Bottom",
+      "min": 0, "max": 120, "step": 4, "default": 48, "unit": "px"
+    },
+    {
+      "type": "color",
+      "id": "section_bg",
+      "label": "Background Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Image"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Aspect Ratio",
+      "options": [
+        {"value":"1/1",  "label":"Square 1:1"},
+        {"value":"3/4",  "label":"Portrait 3:4"},
+        {"value":"4/3",  "label":"Landscape 4:3"},
+        {"value":"16/9", "label":"Wide 16:9"},
+        {"value":"2/3",  "label":"Tall 2:3"}
+      ],
+      "default": "3/4"
+    },
+    {
+      "type": "range",
+      "id": "image_radius",
+      "label": "Corner Radius",
+      "min": 0, "max": 40, "step": 2, "default": 0, "unit": "px"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_overlay",
+      "label": "Image Overlay",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay Color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay Opacity",
+      "min": 0, "max": 80, "step": 5, "default": 20, "unit": "%"
+    },
+    {
+      "type": "header",
+      "content": "Label"
+    },
+    {
+      "type": "select",
+      "id": "label_pos",
+      "label": "Label Position",
+      "options": [
+        {"value":"below","label":"Below image"},
+        {"value":"over", "label":"Over image"}
+      ],
+      "default": "below"
+    },
+    {
+      "type": "range",
+      "id": "label_size",
+      "label": "Font Size",
+      "min": 10, "max": 24, "step": 1, "default": 13, "unit": "px"
+    },
+    {
+      "type": "select",
+      "id": "label_weight",
+      "label": "Font Weight",
+      "options": [
+        {"value":"300","label":"Light"},
+        {"value":"400","label":"Regular"},
+        {"value":"500","label":"Medium"},
+        {"value":"600","label":"Semibold"}
+      ],
+      "default": "400"
+    },
+    {
+      "type": "select",
+      "id": "label_case",
+      "label": "Text Case",
+      "options": [
+        {"value":"none",       "label":"Default"},
+        {"value":"uppercase",  "label":"Uppercase"},
+        {"value":"capitalize", "label":"Capitalize"}
+      ],
+      "default": "none"
+    },
+    {
+      "type": "range",
+      "id": "label_spacing",
+      "label": "Letter Spacing (×0.01em)",
+      "min": 0, "max": 20, "step": 1, "default": 0
+    },
+    {
+      "type": "range",
+      "id": "label_gap",
+      "label": "Label Gap",
+      "min": 4, "max": 32, "step": 2, "default": 10, "unit": "px"
+    },
+    {
+      "type": "color",
+      "id": "label_color",
+      "label": "Label Color",
+      "default": "#111111"
+    },
+    {
+      "type": "header",
+      "content": "Desktop Navigation"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_arrows",
+      "label": "Show Arrows",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dots",
+      "label": "Show Dots",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_scrollbar",
+      "label": "Show Scrollbar",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "scrollbar_height",
+      "label": "Scrollbar Height",
+      "min": 1, "max": 8, "step": 1, "default": 3, "unit": "px"
+    },
+    {
+      "type": "color",
+      "id": "scrollbar_color",
+      "label": "Scrollbar Thumb Color",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "scrollbar_bg",
+      "label": "Scrollbar Track Color",
+      "default": "#e0e0e0"
+    },
+    {
+      "type": "header",
+      "content": "Mobile Navigation"
+    },
+    {
+      "type": "select",
+      "id": "mobile_nav",
+      "label": "Mobile Navigation Style",
+      "info": "Choose what navigation to show on mobile screens.",
+      "options": [
+        {"value":"arrows",    "label":"Arrows only"},
+        {"value":"dots",      "label":"Dots only"},
+        {"value":"scrollbar", "label":"Scrollbar only"},
+        {"value":"all",       "label":"Arrows + Dots + Scrollbar"},
+        {"value":"none",      "label":"None (swipe only)"}
+      ],
+      "default": "scrollbar"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "category",
+      "name": "Category",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection",
+          "info": "Auto-pulls image, title and URL."
+        },
+        {
+          "type": "header",
+          "content": "Manual Overrides"
+        },
+        {
+          "type": "image_picker",
+          "id": "custom_image",
+          "label": "Custom Image",
+          "info": "Replaces the collection image."
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Custom Label",
+          "info": "Replaces the collection title."
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Custom Link",
+          "info": "Replaces the collection URL."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Category Slider",
+      "blocks": [
+        {"type":"category"},
+        {"type":"category"},
+        {"type":"category"},
+        {"type":"category"}
+      ]
+    }
+  ],
+  "max_blocks": 20
+}
+{% endschema %}

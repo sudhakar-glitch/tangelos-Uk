@@ -1,0 +1,128 @@
+
+{% if product.title contains 'Muslin'%}
+{% comment %} Place this right below your size radio buttons {% endcomment %}
+{% comment %} <p id="size-qty-display" style="display:none; text-align: center; margin: 0px !important ;padding: 0 !important; font-size: 0.9em; color: #555;"></p> {% endcomment %}
+{% endif %}
+
+
+
+{% comment %} Embed variant inventory as JSON for JS to read {% endcomment %}
+<script>
+  window.productVariants = [
+    {% for variant in product.variants %}
+      {
+        "id": {{ variant.id }},
+        "title": {{ variant.title | json }},
+        "option1": {{ variant.option1 | json }},
+        "option2": {{ variant.option2 | json }},
+        "option3": {{ variant.option3 | json }},
+        "inventory_quantity": {{ variant.inventory_quantity }}
+      }{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  ];
+
+
+  (function () {
+  const SIZE_RADIO_SELECTOR = 'input[type="radio"]';
+  const qtyDisplay = document.getElementById('upsell-stock-text');
+
+  function updateQtyDisplay(selectedSize) {
+    if (!window.productVariants || !qtyDisplay) return;
+
+    const matched = window.productVariants.find(v => v.option1 === selectedSize);
+
+    if (matched) {
+      const qty = matched.inventory_quantity;
+
+      if (qty <= 0) {
+        qtyDisplay.textContent = 'Out of stock';
+        qtyDisplay.style.color = '#cc0000';
+      } else {
+        qtyDisplay.textContent ='Only '+ qty + ' left in '+" " +selectedSize;
+        qtyDisplay.style.color = qty <= 5 ? '#e07000' : '#000'; // orange if low, green if healthy
+      }
+
+      qtyDisplay.style.display = 'block';
+    }
+  }
+
+  function init() {
+    const sizeRadios = document.querySelectorAll(SIZE_RADIO_SELECTOR);
+
+    // Set on page load if a size is already selected
+    const initialRadio = document.querySelector(SIZE_RADIO_SELECTOR + ':checked');
+    if (initialRadio) updateQtyDisplay(initialRadio.value);
+
+    // Update on change
+    sizeRadios.forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        if (this.checked) updateQtyDisplay(this.value);
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+
+
+
+{%- doc -%}
+  This block is used to display the add to cart button.
+  Intended for product-form.liquid block.
+
+  @param {string} can_add_to_cart - Whether the product can be added to the cart
+  @param {string} add_to_cart_text - The text of the add to cart button
+{%- enddoc -%}
+
+{% liquid
+  assign class = 'add-to-cart-button ' | append: block.settings.style_class
+  assign id = 'BuyButtons-ProductSubmitButton-' | append: block.id
+%}
+
+<span
+  {{ block.shopify_attributes }}
+  style="--add-to-cart-font-case: {{ settings.button_text_case }};"
+>
+  {% render 'add-to-cart-button',
+    id: id,
+    class: class,
+    can_add_to_cart: can_add_to_cart,
+    product: closest.product,
+    add_to_cart_text: add_to_cart_text,
+    data_testid: 'standalone-add-to-cart'
+  %}
+</span>
+
+
+{% schema %}
+{
+  "name": "t:names.add_to_cart",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "style_class",
+      "label": "t:settings.style",
+      "options": [
+        {
+          "value": "button",
+          "label": "t:options.primary"
+        },
+        {
+          "value": "button-secondary",
+          "label": "t:options.secondary"
+        }
+      ],
+      "default": "button-secondary"
+    }
+  ]
+}
+{% endschema %}
+
+
+

@@ -1,0 +1,278 @@
+<div class="section-background color-{{ section.settings.color_scheme }}"></div>
+<div
+  class="section section--{{ section.settings.section_width }} color-{{ section.settings.color_scheme }}"
+  {{ section.shopify_attributes }}
+>
+  <div
+    class="utilities utilities--blocks-{{ section.blocks.size }} spacing-style"
+    style="
+      {% render 'spacing-style', settings: section.settings %}
+      --border-width: {{ section.settings.divider_thickness }}px;
+      --gap: {{ section.settings.gap }}px;
+      --justify-content: {{ section.settings.justify_content }};
+      --vertical-align: {{ section.settings.vertical_align }};
+      --overall-align: {{ section.settings.overall_align }};
+      --logo-width: {{ section.settings.logo_width }}px;
+      --logo-gap: {{ section.settings.logo_gap }}px;
+    "
+    data-testid="footer-utilities"
+  >
+
+    <div class="utilities__blocks-wrap">
+      {% content_for 'blocks' %}
+    </div>
+
+    {%- if section.settings.logo != blank -%}
+      <div class="utilities__logo-wrap">
+        {{
+          section.settings.logo
+          | image_url: width: section.settings.logo_width
+          | image_tag:
+            width: section.settings.logo_width,
+            class: 'utilities__logo',
+            loading: 'lazy',
+            alt: section.settings.logo.alt | default: shop.name
+        }}
+      </div>
+    {%- endif -%}
+
+  </div>
+</div>
+
+{% stylesheet %}
+  .utilities {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: var(--vertical-align, center);
+    justify-content: var(--justify-content, space-between);
+    gap: var(--logo-gap, 10px);
+    border-top: var(--border-width) solid var(--color-border);
+    color: var(--color-foreground-muted);
+    text-wrap: nowrap;
+  }
+
+  /* Mobile: stack vertically, align as chosen */
+  @media screen and (max-width: 749px) {
+    .utilities {
+      flex-direction: column;
+      align-items: var(--overall-align, center);
+      gap: var(--gap, 16px);
+    }
+  }
+
+  .utilities a {
+    color: var(--color-foreground-muted);
+  }
+
+  /* Logo */
+  .utilities__logo-wrap {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .utilities__logo {
+    display: block;
+    width: var(--logo-width, 80px);
+    height: auto;
+    max-width: 100%;
+    object-fit: contain;
+  }
+
+  /* Blocks wrap — copyright text sits here */
+  .utilities__blocks-wrap {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--gap, 16px);
+    flex: 1;
+    justify-content: var(--justify-content, flex-start);
+  }
+
+  @media screen and (max-width: 749px) {
+    .utilities__blocks-wrap {
+      justify-content: var(--overall-align, center);
+      width: 100%;
+    }
+
+    .utilities__logo-wrap {
+      justify-content: var(--overall-align, center);
+      width: 100%;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:names.policies_and_links",
+  "tag": "div",
+  "class": "footer-utilities",
+  "max_blocks": 3,
+  "enabled_on": {
+    "groups": ["footer"]
+  },
+  "settings": [
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:settings.width",
+      "options": [
+        { "value": "page-width", "label": "t:options.page" },
+        { "value": "full-width", "label": "t:options.full" }
+      ],
+      "default": "page-width"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "t:settings.gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "divider_thickness",
+      "label": "t:settings.divider_thickness",
+      "min": 0,
+      "max": 5,
+      "step": 0.5,
+      "unit": "px",
+      "default": 1
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Alignment"
+    },
+    {
+      "type": "select",
+      "id": "justify_content",
+      "label": "Justify Content (Desktop)",
+      "info": "Controls horizontal spacing between image and text",
+      "options": [
+        { "value": "flex-start",    "label": "Start (Left)" },
+        { "value": "center",        "label": "Center" },
+        { "value": "flex-end",      "label": "End (Right)" },
+        { "value": "space-between", "label": "Space Between" },
+        { "value": "space-around",  "label": "Space Around" },
+        { "value": "space-evenly",  "label": "Space Evenly" }
+      ],
+      "default": "flex-start"
+    },
+    {
+      "type": "select",
+      "id": "overall_align",
+      "label": "Mobile Alignment",
+      "options": [
+        { "value": "flex-start", "label": "Left" },
+        { "value": "center",     "label": "Center" },
+        { "value": "flex-end",   "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "select",
+      "id": "vertical_align",
+      "label": "Vertical Alignment",
+      "options": [
+        { "value": "flex-start", "label": "Top" },
+        { "value": "center",     "label": "Middle" },
+        { "value": "flex-end",   "label": "Bottom" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "header",
+      "content": "Logo / Image (beside Copyright)"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Image"
+    },
+    {
+      "type": "range",
+      "id": "logo_width",
+      "label": "Image Width",
+      "min": 20,
+      "max": 300,
+      "step": 5,
+      "unit": "px",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "logo_gap",
+      "label": "Gap Between Image and Text",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "default": 10
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 20
+    }
+  ],
+  "blocks": [
+    {
+      "type": "footer-copyright"
+    },
+    {
+      "type": "footer-policy-list"
+    },
+    {
+      "type": "social-links"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.policies_and_links",
+      "category": "t:categories.footer",
+      "blocks": {
+        "copyright": {
+          "type": "footer-copyright"
+        },
+        "policy_list": {
+          "type": "footer-policy-list"
+        },
+        "social_icons": {
+          "type": "social-links"
+        }
+      },
+      "block_order": ["copyright", "policy_list", "social_icons"]
+    }
+  ]
+}
+{% endschema %}

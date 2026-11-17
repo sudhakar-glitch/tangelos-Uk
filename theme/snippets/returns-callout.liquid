@@ -1,0 +1,97 @@
+{% comment %} {{ 'returns-callout.css' | asset_url | stylesheet_tag }}
+
+<div class="returns-callout" id="ReturnsCallout">
+
+  <button
+    type="button"
+    class="returns-callout__trigger"
+    aria-expanded="false"
+    aria-controls="ReturnsDrawer">
+    <span class="returns-callout__trigger-left">
+      {%- render 'returns-callout-icon', icon: 'refresh' -%}
+      <span>365-Days Free Returns <span class="ships" style="display: block; font-size: 10px;margin-top: 4px;">Ships within 24 hours</span></span>
+      {% comment %} <p>Ships within 2 days</p> {% endcomment %}
+    </span>
+    <span class="returns-callout__trigger-right">
+      Details
+      <svg class="returns-callout__chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
+  </button>
+
+  <div
+    id="ReturnsDrawer"
+    class="returns-callout__drawer"
+    role="dialog"
+    aria-modal="false"
+    aria-hidden="true"
+    hidden>
+    <div class="returns-callout__drawer-header">
+      <div>
+        <p class="returns-callout__drawer-title">Returns, made simple</p>
+        <p class="returns-callout__drawer-subtitle">Try it at home for a full year. Change your mind anytime.</p>
+      </div>
+      <button type="button" class="returns-callout__close" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 2L14 14M14 2L2 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="returns-callout__list">
+      <div class="returns-callout__item">
+        <div class="returns-callout__item-icon">{%- render 'returns-callout-icon', icon: 'truck' -%}</div>
+        <div>
+          <p class="returns-callout__item-question">Can I return it if I change my mind?</p>
+          <p class="returns-callout__item-answer">Yes — 365 days from delivery.</p>
+        </div>
+      </div>
+      <div class="returns-callout__item">
+        <div class="returns-callout__item-icon">{%- render 'returns-callout-icon', icon: 'box' -%}</div>
+        <div>
+          <p class="returns-callout__item-question">Is shipping free both ways?</p>
+          <p class="returns-callout__item-answer">Yes. Free delivery, free returns — drop it at your nearest collection point.</p>
+        </div>
+      </div>
+      <div class="returns-callout__item">
+        <div class="returns-callout__item-icon">{%- render 'returns-callout-icon', icon: 'refresh' -%}</div>
+        <div>
+          <p class="returns-callout__item-question">How fast is my refund?</p>
+          <p class="returns-callout__item-answer">In full, to your original payment method, within 14 days of your return being scanned.</p>
+        </div>
+      </div>
+      
+
+       <div class="returns-callout__item">
+        <div class="returns-callout__item-icon">{%- render 'returns-callout-icon', icon: 'truck' -%}</div>
+        <div>
+          <p class="returns-callout__item-question">When will my order be dispatched?</p>
+          <p class="returns-callout__item-answer">Orders are dispatched from India within 24 hours. Delivery times vary by destination.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <button type="button" class="returns-callout__cta">
+      Got it — back to shopping
+    </button>
+
+    <a href="/pages/return-policy" class="returns-callout__policy-link">
+      Full returns policy
+    </a>
+  </div>
+
+  <div class="returns-callout__backdrop" tabindex="-1"></div>
+</div>
+
+<script src="{{ 'returns-callout.js' | asset_url }}" defer="defer"></script>
+<style>
+   .returns-callout__trigger-left > span {
+    font-size: 16px;
+} 
+.product-form-buttons button {
+    width: 100%;
+    padding-block: 5px !important ;
+}
+</style> {% endcomment %}

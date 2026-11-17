@@ -1,0 +1,385 @@
+{% comment %} sections/login.liquid {% endcomment %}
+
+<div class="login-page-bg">
+  <div class="login-card">
+
+    <div class="login-logo">
+      {%- assign brand_logo = settings.logo | default: shop.brand.logo -%}
+      {%- if brand_logo -%}
+        <a href="{{ routes.root_url }}" aria-label="{{ shop.name | escape }}">
+          {{ brand_logo | image_url: width: 400 | image_tag:
+             loading: 'eager',
+             widths: '120, 200, 300, 400',
+             sizes: '160px',
+             alt: shop.name,
+             class: 'login-logo__image' }}
+        </a>
+      {%- else -%}
+        {{ shop.name }}
+      {%- endif -%}
+    </div>
+
+    {%- comment -%} ===== RECOVER PASSWORD PANEL ===== {%- endcomment -%}
+    <div id="recover-panel" style="display:none;">
+      <div class="login-form-title">Reset your password</div>
+      <div class="login-form-subtitle">We'll send you an email to reset your password</div>
+
+      {%- form 'recover_customer_password' -%}
+        {%- if form.errors -%}
+          <div class="login-errors" data-recover-error>
+            {{ form.errors | default_errors }}
+          </div>
+        {%- endif -%}
+
+        {%- if form.posted_successfully? -%}
+          <div class="login-success" data-recover-success>
+            We've sent you an email with a link to update your password.
+          </div>
+        {%- endif -%}
+
+        <div class="input-group">
+          <input
+            type="email"
+            name="email"
+            id="RecoverEmail"
+            placeholder="Email"
+            autocomplete="email"
+            autocorrect="off"
+            autocapitalize="off"
+            required
+          />
+        </div>
+
+        <button type="submit" class="continue-btn">Send reset link</button>
+      {%- endform -%}
+
+      <div class="create-account">
+        <a href="#login">Back to sign in</a>
+      </div>
+    </div>
+
+    {%- comment -%} ===== LOGIN PANEL ===== {%- endcomment -%}
+    <div id="login-panel">
+      <div class="login-form-title">Sign in</div>
+      <div class="login-form-subtitle">Sign in or create an account</div>
+
+      <button class="shop-btn" type="button">
+        Continue with <span class="shop-logo">shop</span>
+      </button>
+
+      <div class="login-divider"><hr><span>or</span><hr></div>
+
+      {%- form 'customer_login', novalidate: 'novalidate' -%}
+
+        {%- if form.errors -%}
+          <div class="login-errors">
+            {{ form.errors | default_errors }}
+          </div>
+        {%- endif -%}
+
+        <div class="input-group">
+          <input
+            type="email"
+            name="customer[email]"
+            id="CustomerEmail"
+            placeholder="Email"
+            autocomplete="email"
+            autocorrect="off"
+            autocapitalize="off"
+            required
+          />
+        </div>
+
+        <div class="input-group password-group">
+          <input
+            type="password"
+            name="customer[password]"
+            id="CustomerPassword"
+            placeholder="Password"
+            autocomplete="current-password"
+            required
+          />
+          <button type="button" class="password-toggle" onclick="togglePassword()" aria-label="Show password">
+            <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#aaa" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="forgot-link">
+          <a href="#recover">Forgot your password?</a>
+        </div>
+
+        <button type="submit" class="continue-btn">Sign in</button>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="news" name="customer[accepts_marketing]" />
+          <label for="news">Email me with news and offers</label>
+        </div>
+
+      {%- endform -%}
+
+      <div class="login-terms">
+        By continuing, you agree to our <a href="{{ shop.url }}/policies/terms-of-service">Terms of service</a>
+      </div>
+
+      <div class="create-account">
+        Don't have an account? <a href="{{ routes.account_register_url }}">Create one</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function togglePassword() {
+    var input = document.getElementById('CustomerPassword');
+    var icon = document.getElementById('eye-icon');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+    } else {
+      input.type = 'password';
+      icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    }
+  }
+
+  function showLoginPanel() {
+    var login = document.getElementById('login-panel');
+    var recover = document.getElementById('recover-panel');
+    if (!login || !recover) return;
+
+    // Keep the recover panel open after it's submitted so the message is visible
+    var recoverSubmitted = document.querySelector('[data-recover-error], [data-recover-success]');
+    var showRecover = window.location.hash === '#recover' || recoverSubmitted;
+
+    recover.style.display = showRecover ? 'block' : 'none';
+    login.style.display = showRecover ? 'none' : 'block';
+
+    if (showRecover && !recoverSubmitted) {
+      var email = document.getElementById('RecoverEmail');
+      if (email) email.focus();
+    }
+  }
+
+  window.addEventListener('hashchange', showLoginPanel);
+  showLoginPanel();
+</script>
+
+{% stylesheet %}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+.login-page-bg {
+  min-height: 100vh;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+.login-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2.5rem 2.25rem 2rem;
+  width: 100%;
+  max-width: 420px;
+}
+.login-logo {
+  text-align: center;
+  margin-bottom: 1.75rem;
+  font-size: 2.2rem;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  letter-spacing: -1px;
+  color: #111;
+  text-transform: lowercase;
+}
+.login-logo__image {
+  display: block;
+  width: 160px;
+  height: auto;
+  margin: 0 auto;
+}
+.login-form-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 0.25rem;
+}
+.login-form-subtitle {
+  font-size: 0.875rem;
+  color: #888;
+  margin-bottom: 1.5rem;
+}
+.shop-btn {
+  width: 100%;
+  padding: 0.85rem;
+  background: #6b3fd4;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 1.25rem;
+  transition: background 0.15s;
+}
+.shop-btn:hover {
+  background: #5a30bb;
+}
+.shop-logo {
+  background: #fff;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #6b3fd4;
+  letter-spacing: -0.5px;
+}
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.25rem;
+}
+.login-divider hr {
+  flex: 1;
+  border: none;
+  border-top: 1px solid #e5e5e5;
+}
+.login-divider span {
+  font-size: 0.8rem;
+  color: #aaa;
+}
+.input-group {
+  margin-bottom: 0.9rem;
+  position: relative;
+}
+.input-group input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid #cce0ff;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #222;
+  outline: none;
+  background: #fff;
+  transition: border-color 0.15s;
+}
+.input-group input:focus {
+  border-color: #2563eb;
+}
+.input-group input::placeholder {
+  color: #aaa;
+}
+.password-group input {
+  padding-right: 2.75rem;
+}
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+.forgot-link {
+  display: block;
+  text-align: right;
+  margin-top: -0.4rem;
+  margin-bottom: 1rem;
+}
+.forgot-link a {
+  font-size: 0.8rem;
+  color: #555;
+  text-decoration: underline;
+}
+.continue-btn {
+  width: 100%;
+  padding: 0.85rem;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  transition: background 0.15s;
+}
+.continue-btn:hover {
+  background: #1d4ed8;
+}
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+.checkbox-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #2563eb;
+  cursor: pointer;
+}
+.checkbox-row label {
+  font-size: 0.85rem;
+  color: #555;
+  cursor: pointer;
+}
+.login-errors {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+.login-success {
+  background: #dcfce7;
+  color: #166534;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+.login-terms {
+  text-align: center;
+  font-size: 0.78rem;
+  color: #999;
+}
+.login-terms a {
+  color: #999;
+  text-decoration: underline;
+}
+.create-account {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #555;
+  margin-top: 1rem;
+}
+.create-account a {
+  color: #2563eb;
+  font-weight: 500;
+  text-decoration: none;
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Login",
+  "settings": []
+}
+{% endschema %}

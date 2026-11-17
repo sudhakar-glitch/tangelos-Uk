@@ -1,0 +1,608 @@
+{%- comment -%}
+  ==========================================================================
+  Build The Full Set — bundle upsell
+  Save as: sections/build-full-set.liquid
+  (or snippets/build-full-set.liquid — delete the {% schema %} block and
+   hardcode the settings if you render it with {% render %})
+
+  Keeps your existing DOM contract:
+    #upsell-addon-list > li.upsell-addon-item[data-variants]
+    input.upsell-addon-checkbox[value][data-variant-id][data-price]
+    button.upsell-add-btn[aria-pressed]
+
+  So any JS you already have that reads those hooks still works.
+  ==========================================================================
+{%- endcomment -%}
+
+{%- liquid
+  assign flavors = product.metafields.custom.checkbox_products_muslin_duvet_cover
+  assign items = flavors.value
+  assign tiers = section.settings.discount_tiers | remove: ' ' | split: ','
+
+  assign cart_ids = ''
+  for line in cart.items
+    assign cart_ids = cart_ids | append: line.variant_id | append: ','
+  endfor
+-%}
+
+{%- if items.size > 0 -%}
+
+<div class="ufs" data-ufs
+  data-tiers="{{ section.settings.discount_tiers | remove: ' ' }}"
+  data-currency="{{ cart.currency.iso_code }}"
+  data-locale="{{ request.locale.iso_code }}"
+  data-bundle-id="{{ section.settings.bundle_id | default: product.handle }}"
+  id="ufs-{{ section.id }}">
+
+  <div class="ufs__panel">
+    {%- if section.settings.flag_text != blank -%}
+      <span class="ufs__flag">{{ section.settings.flag_text }}</span>
+    {%- endif -%}
+
+    <h2 class="ufs__title">{{ section.settings.heading }}</h2>
+
+    <ul id="upsell-addon-list" class="ufs__grid">
+      {%- for item_product in items -%}
+        {%- liquid
+          assign default_variant = item_product.selected_or_first_available_variant
+          assign default_image = item_product.featured_image | image_url: width: 500
+          assign in_cart = false
+          assign needle = default_variant.id | append: ','
+          if cart_ids contains needle
+            assign in_cart = true
+          endif
+        -%}
+
+        {%- capture variants_json -%}
+[{%- for variant in item_product.variants -%}
+{%- assign v_img = variant.featured_image | default: item_product.featured_image -%}
+{"id":{{ variant.id }},"price":{{ variant.price }},"compare_at_price":{{ variant.compare_at_price | default: variant.price }},"size":{{ variant.title | json }},"option1":{{ variant.option1 | json }},"image":{{ v_img | image_url: width: 500 | json }},"available":{{ variant.available }},"inventory":{{ variant.inventory_quantity | default: 0 }}}{%- unless forloop.last -%},{%- endunless -%}
+{%- endfor -%}]
+        {%- endcapture -%}
+
+        <li
+          class="upsell-addon-item"
+          data-product-id="{{ item_product.id }}"
+          data-product-title="{{ item_product.title | escape }}"
+          data-product-url="{{ item_product.url }}"
+          data-in-cart="{{ in_cart }}"
+          data-selected="{% if default_variant.available %}true{% else %}false{% endif %}"
+          data-variants='{{ variants_json | strip }}'
+        >
+          <div class="upsell-addon-row">
+
+            <!-- Thumbnail: click toggles selection -->
+            <div class="upsell-addon-thumb-wrap">
+              <img
+                class="upsell-addon-image"
+                src="{{ default_image }}"
+                alt="{{ item_product.title | escape }}"
+                width="300"
+                height="300"
+                loading="lazy"
+              >
+              <button type="button" class="upsell-thumb-toggle" aria-label="Toggle {{ item_product.title | escape }}">
+                <span class="upsell-thumb-tick" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="4 12.5 9.5 18 20 6.5"/>
+                  </svg>
+                </span>
+              </button>
+            </div>
+
+            <!-- Info block -->
+            <div class="upsell-addon-info">
+              <span class="upsell-addon-heading">{{ item_product.title }}</span>
+              <span class="upsell-addon-subtitle"></span>
+
+              <select class="upsell-addon-size" aria-label="Choose a size for {{ item_product.title | escape }}" hidden></select>
+
+              {%- if section.settings.show_prices -%}
+                <div class="upsell-addon-price">
+                  <span class="upsell-addon-price-now"></span>
+                  <span class="upsell-addon-price-was"></span>
+                </div>
+              {%- endif -%}
+
+              <div class="upsell-addon-action">
+                <input
+                  class="upsell-addon-checkbox"
+                  type="checkbox"
+                  name="product-id"
+                  data-price=""
+                  value=""
+                  data-variant-id=""
+                  style="display:none;"
+                >
+                <span class="upsell-addon-incart">{{ section.settings.in_cart_label }}</span>
+                <button type="button" class="upsell-add-btn" aria-pressed="false">
+                  <span class="upsell-add-btn-label">{{ section.settings.add_label }}</span>
+                  <span class="upsell-add-btn-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="9 12 11 14 15 10"/>
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </li>
+      {%- endfor -%}
+    </ul>
+
+    <!-- Savings meter -->
+    <div class="ufs__meter">
+      <div class="ufs__meter-head">
+        <span>{{ section.settings.total_saved_label }} <strong data-ufs-pct>0%</strong></span>
+        <span class="ufs__meter-max" data-ufs-max hidden>{{ section.settings.max_label }}</span>
+      </div>
+
+      <div class="ufs__track">
+        {%- for t in tiers -%}
+          <span class="ufs__seg" data-ufs-seg data-filled="false"></span>
+        {%- endfor -%}
+        <span class="ufs__pill" data-ufs-pill hidden>0%</span>
+      </div>
+
+      <div class="ufs__labels">
+        {%- for t in tiers -%}
+          {%- liquid
+            assign prev = 0
+            if forloop.index0 > 0
+              assign p = forloop.index0 | minus: 1
+              assign prev = tiers[p] | times: 1
+            endif
+            assign step = t | times: 1 | minus: prev
+          -%}
+          <span data-ufs-label data-filled="false">{{ section.settings.step_label }} {{ step }}%</span>
+        {%- endfor -%}
+      </div>
+    </div>
+
+    <!-- Subtotal -->
+    <div class="ufs__footer">
+      <span class="ufs__subtotal-label">{{ section.settings.subtotal_label }}</span>
+      <span class="ufs__subtotal-value">
+        <s class="ufs__was" data-ufs-was hidden></s>
+        <span class="ufs__now" data-ufs-now></span>
+      </span>
+    </div>
+
+    {%- if section.settings.show_button -%}
+      <button type="button" class="ufs__cta" data-ufs-add>{{ section.settings.button_label }}</button>
+    {%- endif -%}
+
+    <p class="ufs__error" role="alert" data-ufs-error></p>
+  </div>
+</div>
+
+<style>
+  #ufs-{{ section.id }} {
+    --ufs-ink: {{ section.settings.color_heading }};
+    --ufs-body: {{ section.settings.color_text }};
+    --ufs-accent: {{ section.settings.color_accent }};
+    --ufs-track: {{ section.settings.color_track }};
+    --ufs-card: {{ section.settings.color_card }};
+    --ufs-line: rgba(0,0,0,.08);
+  }
+
+  .ufs { padding: {{ section.settings.padding_top }}px 16px {{ section.settings.padding_bottom }}px; }
+  .ufs *, .ufs *::before, .ufs *::after { box-sizing: border-box; }
+
+  .ufs__panel {
+    position: relative;
+    max-width: {{ section.settings.max_width }}px;
+    margin-inline: auto;
+    background: var(--ufs-card);
+    border: 1px solid var(--ufs-line);
+    border-radius: 14px;
+    padding: 28px 22px 22px;
+  }
+  .ufs__flag {
+    position: absolute; top: 0; right: 14px; transform: translateY(-50%);
+    background: {{ section.settings.color_flag_bg }};
+    color: {{ section.settings.color_flag_text }};
+    font-size: 13px; font-weight: 600; padding: 7px 13px; border-radius: 8px;
+  }
+  .ufs__title {
+    margin: 0 0 20px; font-size: clamp(19px, 2.4vw, 23px);
+    font-weight: 500; color: var(--ufs-ink);
+  }
+
+  /* grid */
+  #upsell-addon-list.ufs__grid {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; gap: 16px;
+    grid-template-columns: repeat({{ section.settings.columns }}, minmax(0, 1fr));
+  }
+  @media (max-width: 600px) {
+    #upsell-addon-list.ufs__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  .upsell-addon-item { margin: 0; }
+  .upsell-addon-row { display: flex; flex-direction: column; height: 100%; }
+
+  .upsell-addon-thumb-wrap {
+    position: relative; width: 100%; aspect-ratio: 1/1;
+    border-radius: 10px; overflow: hidden; background: #f1f1ef;
+  }
+  .upsell-addon-image {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    transition: opacity .2s ease, filter .2s ease;
+  }
+  .upsell-thumb-toggle {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    background: none; border: 0; padding: 0; cursor: pointer;
+  }
+  .upsell-thumb-toggle:focus-visible { outline: 2px solid var(--ufs-accent); outline-offset: -3px; }
+
+  .upsell-thumb-tick {
+    position: absolute; top: 8px; right: 8px;
+    width: 26px; height: 26px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: rgba(255,255,255,.92); border: 1px solid rgba(0,0,0,.16);
+    color: #fff; transition: background .18s ease, border-color .18s ease;
+  }
+  .upsell-thumb-tick svg { width: 13px; height: 13px; opacity: 0; transition: opacity .18s ease; }
+
+  .upsell-addon-item[data-selected="true"] .upsell-thumb-tick {
+    background: var(--ufs-accent); border-color: var(--ufs-accent);
+  }
+  .upsell-addon-item[data-selected="true"] .upsell-thumb-tick svg { opacity: 1; }
+  .upsell-addon-item[data-selected="false"] .upsell-addon-image { opacity: .5; filter: grayscale(.25); }
+  .upsell-addon-item[data-available="false"] { opacity: .45; pointer-events: none; }
+
+  .upsell-addon-info { display: flex; flex-direction: column; gap: 2px; padding-top: 12px; }
+  .upsell-addon-heading {
+    font-size: 14px; font-weight: 600; line-height: 1.35; color: var(--ufs-ink);
+  }
+  .upsell-addon-subtitle { font-size: 13px; color: var(--ufs-body); opacity: .65; }
+  .upsell-addon-size {
+    margin-top: 6px; width: 100%; font-size: 13px; padding: 6px 8px;
+    border: 1px solid var(--ufs-line); border-radius: 6px; background: #fff; color: var(--ufs-body);
+  }
+  .upsell-addon-size[hidden] { display: none; }
+
+  .upsell-addon-price { display: flex; gap: 6px; align-items: baseline; margin-top: 6px; font-size: 13px; color: var(--ufs-body); }
+  .upsell-addon-price-was { text-decoration: line-through; opacity: .5; }
+  .upsell-addon-price-was:empty { display: none; }
+
+  .upsell-addon-action { margin-top: 8px; }
+  .upsell-addon-incart {
+    display: none; font-size: 12px; font-weight: 500; padding: 4px 9px; border-radius: 5px;
+    background: {{ section.settings.color_incart_bg }}; color: {{ section.settings.color_incart_text }};
+  }
+  .upsell-add-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; font-weight: 600; padding: 6px 11px;
+    border: 1px solid var(--ufs-accent); border-radius: 6px;
+    background: transparent; color: var(--ufs-accent); cursor: pointer;
+    transition: background .18s ease, color .18s ease;
+  }
+  .upsell-add-btn[aria-pressed="true"] { background: var(--ufs-accent); color: #fff; }
+  .upsell-add-btn-icon { display: inline-flex; }
+  .upsell-add-btn[aria-pressed="false"] .upsell-add-btn-icon { display: none; }
+
+  /* when the line is already in the cart, show the badge instead of the button */
+  .upsell-addon-item[data-in-cart="true"] .upsell-addon-incart { display: inline-block; }
+  .upsell-addon-item[data-in-cart="true"] .upsell-add-btn { display: none; }
+
+  /* meter */
+  .ufs__meter { margin-top: 26px; }
+  .ufs__meter-head {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    font-size: 14px; color: var(--ufs-ink); margin-bottom: 10px;
+  }
+  .ufs__meter-max { font-weight: 700; }
+  .ufs__track {
+    position: relative; display: grid;
+    grid-template-columns: repeat({{ tiers.size }}, 1fr);
+    height: 12px; border-radius: 3px; background: var(--ufs-track); overflow: hidden;
+  }
+  .ufs__seg { border-right: 2px solid var(--ufs-card); }
+  .ufs__seg:last-child { border-right: 0; }
+  .ufs__seg[data-filled="true"] { background: var(--ufs-accent); }
+  .ufs__pill {
+    position: absolute; top: 50%; left: 0; transform: translate(-100%, -50%);
+    background: #1f2d24; color: #fff; font-size: 11px; font-weight: 700;
+    padding: 2px 7px; border-radius: 4px; transition: left .3s ease; white-space: nowrap;
+  }
+  .ufs__labels {
+    display: grid; grid-template-columns: repeat({{ tiers.size }}, 1fr);
+    margin-top: 7px; font-size: 12.5px; color: var(--ufs-body);
+  }
+  .ufs__labels span { opacity: .45; transition: opacity .18s ease; }
+  .ufs__labels span[data-filled="true"] { opacity: 1; }
+
+  /* footer */
+  .ufs__footer {
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline;
+    gap: 10px; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--ufs-line);
+    font-size: 16px; color: var(--ufs-ink);
+  }
+  .ufs__was { opacity: .45; margin-right: 8px; }
+  .ufs__now { font-weight: 700; font-size: 19px; }
+
+  .ufs__cta {
+    width: 100%; margin-top: 16px; padding: 15px 20px; border: 0; border-radius: 8px;
+    background: var(--ufs-accent); color: #fff; font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .ufs__cta:hover { opacity: .88; }
+  .ufs__cta[disabled] { opacity: .4; cursor: not-allowed; }
+  .ufs__error { margin: 10px 0 0; font-size: 13px; color: #9a3412; }
+  .ufs__error:empty { display: none; }
+  .ufs.is-loading { opacity: .6; pointer-events: none; }
+
+  @media (prefers-reduced-motion: reduce) { .ufs * { transition: none !important; } }
+</style>
+
+<script>
+(function () {
+  var root = document.getElementById('ufs-{{ section.id }}');
+  if (!root || root.dataset.ufsInit === 'true') return;
+  root.dataset.ufsInit = 'true';
+
+  var routes = (window.Shopify && window.Shopify.routes && window.Shopify.routes.root) || '/';
+  var tiers = (root.dataset.tiers || '').split(',').map(parseFloat).filter(function (n) { return !isNaN(n); });
+  var money = new Intl.NumberFormat(root.dataset.locale || 'en', {
+    style: 'currency', currency: root.dataset.currency || 'GBP'
+  });
+
+  var items = Array.prototype.slice.call(root.querySelectorAll('.upsell-addon-item'));
+  var segs = root.querySelectorAll('[data-ufs-seg]');
+  var labels = root.querySelectorAll('[data-ufs-label]');
+  var pill = root.querySelector('[data-ufs-pill]');
+  var pctEl = root.querySelector('[data-ufs-pct]');
+  var maxEl = root.querySelector('[data-ufs-max]');
+  var wasEl = root.querySelector('[data-ufs-was]');
+  var nowEl = root.querySelector('[data-ufs-now]');
+  var addAll = root.querySelector('[data-ufs-add]');
+  var errEl = root.querySelector('[data-ufs-error]');
+
+  /* ---------- set up each card from data-variants ---------- */
+  items.forEach(function (li) {
+    var variants = [];
+    try { variants = JSON.parse(li.dataset.variants); } catch (e) { variants = []; }
+    li.__variants = variants;
+
+    var select = li.querySelector('.upsell-addon-size');
+    var inStock = variants.filter(function (v) { return v.available; });
+    if (!inStock.length) {
+      li.dataset.available = 'false';
+      li.dataset.selected = 'false';
+    }
+
+    if (variants.length > 1 && select) {
+      select.hidden = false;
+      select.innerHTML = variants.map(function (v) {
+        return '<option value="' + v.id + '"' + (v.available ? '' : ' disabled') + '>' +
+               v.size + (v.available ? '' : ' — sold out') + '</option>';
+      }).join('');
+      select.addEventListener('change', function () {
+        applyVariant(li, findVariant(li, parseInt(select.value, 10)));
+        syncCart().then(render);
+      });
+    }
+
+    var first = inStock[0] || variants[0];
+    if (select && first) select.value = first.id;
+    applyVariant(li, first);
+
+    li.querySelector('.upsell-thumb-toggle').addEventListener('click', function () { toggle(li); });
+    li.querySelector('.upsell-add-btn').addEventListener('click', function () { toggle(li); });
+  });
+
+  function findVariant(li, id) {
+    return li.__variants.filter(function (v) { return v.id === id; })[0];
+  }
+
+  function applyVariant(li, v) {
+    if (!v) return;
+    li.__current = v;
+
+    var img = li.querySelector('.upsell-addon-image');
+    if (img && v.image) img.src = v.image;
+
+    var sub = li.querySelector('.upsell-addon-subtitle');
+    if (sub) sub.textContent = (v.size === 'Default Title') ? '{{ section.settings.single_label }}' : v.size;
+
+    var now = li.querySelector('.upsell-addon-price-now');
+    var was = li.querySelector('.upsell-addon-price-was');
+    if (now) now.textContent = money.format(v.price / 100);
+    if (was) was.textContent = v.compare_at_price > v.price ? money.format(v.compare_at_price / 100) : '';
+
+    var cb = li.querySelector('.upsell-addon-checkbox');
+    cb.value = v.id;
+    cb.dataset.variantId = v.id;
+    cb.dataset.price = v.price;
+
+    if (!v.available) li.dataset.selected = 'false';
+    li.dataset.available = v.available ? 'true' : 'false';
+    syncButton(li);
+  }
+
+  function toggle(li) {
+    if (li.dataset.available === 'false') return;
+    li.dataset.selected = li.dataset.selected === 'true' ? 'false' : 'true';
+    syncButton(li);
+    render();
+  }
+
+  function syncButton(li) {
+    var on = li.dataset.selected === 'true';
+    var cb = li.querySelector('.upsell-addon-checkbox');
+    var btn = li.querySelector('.upsell-add-btn');
+    cb.checked = on;
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.querySelector('.upsell-add-btn-label').textContent = on
+      ? '{{ section.settings.added_label }}'
+      : '{{ section.settings.add_label }}';
+    cb.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  function selected() {
+    return items.filter(function (li) {
+      return li.dataset.selected === 'true' && li.dataset.available !== 'false' && li.__current;
+    });
+  }
+
+  function discountFor(count) {
+    if (count < 2 || !tiers.length) return 0;
+    return tiers[Math.min(count, tiers.length) - 1] || 0;
+  }
+
+  /* ---------- render meter + subtotal ---------- */
+  function render() {
+    var sel = selected();
+    var count = sel.length;
+    var pct = discountFor(count);
+
+    var gross = sel.reduce(function (s, li) { return s + (li.__current.compare_at_price || li.__current.price); }, 0);
+    var net = sel.reduce(function (s, li) { return s + li.__current.price; }, 0);
+    var total = Math.round(net * (1 - pct / 100));
+
+    pctEl.textContent = pct + '%';
+
+    var filled = count < 2 ? 0 : Math.min(count - 1, tiers.length);
+    Array.prototype.forEach.call(segs, function (s, i) { s.dataset.filled = i < filled ? 'true' : 'false'; });
+    Array.prototype.forEach.call(labels, function (l, i) { l.dataset.filled = i < filled ? 'true' : 'false'; });
+
+    if (filled > 0) {
+      pill.hidden = false;
+      pill.textContent = pct + '%';
+      pill.style.left = (filled / tiers.length) * 100 + '%';
+    } else {
+      pill.hidden = true;
+    }
+    if (maxEl) maxEl.hidden = filled < tiers.length;
+
+    if (count && gross > total) {
+      wasEl.hidden = false;
+      wasEl.textContent = money.format(gross / 100);
+    } else {
+      wasEl.hidden = true;
+    }
+    nowEl.textContent = money.format(total / 100);
+
+    if (addAll) addAll.disabled = count === 0;
+
+    root.dispatchEvent(new CustomEvent('upsell:change', {
+      bubbles: true,
+      detail: {
+        count: count,
+        discount: pct,
+        subtotal: total,
+        variantIds: sel.map(function (li) { return li.__current.id; })
+      }
+    }));
+  }
+
+  /* ---------- cart state ---------- */
+  function syncCart() {
+    return fetch(routes + 'cart.js', { headers: { Accept: 'application/json' } })
+      .then(function (r) { return r.json(); })
+      .then(function (cart) {
+        var ids = cart.items.map(function (i) { return i.variant_id; });
+        items.forEach(function (li) {
+          li.dataset.inCart = li.__current && ids.indexOf(li.__current.id) > -1 ? 'true' : 'false';
+        });
+      })
+      .catch(function () {});
+  }
+
+  if (addAll) {
+    addAll.addEventListener('click', function () {
+      var sel = selected();
+      if (!sel.length) return;
+      var pct = discountFor(sel.length);
+
+      root.classList.add('is-loading');
+      errEl.textContent = '';
+
+      fetch(routes + 'cart/add.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          items: sel.map(function (li) {
+            return {
+              id: li.__current.id,
+              quantity: 1,
+              properties: {
+                _bundle_id: root.dataset.bundleId,
+                _bundle_tier: pct,
+                _bundle_size: sel.length
+              }
+            };
+          })
+        })
+      })
+        .then(function (r) { return r.json().then(function (b) { return { ok: r.ok, body: b }; }); })
+        .then(function (res) {
+          if (!res.ok) throw new Error(res.body.description || res.body.message || 'Could not add to cart.');
+          return syncCart();
+        })
+        .then(function () {
+          render();
+          document.dispatchEvent(new CustomEvent('cart:refresh', { bubbles: true }));
+          document.dispatchEvent(new CustomEvent('cart:updated', { bubbles: true }));
+        })
+        .catch(function (e) { errEl.textContent = e.message; })
+        .finally(function () { root.classList.remove('is-loading'); });
+    });
+  }
+
+  render();
+  syncCart().then(render);
+  document.addEventListener('cart:updated', function () { syncCart().then(render); });
+})();
+</script>
+
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Build The Full Set",
+  "tag": "section",
+  "class": "section-build-full-set",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Build The Full Set" },
+    { "type": "text", "id": "flag_text", "label": "Corner flag", "default": "Save 40%" },
+    { "type": "text", "id": "bundle_id", "label": "Bundle ID", "info": "Sent as the _bundle_id line item property. Defaults to the product handle." },
+    { "type": "text", "id": "add_label", "label": "Button label (unselected)", "default": "Add Now" },
+    { "type": "text", "id": "added_label", "label": "Button label (selected)", "default": "Added" },
+    { "type": "text", "id": "in_cart_label", "label": "In-cart badge", "default": "In your cart" },
+    { "type": "text", "id": "single_label", "label": "Fallback variant label", "default": "Single" },
+
+    { "type": "header", "content": "Savings meter" },
+    { "type": "text", "id": "discount_tiers", "label": "Discount tiers (%)", "default": "10,20,30", "info": "Cumulative and comma separated. 2 items = first value, 3 items = second, and so on." },
+    { "type": "text", "id": "total_saved_label", "label": "Meter label", "default": "Total Saved" },
+    { "type": "text", "id": "step_label", "label": "Step label", "default": "Saved" },
+    { "type": "text", "id": "max_label", "label": "Max tier message", "default": "You're saving the max!" },
+    { "type": "text", "id": "subtotal_label", "label": "Subtotal label", "default": "Sub total" },
+
+    { "type": "header", "content": "Layout" },
+    { "type": "range", "id": "columns", "min": 2, "max": 5, "step": 1, "label": "Columns", "default": 3 },
+    { "type": "checkbox", "id": "show_prices", "label": "Show price per item", "default": false },
+    { "type": "checkbox", "id": "show_button", "label": "Show add-to-cart button", "default": true },
+    { "type": "text", "id": "button_label", "label": "Add-to-cart label", "default": "Add set to cart" },
+    { "type": "range", "id": "max_width", "min": 460, "max": 1200, "step": 20, "unit": "px", "label": "Max width", "default": 560 },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 80, "step": 4, "unit": "px", "label": "Padding top", "default": 24 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 80, "step": 4, "unit": "px", "label": "Padding bottom", "default": 24 },
+
+    { "type": "header", "content": "Colours" },
+    { "type": "color", "id": "color_card", "label": "Panel background", "default": "#FFFFFF" },
+    { "type": "color", "id": "color_heading", "label": "Heading", "default": "#1F3D2B" },
+    { "type": "color", "id": "color_text", "label": "Body text", "default": "#2B2B2B" },
+    { "type": "color", "id": "color_accent", "label": "Accent", "default": "#2E6B45" },
+    { "type": "color", "id": "color_track", "label": "Meter track", "default": "#DCE5DD" },
+    { "type": "color", "id": "color_flag_bg", "label": "Flag background", "default": "#DDE8DD" },
+    { "type": "color", "id": "color_flag_text", "label": "Flag text", "default": "#1F3D2B" },
+    { "type": "color", "id": "color_incart_bg", "label": "In-cart badge background", "default": "#E4EEE4" },
+    { "type": "color", "id": "color_incart_text", "label": "In-cart badge text", "default": "#1F3D2B" }
+  ],
+  "presets": [{ "name": "Build The Full Set" }]
+}
+{% endschema %}

@@ -1,0 +1,1760 @@
+{%- comment -%}
+  Tangelos · Complete the bed  (V1 · #7 Opt-in bundle switch  +  V2 · four states)
+  ---------------------------------------------------------------------------------
+  Upsell version: the products come ONLY from the upsell metafield on the main
+  product's variants (custom.checkbox_products_muslin_duvet_cover), the same list
+  the old "Add Now" rows used. One switch card per upsell product.
+
+  - Off by default. The shopper switches each product on (UK active consent).
+  - Each card shows the variant matched to the selected size:
+      · Fitted sheets, protectors etc. follow the duvet size
+        (falls back to "Standard" when the product has no such size).
+      · Pillowcases are Standard. On Percale and Muslin pages,
+        King / Super King -> King pillowcases.
+  - Cards only show for the size whose variant lists that product.
+  - Switch on: card turns sage, "In your bag" summary lists every item,
+    Add to cart shows the new total.
+  - Add to cart: the switched-on products are added first (tagged with
+    _parent_variant so the cart drawer removes them with the main product),
+    then the theme adds the main product as usual. If one is sold out, the
+    others are still added and the popup says which one was skipped.
+  - Changing the size switches every add-on OFF. Switched on in Single, then
+    Double picked: OFF. Back to Single: still OFF until the shopper switches
+    it on again. Only add-ons switched on for the selected size go into the bag.
+  - Tap a product photo to see it larger.
+
+  Put this file in  blocks/complete-the-bed.liquid , then add the
+  "Complete the bed" block under the Variant picker in the product template.
+{%- endcomment -%}
+
+{%- liquid
+  assign tg_main = product
+  if tg_main == blank
+    assign tg_main = section.settings.product
+  endif
+  if request.visual_preview_mode and tg_main == blank
+    assign tg_main = collections.all.products.first
+  endif
+
+  assign tg_main_has_size = false
+  assign tg_main_size_pos = 0
+  for option in tg_main.options_with_values
+    assign tg_n = option.name | downcase | strip
+    if tg_n == 'size'
+      assign tg_main_has_size = true
+      assign tg_main_size_pos = forloop.index0
+    endif
+  endfor
+
+  assign tg_main_v = tg_main.selected_or_first_available_variant
+  assign tg_main_size = ''
+  if tg_main_has_size
+    assign tg_main_size = tg_main_v.options[tg_main_size_pos] | downcase | strip
+  endif
+
+  assign tg_main_is_king = false
+  if tg_main_size == 'king' or tg_main_size == 'super king' or tg_main_size == 'superking'
+    assign tg_main_is_king = true
+  endif
+
+  assign tg_mt = tg_main.title | downcase
+  assign tg_pillow_follows = false
+  if tg_mt contains 'percale' or tg_mt contains 'muslin'
+    assign tg_pillow_follows = true
+  endif
+
+  # tg_count = upsell products across all variants (deduplicated)
+  # tg_cur   = handles listed on the selected variant, as ",a,b,"
+  assign tg_seen = ','
+  assign tg_cur = ','
+  assign tg_count = 0
+  for mv in tg_main.variants
+    for p in mv.metafields.custom.checkbox_products_muslin_duvet_cover.value
+      if p.id != tg_main.id
+        assign tg_k = ',' | append: p.handle | append: ','
+        unless tg_seen contains tg_k
+          assign tg_seen = tg_seen | append: p.handle | append: ','
+          assign tg_count = tg_count | plus: 1
+        endunless
+        if mv.id == tg_main_v.id
+          assign tg_cur = tg_cur | append: p.handle | append: ','
+        endif
+      endif
+    endfor
+  endfor
+-%}
+
+{%- if tg_count == 0 -%}
+  {%- if request.design_mode -%}
+    <div class="tg-ctb tg-ctb--empty" {{ block.shopify_attributes }}>
+      Complete the bed: this product has no upsell products. Add them in the variant metafield
+      <strong>custom.checkbox_products_muslin_duvet_cover</strong>.
+    </div>
+  {%- endif -%}
+{%- else -%}
+
+  {%- if block.settings.hide_old_upsells -%}
+    <style>#upsell-addon-list { display: none !important; }</style>
+  {%- endif -%}
+
+  <div
+    class="tg-ctb spacing-style{% unless block.settings.collapse_desktop %} tg-ctb--desktop-full{% endunless %}"
+    style="{% render 'spacing-style', settings: block.settings %}"
+    data-tg-ctb
+    {{ block.shopify_attributes }}
+    {% if tg_cur == ',' %}hidden{% endif %}
+  >
+    {% comment %} <div class="tg-ctb__note" data-tg-ctb-note hidden>
+      <span class="tg-ctb__note-icon" aria-hidden="true">i</span>
+      <span data-tg-ctb-note-text></span>
+    </div> {% endcomment %}
+
+    <div class="tg-ctb__cards">
+      {%- assign tg_cards_done = ',' -%}
+      {%- for mv in tg_main.variants -%}
+        {%- for p in mv.metafields.custom.checkbox_products_muslin_duvet_cover.value -%}
+          {%- assign tg_k = ',' | append: p.handle | append: ',' -%}
+          {%- unless p.id == tg_main.id or tg_cards_done contains tg_k -%}
+            {%- liquid
+              assign tg_cards_done = tg_cards_done | append: p.handle | append: ','
+
+              assign tg_p_size_pos = -1
+              for option in p.options_with_values
+                assign tg_n = option.name | downcase | strip
+                if tg_n == 'size'
+                  assign tg_p_size_pos = forloop.index0
+                endif
+              endfor
+              if tg_p_size_pos == -1 and p.has_only_default_variant == false
+                assign tg_p_size_pos = 0
+              endif
+
+              assign tg_pt = p.title | downcase
+              assign tg_want = tg_main_size
+              assign tg_is_pillow = false
+              if tg_pt contains 'pillowcase' or tg_pt contains 'pillow case'
+                assign tg_is_pillow = true
+                assign tg_want = 'standard'
+                if tg_pillow_follows and tg_main_is_king
+                  assign tg_want = 'king'
+                endif
+              endif
+
+              assign tg_pv = p.selected_or_first_available_variant
+              if tg_p_size_pos > -1
+                assign tg_hit = false
+                for v in p.variants
+                  assign tg_vs = v.options[tg_p_size_pos] | downcase | strip
+                  if tg_vs == tg_want
+                    if tg_hit == false
+                      assign tg_pv = v
+                      assign tg_hit = true
+                    elsif v.available and tg_pv.available == false
+                      assign tg_pv = v
+                    endif
+                  endif
+                endfor
+              endif
+
+              assign tg_img = tg_pv.featured_image | default: p.featured_image
+
+              assign tg_eyebrow = block.settings.heading
+              if tg_pt contains 'fitted sheet'
+                assign tg_eyebrow = 'Complete the bed'
+              elsif tg_is_pillow
+                assign tg_eyebrow = 'Complete the look'
+              elsif tg_pt contains 'mattress protector'
+                assign tg_eyebrow = 'Protect your mattress'
+              endif
+            -%}
+
+            <div class="tg-ctb__card" data-tg-ctb-card data-tg-ctb-item="{{ p.handle | escape }}"{% unless tg_cur contains tg_k %} hidden{% endunless %}>
+              <div class="tg-ctb__head">
+                <span class="tg-ctb__eyebrow">{{ tg_eyebrow }}</span>
+                {%- if block.settings.badge != blank -%}
+                  <span class="tg-ctb__badge">{{ block.settings.badge }}</span>
+                {%- endif -%}
+              </div>
+
+              <div class="tg-ctb__row">
+                {%- if tg_img -%}
+                  <button type="button" class="tg-ctb__zoom" data-tg-ctb-zoom aria-label="View a larger photo of {{ p.title | escape }}">
+                    <img
+                      class="tg-ctb__img"
+                      data-tg-ctb-img
+                      data-tg-zoom-src="{{ tg_img | image_url: width: 1200 }}"
+                      src="{{ tg_img | image_url: width: 160 }}"
+                      alt="{{ p.title | escape }}"
+                      width="56"
+                      height="56"
+                      loading="lazy"
+                    >
+                    <span class="tg-ctb__zoom-icon" aria-hidden="true">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+                    </span>
+                  </button>
+                {%- endif -%}
+
+                <div class="tg-ctb__info">
+                  <p class="tg-ctb__title">{{ p.title }}</p>
+                  <p class="tg-ctb__size" data-tg-ctb-size>
+                    {%- if tg_p_size_pos > -1 -%}Size: {{ tg_pv.options[tg_p_size_pos] | capitalize }}{%- endif -%}
+                  </p>
+                  <p class="tg-ctb__price">
+                    <span class="tg-ctb__now" data-tg-ctb-price>{{ tg_pv.price | money_without_trailing_zeros }}</span>
+                    <s class="tg-ctb__was" data-tg-ctb-compare{% unless tg_pv.compare_at_price > tg_pv.price %} hidden{% endunless %}>
+                      {{- tg_pv.compare_at_price | money_without_trailing_zeros -}}
+                    </s>
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  class="tg-ctb__switch"
+                  role="switch"
+                  aria-checked="false"
+                  aria-label="Add {{ p.title | escape }}"
+                  data-tg-ctb-switch
+                >
+                  <span class="tg-ctb__knob" aria-hidden="true"></span>
+                </button>
+              </div>
+
+              <p class="tg-ctb__hint" data-tg-ctb-hint>{{ block.settings.hint_off }}</p>
+            </div>
+          {%- endunless -%}
+        {%- endfor -%}
+      {%- endfor -%}
+    </div>
+
+    <div class="tg-ctb__summary" data-tg-ctb-summary hidden>
+      <button
+        type="button"
+        class="tg-ctb__summary-toggle"
+        aria-expanded="false"
+        aria-controls="tg-ctb-lines-{{ block.id }}"
+        data-tg-ctb-summary-toggle
+      >
+        <span class="tg-ctb__summary-label">
+          {{- block.settings.summary_heading }} · <span class="tg-ctb__summary-count" data-tg-ctb-count></span>
+        </span>
+        <span class="tg-ctb__summary-total">
+          <span data-tg-ctb-total></span>
+          <svg class="tg-ctb__chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </span>
+      </button>
+      <div class="tg-ctb__summary-body" id="tg-ctb-lines-{{ block.id }}" data-tg-ctb-summary-body hidden>
+        <div data-tg-ctb-lines></div>
+      </div>
+    </div>
+
+    <script type="application/json" data-tg-ctb-data>
+      {
+        "formId": {{ 'BuyButtons-ProductForm-' | append: section.id | json }},
+        "sectionId": {{ section.id | json }},
+        "moneyFormat": {{ shop.money_format | json }},
+        "cartUrl": {{ routes.cart_url | json }},
+        "addUrl": {{ routes.cart_add_url | append: '.js' | json }},
+        "cartJsUrl": {{ routes.cart_url | append: '.js' | json }},
+        "atcText": {{ 'products.product.add_to_cart' | t | json }},
+        "showButtonTotal": {{ block.settings.show_button_total | json }},
+        "summaryOpen": {{ block.settings.summary_open | json }},
+        "hintOff": {{ block.settings.hint_off | json }},
+        "hintOn": {{ block.settings.hint_on | json }},
+        "main": {
+          "title": {{ tg_main.title | json }},
+          "short": {{ block.settings.main_short_name | json }},
+          "sizePos": {% if tg_main_has_size %}{{ tg_main_size_pos }}{% else %}-1{% endif %},
+          "variants": [
+            {%- for v in tg_main.variants -%}
+              {"id": {{ v.id }}, "price": {{ v.price }}, "options": {{ v.options | json }}}{% unless forloop.last %},{% endunless %}
+            {%- endfor -%}
+          ]
+        },
+        "byVariant": {
+          {%- for mv in tg_main.variants -%}
+            {%- liquid
+              assign tg_hs = ''
+              assign tg_sep = ''
+              for p in mv.metafields.custom.checkbox_products_muslin_duvet_cover.value
+                if p.id != tg_main.id
+                  assign tg_hj = p.handle | json
+                  assign tg_hs = tg_hs | append: tg_sep | append: tg_hj
+                  assign tg_sep = ','
+                endif
+              endfor
+            -%}
+            "{{ mv.id }}": [{{ tg_hs }}]{% unless forloop.last %},{% endunless %}
+          {%- endfor -%}
+        },
+        "items": {
+          {%- assign tg_json_done = ',' -%}
+          {%- assign tg_isep = '' -%}
+          {%- for mv in tg_main.variants -%}
+            {%- for p in mv.metafields.custom.checkbox_products_muslin_duvet_cover.value -%}
+              {%- assign tg_k = ',' | append: p.handle | append: ',' -%}
+              {%- unless p.id == tg_main.id or tg_json_done contains tg_k -%}
+                {%- liquid
+                  assign tg_json_done = tg_json_done | append: p.handle | append: ','
+                  assign tg_p_size_pos = -1
+                  for option in p.options_with_values
+                    assign tg_n = option.name | downcase | strip
+                    if tg_n == 'size'
+                      assign tg_p_size_pos = forloop.index0
+                    endif
+                  endfor
+                  if tg_p_size_pos == -1 and p.has_only_default_variant == false
+                    assign tg_p_size_pos = 0
+                  endif
+                -%}
+                {{ tg_isep }}{{ p.handle | json }}: {
+                  "title": {{ p.title | json }},
+                  "sizePos": {{ tg_p_size_pos }},
+                  "variants": [
+                    {%- for v in p.variants -%}
+                      {%- assign tg_vimg = v.featured_image | default: p.featured_image -%}
+                      {
+                        "id": {{ v.id }},
+                        "price": {{ v.price }},
+                        "compare": {{ v.compare_at_price | default: 0 }},
+                        "available": {{ v.available | json }},
+                        "options": {{ v.options | json }},
+                        "image": {% if tg_vimg %}{{ tg_vimg | image_url: width: 160 | json }}{% else %}null{% endif %},
+                        "zoom": {% if tg_vimg %}{{ tg_vimg | image_url: width: 1200 | json }}{% else %}null{% endif %}
+                      }{% unless forloop.last %},{% endunless %}
+                    {%- endfor -%}
+                  ]
+                }
+                {%- assign tg_isep = ',' -%}
+              {%- endunless -%}
+            {%- endfor -%}
+          {%- endfor -%}
+        }
+      }
+    </script>
+  </div>
+
+{%- endif -%}
+
+{% stylesheet %}
+  .tg-ctb [hidden] { display: none !important; }
+  .tg-ctb[hidden] { display: none !important; }
+
+  .tg-ctb--empty {
+    padding: 14px 16px;
+    border: 1px dashed #C9C2B6;
+    border-radius: 10px;
+    font-size: 13px;
+    color: #6B665E;
+  }
+
+  .tg-ctb {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    contain: inline-size;
+    margin-top: 20px;
+    color: #1A1A1A;
+    letter-spacing: 0;
+  }
+
+  .tg-ctb p { margin: 0; }
+
+  .tg-ctb__cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  /* Card */
+  .tg-ctb__card {
+    padding: 14px 16px;
+    border: 1px solid #DCD6CC;
+    border-radius: 10px;
+    background: #FFFFFF;
+    transition: background-color 180ms ease, border-color 180ms ease;
+  }
+
+  .tg-ctb__card.is-on {
+    background: #EEF3EC;
+    border-color: #6E8F74;
+  }
+
+  .tg-ctb__card.is-disabled { opacity: 0.6; }
+
+  .tg-ctb__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .tg-ctb__eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #4F4A43;
+  }
+
+  .tg-ctb__badge {
+    padding: 3px 8px;
+    border: 1px solid #DCD6CC;
+    border-radius: 999px;
+    background: #FFFFFF;
+    font-size: 11px;
+    color: #4F4A43;
+  }
+
+  .tg-ctb__row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* Photo: tap to see it larger */
+  .tg-ctb__zoom {
+    position: relative;
+    flex: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    line-height: 0;
+    cursor: zoom-in;
+  }
+
+  .tg-ctb__zoom:focus-visible {
+    outline: 2px solid #1A1A1A;
+    outline-offset: 2px;
+  }
+
+  .tg-ctb__zoom-icon {
+    position: absolute;
+    right: 3px;
+    bottom: 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #1A1A1A;
+  }
+
+  .tg-ctb__img {
+    flex: none;
+    width: 56px;
+    height: 56px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: #F4EFE6;
+  }
+
+  .tg-ctb__info {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .tg-ctb__title {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  .tg-ctb__size {
+    font-size: 12px;
+    color: #6B665E;
+  }
+
+  .tg-ctb__price {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 14px;
+  }
+
+  .tg-ctb__now { font-weight: 600; }
+
+  .tg-ctb__was {
+    font-size: 12px;
+    color: #6B665E;
+  }
+
+  /* Switch: 44px wide hit area */
+  .tg-ctb__switch {
+    position: relative;
+    flex: none;
+    width: 44px;
+    height: 26px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: #D9D4CB;
+    cursor: pointer;
+    transition: background-color 180ms ease;
+  }
+
+  .tg-ctb__switch::before {
+    content: "";
+    position: absolute;
+    inset: -9px -2px;
+  }
+
+  .tg-ctb__knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transition: transform 180ms ease;
+  }
+
+  .tg-ctb__switch[aria-checked="true"] { background: #4F7A5A; }
+  .tg-ctb__switch[aria-checked="true"] .tg-ctb__knob { transform: translateX(18px); }
+  .tg-ctb__switch:disabled { cursor: not-allowed; }
+
+  .tg-ctb__switch:focus-visible {
+    outline: 2px solid #1A1A1A;
+    outline-offset: 3px;
+  }
+
+  .tg-ctb__hint {
+    margin-top: 12px !important;
+    font-size: 12px;
+    color: #6B665E;
+  }
+
+  .tg-ctb__card.is-on .tg-ctb__hint { color: #2F6B45; }
+
+  /* Size-change note */
+  .tg-ctb__note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: #FBF3E2;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #4F4A43;
+    animation: tg-ctb-fade 180ms ease;
+  }
+
+  .tg-ctb__note-icon {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+    border-radius: 50%;
+    background: #B7791F;
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 700;
+    font-style: normal;
+  }
+
+  /* In your bag summary: one line, tap to see the items */
+  .tg-ctb__summary {
+    border-radius: 10px;
+    background: #F4EFE6;
+    animation: tg-ctb-fade 200ms ease;
+  }
+
+  .tg-ctb__summary-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-height: 48px;
+    margin: 0;
+    padding: 12px 16px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 14px;
+    letter-spacing: 0;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .tg-ctb__summary-toggle:focus-visible {
+    outline: 2px solid #1A1A1A;
+    outline-offset: 2px;
+  }
+
+  .tg-ctb__summary-toggle:disabled {
+    cursor: default;
+    opacity: 1;
+  }
+
+  .tg-ctb__summary-count { font-weight: 600; }
+
+  .tg-ctb__summary-total {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .tg-ctb__chev { transition: transform 180ms ease; }
+  .tg-ctb__summary.is-open .tg-ctb__chev { transform: rotate(180deg); }
+  .tg-ctb__summary-toggle:disabled .tg-ctb__chev { display: none; }
+
+  .tg-ctb__summary-body {
+    margin: 0 16px;
+    padding: 8px 0 12px;
+    border-top: 1px solid #E2DBCF;
+    animation: tg-ctb-fade 160ms ease;
+  }
+
+  .tg-ctb__line {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 3px 0;
+    font-size: 13px;
+  }
+
+  .tg-ctb__line > span:last-child {
+    flex: none;
+    white-space: nowrap;
+  }
+
+  .tg-ctb__line-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .tg-ctb__card,
+  .tg-ctb__summary,
+  .tg-ctb__note {
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .tg-ctb__title { overflow-wrap: anywhere; }
+
+  .tg-ctb__line--total {
+    margin-top: 6px;
+    padding-top: 9px;
+    border-top: 1px solid #E2DBCF;
+    font-weight: 600;
+  }
+
+  /* Larger photo */
+  dialog.tg-ctb-zoom {
+    max-width: min(560px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: #FFFFFF;
+    overflow: visible;
+  }
+
+  dialog.tg-ctb-zoom::backdrop { background: rgba(0, 0, 0, 0.6); }
+
+  .tg-ctb-zoom__img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: calc(100vh - 32px);
+    border-radius: 10px;
+    object-fit: contain;
+  }
+
+  .tg-ctb-zoom__close {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #1A1A1A;
+    color: #FFFFFF;
+    font-size: 20px;
+    line-height: 32px;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .tg-ctb-zoom__close:focus-visible {
+    outline: 2px solid #FFFFFF;
+    outline-offset: 2px;
+  }
+
+  /* Toast */
+  .tg-ctb-toast {
+    position: fixed;
+    top: calc(var(--header-height, 0px) + 12px);
+    left: 50%;
+    z-index: 2147483000;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: min(420px, calc(100% - 32px));
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #1A1A1A;
+    color: #FFFFFF;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    transform: translate(-50%, -12px);
+    opacity: 0;
+    transition: transform 220ms ease, opacity 220ms ease;
+  }
+
+  .tg-ctb-toast { pointer-events: none; }
+  .tg-ctb-toast.is-shown { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+
+  /* Reset the browser's default popover box */
+  .tg-ctb-toast[popover] {
+    inset: auto;
+    top: calc(var(--header-height, 0px) + 12px);
+    left: 50%;
+    margin: 0;
+    border: 0;
+    overflow: visible;
+  }
+
+  .tg-ctb-toast[popover]:popover-open { display: flex; }
+
+  .tg-ctb-toast__check {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #4F7A5A;
+  }
+
+  .tg-ctb-toast__text {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .tg-ctb-toast__title { font-size: 14px; font-weight: 600; }
+  .tg-ctb-toast__sub {
+    overflow: hidden;
+    font-size: 12px;
+    color: #D9D4CB;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  /* Add to cart button: "✓ Added to bag" moment */
+  .tg-atc-is-added { position: relative !important; }
+
+  .tg-atc-added {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: inherit;
+    background: #4F7A5A;
+    color: #FFFFFF;
+    pointer-events: none;
+    animation: tg-ctb-fade 160ms ease;
+  }
+
+  .tg-atc-is-added .tg-atc-added { display: inline-flex; }
+
+  .tg-ctb-toast__link {
+    flex: none;
+    padding: 12px 2px;
+    font-size: 13px;
+    color: #FFFFFF !important;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .tg-ctb-toast--error .tg-ctb-toast__check { background: #B7791F; }
+
+  @keyframes tg-ctb-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tg-ctb *, .tg-ctb-toast { transition: none !important; animation: none !important; }
+  }
+{% endstylesheet %}
+
+<script>
+(function () {
+  if (window.__tgCtbLoaded) return;
+  window.__tgCtbLoaded = true;
+
+  var DEBUG = /[?&]tgdebug/.test(location.search);
+  function log() {
+    if (!DEBUG) return;
+    var a = Array.prototype.slice.call(arguments);
+    a.unshift('[tg-ctb]');
+    console.log.apply(console, a);
+  }
+  log('script loaded');
+
+  var CHECK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  var states = {};
+
+  // Duvet sizes fall back to Standard when an upsell doesn't carry that size.
+  var SIZE_ALIASES = {
+    'single':     ['single', 'standard'],
+    'double':     ['double', 'standard'],
+    'king':       ['king', 'standard'],
+    'super king': ['super king', 'superking', 'standard']
+  };
+
+  function key(v) { return String(v == null ? '' : v).toLowerCase().replace(/\s+/g, ' ').trim(); }
+  function norm(v) { return String(v == null ? '' : v).toLowerCase().replace(/[^a-z]/g, ''); } // "Super King" -> "superking"
+
+  function readData(root) {
+    var el = root.querySelector('[data-tg-ctb-data]');
+    if (!el) return null;
+    if (root.__tgRaw === el.textContent && root.__tgData) return root.__tgData;
+    try {
+      root.__tgData = JSON.parse(el.textContent);
+      root.__tgRaw = el.textContent;
+      return root.__tgData;
+    } catch (e) { log('bad JSON', e); return null; }
+  }
+
+  // Switch state is remembered per size: "single|white-percale-fitted-sheet"
+  function onKey(size, handle) { return key(size) + '|' + handle; }
+
+  function stateFor(D) {
+    if (!states[D.sectionId]) {
+      states[D.sectionId] = { on: {}, chosen: [], lastSize: null, note: '', shownTotal: null, open: !!D.summaryOpen };
+    }
+    return states[D.sectionId];
+  }
+
+  function money(cents, D) {
+    var f = D.moneyFormat || '£{{amount}}';
+    var t = document.createElement('textarea');
+    t.innerHTML = f.replace(/<[^>]*>/g, '');
+    f = t.value;
+    var n = cents / 100;
+    var out = f.replace(/\{\{\s*(\w+)\s*\}\}/, function (_, k) {
+      if (k === 'amount_no_decimals') return Math.round(n).toLocaleString('en-GB');
+      if (k === 'amount_with_comma_separator') return n.toFixed(2).replace('.', ',');
+      if (k === 'amount_no_decimals_with_comma_separator') return Math.round(n).toLocaleString('de-DE');
+      return n.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    });
+    return out.replace(/([.,])00(?!\d)/, '');
+  }
+
+  function titleCase(v) {
+    return String(v == null ? '' : v).replace(/\b([a-z])/g, function (m) { return m.toUpperCase(); });
+  }
+
+  function setText(el, txt) { if (el && el.textContent !== txt) el.textContent = txt; }
+  function setHidden(el, h) { if (el && el.hidden !== h) el.hidden = h; }
+  function setAttr(el, name, val) { if (el && el.getAttribute(name) !== val) el.setAttribute(name, val); }
+
+  function scopeFor(D) {
+    return document.getElementById('shopify-section-' + D.sectionId) || document;
+  }
+
+  function selectedMain(D) {
+    var vs = D.main.variants;
+    if (!vs || !vs.length) return null;
+    var scope = scopeFor(D);
+    var picked = [];
+    var wrap = scope.querySelector('.variant-picker-wrap') || scope;
+    var groups = wrap.querySelectorAll('fieldset');
+    for (var g = 0; g < groups.length; g++) {
+      var c = groups[g].querySelector('input[type="radio"]:checked');
+      var s = groups[g].querySelector('select');
+      if (c) picked.push(c.value);
+      else if (s) picked.push(s.value);
+    }
+    if (!groups.length) {
+      var sels = wrap.querySelectorAll('select');
+      for (var i = 0; i < sels.length; i++) picked.push(sels[i].value);
+    }
+
+    for (var v = 0; v < vs.length; v++) {
+      if (vs[v].options.length !== picked.length) continue;
+      var same = true;
+      for (var o = 0; o < picked.length; o++) {
+        if (String(vs[v].options[o]) !== String(picked[o])) { same = false; break; }
+      }
+      if (same) return vs[v];
+    }
+    // Fallback: the variant id the theme's form will submit
+    var form = document.getElementById(D.formId);
+    var idInput = form && form.querySelector('input[name="id"]');
+    if (idInput) {
+      for (var w = 0; w < vs.length; w++) if (String(vs[w].id) === String(idInput.value)) return vs[w];
+    }
+    // Could not read the picker or the form (the theme is re-rendering them, e.g. right after
+    // Add to cart). Keep the last variant we read instead of guessing the first one: guessing
+    // looks like a size change, which switches every add-on off and can grey the cards out.
+    var prev = states[D.sectionId];
+    if (prev && prev.mainVariant) {
+      log('picker unreadable, keeping last variant', prev.mainVariant.id);
+      return prev.mainVariant;
+    }
+    return vs[0];
+  }
+
+  /* ---------- upsell variant matching (same rules as the old upsell rows) ---------- */
+
+  function optSize(item, v) { return item.sizePos > -1 ? v.options[item.sizePos] : ''; }
+
+  // Prefer an in-stock variant when several match
+  function pick(list) {
+    var best = null;
+    for (var i = 0; i < list.length; i++) {
+      if (!best || (list[i].available && !best.available)) best = list[i];
+    }
+    return best;
+  }
+
+  function matchItem(D, item, wantSize) {
+    var vs = item.variants || [];
+    if (!vs.length) return null;
+    if (item.sizePos < 0 || vs.length === 1) return pick(vs);   // single-size product (Default Title)
+
+    function byLabel(label) {
+      var t = key(label);
+      return pick(vs.filter(function (v) { return key(optSize(item, v)) === t; }));
+    }
+    // Exact first, then "starts with": "King (50x90cm)" counts as King,
+    // "Super King" never counts as King.
+    function bySize(label) {
+      var w = norm(label);
+      return pick(vs.filter(function (v) { return norm(optSize(item, v)) === w; })) ||
+             pick(vs.filter(function (v) { return norm(optSize(item, v)).indexOf(w) === 0; }));
+    }
+
+    // Pillowcases: Standard. Percale + Muslin pages: King / Super King -> King.
+    if (/pillow\s*case/i.test(item.title || '')) {
+      var sk = norm(wantSize);
+      var followsSize = /percale|muslin/i.test(D.main.title || '');
+      if (followsSize && (sk === 'king' || sk === 'superking')) {
+        var king = bySize('king');
+        if (king) return king;
+      }
+      var std = byLabel('standard') || bySize('standard');
+      if (std) return std;
+    }
+
+    var want = key(wantSize);
+    var candidates = SIZE_ALIASES[want] || [want];
+    for (var i = 0; i < candidates.length; i++) {
+      var hit = byLabel(candidates[i]);
+      if (hit) return hit;
+    }
+    // Loose: "Single Deep" or "Single (90x190)" still counts as Single
+    for (var j = 0; j < candidates.length; j++) {
+      var loose = bySize(candidates[j]);
+      if (loose) return loose;
+    }
+    return null;   // no matching size: the card says so instead of adding the wrong size
+  }
+
+  /* ---------- rendering ---------- */
+
+  function quantity(D) {
+    var form = document.getElementById(D.formId);
+    var q = form && form.querySelector('input[name="quantity"]');
+    var n = q ? parseInt(q.value, 10) : 1;
+    return n > 0 ? n : 1;
+  }
+
+  // The theme's visible Add to cart button. The button snippet also renders a
+  // hidden special-case button first, so look for the theme's own ref.
+  function mainButton(D) {
+    var form = document.getElementById(D.formId);
+    if (!form) return null;
+    return form.querySelector('[ref="addToCartButton"]') ||
+           form.querySelector('.add-to-cart-button') ||
+           form.querySelector('button[type="submit"][name="add"]');
+  }
+
+  function buttonLabel(D) {
+    var btn = mainButton(D);
+    if (!btn) return null;
+    var want = key(D.atcText);
+    var all = [btn].concat(Array.prototype.slice.call(btn.querySelectorAll('*')));
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      if (el.classList.contains('tg-atc-total')) continue;
+      var own = '';
+      for (var n = 0; n < el.childNodes.length; n++) {
+        if (el.childNodes[n].nodeType === 3) own += el.childNodes[n].textContent;
+      }
+      if (key(own) === want) return el;
+    }
+    return null;
+  }
+
+  function animateTotal(el, from, to, D) {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setText(el, ' · ' + money(to, D));
+      return;
+    }
+    var start = null;
+    function step(ts) {
+      if (start === null) start = ts;
+      var p = Math.min(1, (ts - start) / 240);
+      var val = Math.round(from + (to - from) * p);
+      el.textContent = ' · ' + money(p === 1 ? to : Math.round(val / 100) * 100, D);
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // Rebuild the summary lines only when they change (avoids a re-render loop)
+  function renderLines(root, lines) {
+    var box = root.querySelector('[data-tg-ctb-lines]');
+    if (!box) return;
+    var sig = JSON.stringify(lines);
+    if (box.__tgSig === sig) return;
+    box.__tgSig = sig;
+    while (box.firstChild) box.removeChild(box.firstChild);
+    lines.forEach(function (l) {
+      var row = document.createElement('div');
+      row.className = 'tg-ctb__line';
+      var name = document.createElement('span');
+      name.className = 'tg-ctb__line-name';
+      name.textContent = l[0];
+      var price = document.createElement('span');
+      price.textContent = l[1];
+      row.appendChild(name);
+      row.appendChild(price);
+      box.appendChild(row);
+    });
+  }
+
+  function updateButtonTotal(D, S, total, show, extra, extraCompare) {
+    // Preferred: the button snippet shows the price ([data-atc-price]).
+    // We only tell it how much the switched-on add-ons add; it does the sum.
+    var btn = mainButton(D);
+    var priceEl = btn && btn.querySelector('[data-atc-price]');
+    if (priceEl) {
+      var legacy = btn.querySelector('.tg-atc-total');
+      if (legacy) legacy.parentNode.removeChild(legacy);
+      var on = show && D.showButtonTotal;
+      setAttr(priceEl, 'data-atc-extra', String(on ? extra : 0));
+      setAttr(priceEl, 'data-atc-extra-compare', String(on ? extraCompare : 0));
+      S.animateFrom = null;
+      return;
+    }
+
+    // Fallback for a button without the price snippet
+    if (!D.showButtonTotal) return;
+    var label = buttonLabel(D);
+    if (!label) return;
+    var span = label.querySelector('.tg-atc-total');
+    if (!show) {
+      if (span) span.parentNode.removeChild(span);
+      return;
+    }
+    if (!span) {
+      span = document.createElement('span');
+      span.className = 'tg-atc-total';
+      label.appendChild(span);
+    }
+    if (S.animateFrom != null && S.animateFrom !== total) {
+      animateTotal(span, S.animateFrom, total, D);
+    } else {
+      setText(span, ' · ' + money(total, D));
+    }
+    S.animateFrom = null;
+  }
+
+  function render(root) {
+    var D = readData(root);
+    if (!D) return;
+    var S = stateFor(D);
+
+    var mainV = selectedMain(D);
+    if (!mainV) return;
+    var size = D.main.sizePos > -1 ? mainV.options[D.main.sizePos] : '';
+
+    // Any size change switches every add-on off, including going back to a
+    // size where it was on before. The shopper switches it on again if wanted.
+    if (S.lastSize !== null && key(size) !== key(S.lastSize)) {
+      log('size changed, add-ons switched off:', S.lastSize, '->', size);
+      S.on = {};
+      S.animateFrom = S.shownTotal;   // the button total glides to the new size's total
+    }
+    S.lastSize = size;
+    S.note = '';
+
+    var applies = (D.byVariant && D.byVariant[String(mainV.id)]) || [];
+    var cards = root.querySelectorAll('[data-tg-ctb-item]');
+    var visible = 0;
+    var chosen = [];
+
+    for (var i = 0; i < cards.length; i++) {
+      var card = cards[i];
+      var h = card.getAttribute('data-tg-ctb-item');
+      var item = D.items && D.items[h];
+      var show = !!item && applies.indexOf(h) > -1;
+      setHidden(card, !show);
+      if (!show) continue;
+      visible++;
+
+      var v = matchItem(D, item, size);
+      var usable = !!(v && v.available);
+      if (!usable) log('card disabled:', h, 'size', size, v ? '(sold out)' : '(no matching size)');
+      // On only if the shopper switched it on for THIS size (and it's sold in it)
+      var on = usable && !!S.on[onKey(size, h)];
+
+      card.classList.toggle('is-on', on);
+      card.classList.toggle('is-disabled', !usable);
+
+      var sw = card.querySelector('[data-tg-ctb-switch]');
+      if (sw) {
+        setAttr(sw, 'aria-checked', on ? 'true' : 'false');
+        if (sw.disabled !== !usable) sw.disabled = !usable;
+      }
+
+      var shown = v || item.variants[0];
+      var shownSize = item.sizePos > -1 ? titleCase(optSize(item, shown)) : '';
+      setText(card.querySelector('[data-tg-ctb-size]'), shownSize ? 'Size: ' + shownSize : '');
+      setText(card.querySelector('[data-tg-ctb-price]'), money(shown.price, D));
+      var cmp = card.querySelector('[data-tg-ctb-compare]');
+      if (cmp) {
+        var hasCmp = shown.compare > shown.price;
+        setHidden(cmp, !hasCmp);
+        if (hasCmp) setText(cmp, money(shown.compare, D));
+      }
+      var img = card.querySelector('[data-tg-ctb-img]');
+      if (img && shown.image) {
+        setAttr(img, 'src', shown.image);
+        setAttr(img, 'data-tg-zoom-src', shown.zoom || shown.image);
+      }
+
+      var inSize = size ? ' in ' + size : '';
+      var hintText;
+      if (!v) hintText = 'Not available' + inSize;
+      else if (!v.available) hintText = 'Out of stock' + inSize;
+      else hintText = on ? '✓ ' + D.hintOn : D.hintOff;
+      setText(card.querySelector('[data-tg-ctb-hint]'), hintText);
+
+      if (on) chosen.push({ handle: h, title: item.title, variant: v, size: shownSize });
+    }
+
+    S.chosen = chosen;
+    S.mainVariant = mainV;
+    setHidden(root, visible === 0);
+
+    var note = root.querySelector('[data-tg-ctb-note]');
+    setHidden(note, !S.note);
+    setText(root.querySelector('[data-tg-ctb-note-text]'), S.note);
+
+    // Summary
+    var qty = quantity(D);
+    var mainTotal = mainV.price * qty;
+    var total = mainTotal;
+    var extra = 0;
+    var extraCompare = 0;
+    chosen.forEach(function (c) {
+      total += c.variant.price;
+      extra += c.variant.price;
+      extraCompare += Math.max(c.variant.compare || 0, c.variant.price);
+    });
+
+    var summary = root.querySelector('[data-tg-ctb-summary]');
+    setHidden(summary, !chosen.length);
+    if (chosen.length) {
+      var lines = [[
+        (D.main.short || D.main.title) + (size ? ' · ' + size : '') + (qty > 1 ? ' × ' + qty : ''),
+        money(mainTotal, D)
+      ]];
+      chosen.forEach(function (c) {
+        lines.push([c.title + (c.size ? ' · ' + c.size : ''), money(c.variant.price, D)]);
+      });
+      renderLines(root, lines);
+      setText(root.querySelector('[data-tg-ctb-total]'), money(total, D));
+      var count = qty + chosen.length;
+      setText(root.querySelector('[data-tg-ctb-count]'), count + (count === 1 ? ' item' : ' items'));
+    }
+
+    // One-line summary: collapsed on mobile; full on desktop unless "collapse on desktop" is on
+    var forceOpen = root.classList.contains('tg-ctb--desktop-full') &&
+      window.matchMedia && window.matchMedia('(min-width: 750px)').matches;
+    var open = !!(S.open || forceOpen);
+    var toggle = root.querySelector('[data-tg-ctb-summary-toggle]');
+    if (summary) summary.classList.toggle('is-open', open);
+    setHidden(root.querySelector('[data-tg-ctb-summary-body]'), !open);
+    if (toggle) {
+      setAttr(toggle, 'aria-expanded', open ? 'true' : 'false');
+      if (toggle.disabled !== !!forceOpen) toggle.disabled = !!forceOpen;
+    }
+
+    // Live total on the Add to cart button
+    updateButtonTotal(D, S, total, visible > 0, extra, extraCompare);
+    S.shownTotal = total;
+  }
+
+  function renderAll() {
+    var roots = document.querySelectorAll('[data-tg-ctb]');
+    for (var i = 0; i < roots.length; i++) render(roots[i]);
+  }
+
+  var queued = false;
+  function queue() {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(function () { queued = false; renderAll(); });
+  }
+
+  /* ---------- larger photo ---------- */
+
+  function openZoom(src, alt) {
+    var d = document.querySelector('dialog.tg-ctb-zoom');
+    if (!d) {
+      d = document.createElement('dialog');
+      d.className = 'tg-ctb-zoom';
+      d.setAttribute('aria-label', 'Product photo');
+      d.innerHTML = '<button type="button" class="tg-ctb-zoom__close" aria-label="Close">&times;</button><img class="tg-ctb-zoom__img" alt="">';
+      document.body.appendChild(d);
+      d.addEventListener('click', function (ev) {
+        if (ev.target === d || (ev.target.closest && ev.target.closest('.tg-ctb-zoom__close'))) d.close();
+      });
+    }
+    var im = d.querySelector('img');
+    im.src = src;
+    im.alt = alt || '';
+    if (typeof d.showModal === 'function') {
+      if (!d.open) d.showModal();
+    } else {
+      window.open(src, '_blank', 'noopener');
+    }
+  }
+
+  document.addEventListener('click', function (e) {
+    var z = e.target.closest && e.target.closest('[data-tg-ctb-zoom]');
+    if (!z) return;
+    e.preventDefault();
+    var img = z.querySelector('img');
+    var src = img && (img.getAttribute('data-tg-zoom-src') || img.currentSrc || img.getAttribute('src'));
+    if (src) openZoom(src, img.alt);
+  });
+
+  /* ---------- toast ---------- */
+
+  // Shown in the browser's top layer (popover) so it stays above an open cart drawer.
+  function hideToast(t) {
+    t.classList.remove('is-shown');
+    clearTimeout(t.__hideTimer);
+    t.__hideTimer = setTimeout(function () {
+      if (t.hidePopover && t.matches(':popover-open')) {
+        try { t.hidePopover(); } catch (e) {}
+      }
+    }, 240);
+  }
+
+  function toast(title, sub, D, isError, anchor) {
+    log('toast', title, sub);
+    var t = document.querySelector('.tg-ctb-toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.className = 'tg-ctb-toast';
+      t.setAttribute('role', 'status');
+      t.setAttribute('aria-live', 'polite');
+      if (typeof HTMLElement !== 'undefined' && 'popover' in HTMLElement.prototype) t.setAttribute('popover', 'manual');
+      t.innerHTML = '<span class="tg-ctb-toast__check" aria-hidden="true"></span>' +
+        '<span class="tg-ctb-toast__text"><span class="tg-ctb-toast__title"></span><span class="tg-ctb-toast__sub"></span></span>' +
+        '<a class="tg-ctb-toast__link"></a>';
+      document.body.appendChild(t);
+      var y0 = null;
+      t.addEventListener('touchstart', function (e) { y0 = e.touches[0].clientY; }, { passive: true });
+      t.addEventListener('touchmove', function (e) {
+        if (y0 !== null && e.touches[0].clientY - y0 < -24) { hideToast(t); y0 = null; }
+      }, { passive: true });
+    }
+    t.classList.toggle('tg-ctb-toast--error', !!isError);
+    t.querySelector('.tg-ctb-toast__check').innerHTML = isError ? '!' : CHECK;
+    t.querySelector('.tg-ctb-toast__title').textContent = title;
+    t.querySelector('.tg-ctb-toast__sub').textContent = sub || '';
+    var link = t.querySelector('.tg-ctb-toast__link');
+    link.textContent = 'View bag';
+    link.setAttribute('href', D.cartUrl || '/cart');
+
+    // Sit over the product details column (V2), just under the sticky header
+    var col = anchor && anchor.parentElement;
+    var vw = document.documentElement.clientWidth;
+    if (col && vw >= 750) {
+      var r = col.getBoundingClientRect();
+      var w = Math.min(r.width, 460);
+      t.style.left = Math.round(r.left + r.width / 2) + 'px';
+      t.style.width = Math.round(w) + 'px';
+    } else {
+      t.style.left = '50%';
+      t.style.width = '';
+    }
+
+    clearTimeout(t.__timer);
+    clearTimeout(t.__hideTimer);
+    if (t.showPopover) {
+      try {
+        if (t.matches(':popover-open')) t.hidePopover();
+        t.showPopover();
+      } catch (e) {}
+    }
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { t.classList.add('is-shown'); });
+    });
+    t.__timer = setTimeout(function () { hideToast(t); }, 4000);
+  }
+
+  /* ---------- switches and summary ---------- */
+
+  // form.id can be shadowed by an <input name="id"> inside the form, so read the attribute
+  function formIdOf(form) {
+    return form && form.getAttribute ? form.getAttribute('id') || '' : '';
+  }
+
+  function rootForForm(form) {
+    var roots = document.querySelectorAll('[data-tg-ctb]');
+    for (var i = 0; i < roots.length; i++) {
+      var D = readData(roots[i]);
+      if (D && formIdOf(form) === D.formId) return roots[i];
+    }
+    return null;
+  }
+
+  document.addEventListener('click', function (e) {
+    var sw = e.target.closest && e.target.closest('[data-tg-ctb-switch]');
+    if (!sw || sw.disabled) return;
+    var root = sw.closest('[data-tg-ctb]');
+    var card = sw.closest('[data-tg-ctb-item]');
+    var D = root && readData(root);
+    if (!D || !card) return;
+    var S = stateFor(D);
+    var h = card.getAttribute('data-tg-ctb-item');
+    var mainV = selectedMain(D);
+    var size = mainV && D.main.sizePos > -1 ? mainV.options[D.main.sizePos] : '';
+    var k = onKey(size, h);
+    S.animateFrom = S.shownTotal;
+    S.on[k] = !S.on[k];
+    S.note = '';
+    render(root);
+  });
+
+  // "In your bag" one-line summary: tap to show / hide the items
+  document.addEventListener('click', function (e) {
+    var tg = e.target.closest && e.target.closest('[data-tg-ctb-summary-toggle]');
+    if (!tg || tg.disabled) return;
+    var root = tg.closest('[data-tg-ctb]');
+    var D = root && readData(root);
+    if (!D) return;
+    var S = stateFor(D);
+    S.open = !S.open;
+    render(root);
+  });
+
+  window.addEventListener('resize', function () { queue(); });
+
+  /* ---------- cart ---------- */
+
+  function cartQty(cart, id) {
+    var q = 0;
+    if (!cart || !cart.items) return 0;
+    for (var i = 0; i < cart.items.length; i++) if (cart.items[i].variant_id === id) q += cart.items[i].quantity;
+    return q;
+  }
+
+  function getCart(D) {
+    return fetch(D.cartJsUrl, { headers: { 'Accept': 'application/json' }, cache: 'no-store' }).then(function (r) { return r.json(); });
+  }
+
+  // Each add-on is tagged with the main variant, so the cart drawer removes it
+  // when the main product is removed (same properties as the old upsell rows).
+  function lineFor(D, it, mainId) {
+    return {
+      id: it.id,
+      quantity: 1,
+      properties: { 'Added with': D.main.title, _parent_variant: String(mainId) }
+    };
+  }
+
+  function postLines(D, lines) {
+    return fetch(D.addUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ items: lines })
+    }).then(function (r) { return r.ok; }, function () { return false; });
+  }
+
+  // All at once; if that fails (usually one is sold out), add them one by one
+  function addItems(D, items, mainId) {
+    return postLines(D, items.map(function (it) { return lineFor(D, it, mainId); })).then(function (ok) {
+      if (ok) return items.map(function (it) { return it.id; });
+      if (items.length === 1) return [];
+      return items.reduce(function (chain, it) {
+        return chain.then(function (okIds) {
+          return postLines(D, [lineFor(D, it, mainId)]).then(function (ok1) {
+            if (ok1) okIds.push(it.id);
+            return okIds;
+          });
+        });
+      }, Promise.resolve([]));
+    });
+  }
+
+  // "✓ Added to bag" moment on the theme's button (V2 · state 3)
+  function buttonAdded(D, text) {
+    var btn = mainButton(D);
+    if (!btn) return;
+    var badge = btn.querySelector('.tg-atc-added');
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.className = 'tg-atc-added';
+      badge.setAttribute('aria-hidden', 'true');
+      btn.appendChild(badge);
+    }
+    badge.innerHTML = CHECK + '<span></span>';
+    badge.lastChild.textContent = text;
+    btn.classList.add('tg-atc-is-added');
+    clearTimeout(btn.__tgAddedTimer);
+    btn.__tgAddedTimer = setTimeout(function () { btn.classList.remove('tg-atc-is-added'); }, 2400);
+  }
+
+  // A cart snapshot is kept so we can tell, from the real cart, that the items went in.
+  var cartSnap = null;
+  function refreshSnap(D) {
+    return getCart(D).then(function (c) { cartSnap = c; return c; }, function () { return null; });
+  }
+
+  // One "add" attempt: remembers what was chosen, then watches the cart until it shows up
+  function startAdd(root, D, S) {
+    var now = Date.now();
+    if (S.pending && now - S.pending.at < 1500) return S.pending;
+    render(root);
+    var P = {
+      at: now,
+      items: (S.chosen || []).map(function (c) {
+        return { id: c.variant.id, name: c.title };
+      }),
+      mainId: S.mainVariant.id,
+      qty: quantity(D),
+      total: S.shownTotal,
+      before: cartSnap,
+      done: false,
+      tries: 0
+    };
+    log('add started', P);
+    S.pending = P;
+    setTimeout(function () { check(root, D, S, P); }, 600);
+    return P;
+  }
+
+  function check(root, D, S, P) {
+    if (P.done || S.pending !== P) return;
+    getCart(D).then(function (cart) {
+      if (P.done) return;
+      var mainBefore = P.before ? cartQty(P.before, P.mainId) : 0;
+      var mainIn = cartQty(cart, P.mainId) >= mainBefore + (P.before ? P.qty : 1);
+      log('check', P.tries, { mainBefore: mainBefore, mainNow: cartQty(cart, P.mainId), mainIn: mainIn });
+      if (!mainIn) {
+        P.tries++;
+        if (P.tries < 12) setTimeout(function () { check(root, D, S, P); }, 500);
+        return;
+      }
+      P.done = true;
+      cartSnap = cart;
+
+      var added = [];
+      var missing = [];
+      P.items.forEach(function (it) {
+        var before = P.before ? cartQty(P.before, it.id) : 0;
+        if (cartQty(cart, it.id) > before) added.push(it.name);
+        else missing.push(it.name);
+      });
+
+      var mainName = D.main.short || D.main.title;
+      if (missing.length) {
+        toast('Added to your bag', mainName + ' — ' + missing.join(', ') + ' couldn’t be added', D, true, root);
+      } else {
+        toast('Added to your bag', [mainName].concat(added).join(' + ') + ' · ' + money(P.total, D), D, false, root);
+      }
+      buttonAdded(D, 'Added to bag');
+
+      // Keep the header cart count in step with the real cart (check again once the theme has finished)
+      syncCartUi(cart);
+      setTimeout(function () { getCart(D).then(syncCartUi, function () {}); }, 1500);
+
+      // The add-ons are now in the bag, so switch them off automatically.
+      // Otherwise the next "Add to cart" would add them a second time.
+      if (P.items.length) {
+        log('add confirmed, add-ons switched off automatically');
+        S.on = {};
+        S.note = '';
+        S.animateFrom = S.shownTotal;   // button total glides back to the main product only
+        render(root);
+      }
+    }).catch(function () {});
+  }
+
+  // The add-ons go in through our own cart/add.js call, so the theme only hears about the
+  // main product and the header cart badge (and drawer) can show a smaller number than the
+  // real cart. Once the real cart is known, tell the theme and fix any badge still out of date.
+  function syncCartUi(cart) {
+    if (!cart || typeof cart.item_count !== 'number') return;
+    var count = cart.item_count;
+    function badges() { return document.querySelectorAll('.cart-bubble__text-count'); }
+    function stale() {
+      var list = badges();
+      if (!list.length) return true;
+      for (var i = 0; i < list.length; i++) {
+        if (parseInt(list[i].textContent, 10) !== count) return true;
+      }
+      return false;
+    }
+    if (!stale()) return;
+    log('cart badge out of date, syncing to', count);
+    try {
+      document.dispatchEvent(new CustomEvent('cart:update', {
+        bubbles: true,
+        detail: { resource: cart, sourceId: 'tg-ctb', data: { source: 'tg-ctb', itemCount: count, cart: cart } }
+      }));
+    } catch (e) { log('cart:update dispatch failed', e); }
+    // Fallback if the theme ignored the event: write the number ourselves
+    setTimeout(function () {
+      var list = badges();
+      for (var i = 0; i < list.length; i++) {
+        if (parseInt(list[i].textContent, 10) !== count) list[i].textContent = String(count);
+      }
+    }, 400);
+  }
+
+  function rootForButton(btn) {
+    var form = btn.form || btn.closest('form');
+    return form ? rootForForm(form) : null;
+  }
+
+  // Click on Add to cart: start watching (works even if the theme handles the add itself)
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('button[type="submit"], .add-to-cart-button');
+    if (!btn) return;
+    var root = rootForButton(btn);
+    if (!root || root.hidden) return;
+    var D = readData(root);
+    if (!D) return;
+    var S = stateFor(D);
+    if (S.bypass) return;
+    startAdd(root, D, S);
+  }, true);
+
+  // Submit: add the switched-on products first, then let the theme add the main product
+  document.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (!form || !formIdOf(form)) return;
+    var root = rootForForm(form);
+    if (!root || root.hidden) return;
+    var D = readData(root);
+    if (!D) return;
+    var S = stateFor(D);
+    if (S.bypass) return;
+    var P = startAdd(root, D, S);
+    if (!P.items.length) return;
+
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    if (S.busy) return;
+    S.busy = true;
+    var submitter = e.submitter && e.submitter.form === form ? e.submitter : null;
+
+    addItems(D, P.items, P.mainId).then(function (okIds) {
+      log('add-ons added', okIds);
+      S.busy = false;
+      S.bypass = true;
+      try {
+        if (form.requestSubmit) form.requestSubmit(submitter || undefined);
+        else form.submit();
+      } finally {
+        S.bypass = false;
+      }
+    });
+  }, true);
+
+  // The theme announces cart changes: check straight away instead of waiting for the next poll
+  ['cart:update', 'cart:updated', 'cart:change'].forEach(function (name) {
+    document.addEventListener(name, function () {
+      var roots = document.querySelectorAll('[data-tg-ctb]');
+      Array.prototype.forEach.call(roots, function (root) {
+        var D = readData(root);
+        if (!D) return;
+        var S = stateFor(D);
+        var P = S.pending;
+        if (P && !P.done) setTimeout(function () { check(root, D, S, P); }, 150);
+        else refreshSnap(D);
+      });
+    });
+  });
+
+  // First cart snapshot
+  (function () {
+    var first = document.querySelector('[data-tg-ctb]');
+    var D = first && readData(first);
+    log('blocks found', document.querySelectorAll('[data-tg-ctb]').length, D && { formId: D.formId, formExists: !!document.getElementById(D.formId) });
+    if (D) refreshSnap(D);
+  })();
+
+  document.addEventListener('change', function (e) {
+    if (e.target && e.target.closest && e.target.closest('.variant-picker-wrap, form')) queue();
+  });
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', renderAll);
+  else renderAll();
+
+  // The theme re-renders blocks on variant change; re-apply our state each time
+  new MutationObserver(queue).observe(document.documentElement, { childList: true, subtree: true });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Complete the bed",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Products come from the upsell metafield on each variant (custom.checkbox_products_muslin_duvet_cover). Each variant shows the products it lists."
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_old_upsells",
+      "label": "Hide the old \"Add Now\" upsell rows",
+      "info": "On = only these switch cards are shown, so the same products aren't offered twice.",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "main_short_name",
+      "label": "Short name for this page's product",
+      "info": "Used in the bag summary and the added-to-bag popup, e.g. Muslin duvet cover. Empty = full title."
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "info": "Fitted sheets show \"Complete the bed\", pillowcases \"Complete the look\" and mattress protectors \"Protect your mattress\". Anything else uses this heading.",
+      "default": "Complete the bed"
+    },
+    {
+      "type": "text",
+      "id": "badge",
+      "label": "Badge",
+      "default": "Optional"
+    },
+    {
+      "type": "text",
+      "id": "hint_off",
+      "label": "Text when off",
+      "default": "Select for this order - switch off to remove"
+    },
+    {
+      "type": "text",
+      "id": "hint_on",
+      "label": "Text when on",
+      "default": "In your bag — switch off to remove"
+    },
+    {
+      "type": "text",
+      "id": "summary_heading",
+      "label": "Summary heading",
+      "default": "In your bag"
+    },
+    {
+      "type": "checkbox",
+      "id": "summary_open",
+      "label": "Show the bag items expanded at first",
+      "info": "Off = one line (In your bag · 3 items · £148). Shoppers tap it to see the items.",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "collapse_desktop",
+      "label": "Use the one-line summary on desktop too",
+      "info": "Off = one line on mobile only; desktop shows the full list.",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_button_total",
+      "label": "Show the total on the Add to cart button",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom",
+      "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-start",
+      "label": "Left",
+      "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-end",
+      "label": "Right",
+      "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "Complete the bed"
+    }
+  ]
+}
+{% endschema %}

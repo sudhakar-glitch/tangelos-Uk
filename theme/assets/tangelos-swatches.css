@@ -1,0 +1,61 @@
+/* Colour swatches on product cards. Paired with snippets/tangelos-colour-swatches.liquid */
+
+.tng-swatches {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  /* Horizon's product card lays a full-card <a> over the whole tile. Without
+     this stacking context the overlay swallows swatch clicks and every swatch
+     opens the card's own product. */
+  position: relative;
+  z-index: 2;
+}
+
+.tng-swatch {
+  display: block;
+  inline-size: var(--tng-swatch-size, 18px);
+  block-size: var(--tng-swatch-size, 18px);
+  border-radius: 50%;
+  background: var(--tng-swatch-color, #e5e5e5);
+  /* Harmless for solid colours; needed when the dot falls back to a product
+     image crop. */
+  background-size: cover;
+  background-position: center;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.14);
+  transition: box-shadow 120ms ease;
+}
+
+.tng-swatch:hover {
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.32);
+}
+
+.tng-swatch--current {
+  outline: 1px solid currentColor;
+  outline-offset: 2px;
+}
+
+.tng-swatch:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.tng-swatch__more {
+  font-size: 0.75rem;
+  line-height: 1;
+  opacity: 0.55;
+}
+.group-block-content.layout-panel-flex.layout-panel-flex--column.mobile-column {
+    gap: 10px;
+}
+.layout-panel-flex--row>.group-block--width-fill{
+        min-width: 100%;
+}
+tangelos-swatches.tng-swatches {
+    padding: 5px 0px 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tng-swatch {
+    transition: none;
+  }
+}

@@ -1,0 +1,335 @@
+{% comment %}
+  ============================================================================
+  Tangelos — Free gift auto-add   (v6 — Horizon theme, two offers)
+  ============================================================================
+
+  OFFER 1 — "protector"   (size-matched)
+    Buy : any of the 4 Muslin Cover Sets
+    Get : White Cotton Mattress Protector, SAME SIZE as the cover set
+    Link (per colour — swap the handle):
+      https://www.tangelos.co.uk/products/astral-blue-muslin-cover-set?gift=protector
+
+  OFFER 2 — "pillowcase"  (colour-matched)
+    Buy : Green Lake / Butter Bean / Astral Blue / White Percale Fitted Sheet
+    Get : Muslin Pillowcases, KING, SAME COLOUR as the sheet
+    Link (per colour — swap the handle):
+      https://www.tangelos.co.uk/products/green-lake-organic-cotton-percale-extra-deep-fitted-sheet?gift=pillowcase
+
+  Both discounts are now live and verified against these variant IDs:
+    BPEW9NRSX10J -> 4 muslin cover sets, gives the mattress protector
+    V9F8F3YR1TDH -> 4 percale fitted sheets, gives the KING muslin pillowcase
+
+  INSTALL
+  Replace the contents of snippets/free-gift-protector.liquid with this file.
+  The render line already in theme.liquid stays as it is.
+  ============================================================================
+{% endcomment %}
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------------------------------------------------------------------- */
+  /* Gift lookups                                                            */
+  /* ---------------------------------------------------------------------- */
+
+  // White Cotton Mattress Protector, by size
+  var PROTECTOR_BY_SIZE = {
+    "Single":     53241932054688,
+    "Double":     53241932087456,
+    "King":       53241932120224,
+    "Super King": 53241932152992
+  };
+
+  var PROTECTOR_RULE = { by: "size", map: PROTECTOR_BY_SIZE };
+
+  /* ---------------------------------------------------------------------- */
+  /* Offers                                                                  */
+  /*   by: "size"  -> match the trigger line's Size option against `map`     */
+  /*   by: "fixed" -> always add `variant`                                   */
+  /* ---------------------------------------------------------------------- */
+
+  var OFFERS = [
+    {
+      // Muslin cover set -> mattress protector in the matching SIZE
+      id: "protector",
+      code: "BPEW9NRSX10J",
+      triggers: {
+        "white-muslin-cover-set":       PROTECTOR_RULE,
+        "green-lake-muslin-cover-set":  PROTECTOR_RULE,
+        "butterbean-muslin-cover-set":  PROTECTOR_RULE,
+        "astral-blue-muslin-cover-set": PROTECTOR_RULE
+      }
+    },
+    {
+      // Percale fitted sheet -> King muslin pillowcases in the matching COLOUR
+      id: "pillowcase",
+      code: "V9F8F3YR1TDH",
+      triggers: {
+        "green-lake-organic-cotton-percale-extra-deep-fitted-sheet":  { by: "fixed", variant: 53224413298848 },
+        "butter-bean-organic-cotton-percale-extra-deep-fitted-sheet": { by: "fixed", variant: 53224415723680 },
+        "astral-blue-organic-cotton-percale-extra-deep-fitted-sheet": { by: "fixed", variant: 53224415953056 },
+        "white-organic-cotton-percale-extra-deep-fitted-sheet":       { by: "fixed", variant: 56847110897824 }
+      }
+    }
+  ];
+
+  var PARAM = "gift";
+  var STORAGE_PREFIX = "tangelos_gift_";
+  var GIFT_PROP = "_free_gift";
+  var DEBUG = false;
+
+  function log() {
+    if (DEBUG && window.console) console.log.apply(console, ["[gift]"].concat([].slice.call(arguments)));
+  }
+
+  /* --------------------------- eligibility ---------------------------- */
+
+  try {
+    var flag = new URLSearchParams(window.location.search).get(PARAM);
+    for (var i = 0; i < OFFERS.length; i++) {
+      if (OFFERS[i].id !== flag) continue;
+
+      var firstTime = sessionStorage.getItem(STORAGE_PREFIX + flag) !== "1";
+      sessionStorage.setItem(STORAGE_PREFIX + flag, "1");
+
+      /* Apply the discount ourselves.
+         Shopify strips query strings from ?redirect= targets, so the old
+         /discount/CODE?redirect=/products/x?gift=y link lost the ?gift flag
+         in transit and the offer never switched on. Requesting /discount/CODE
+         in the background sets the same discount cookie without a redirect,
+         so the mailer link can be a plain product URL that survives intact. */
+      if (firstTime && OFFERS[i].code) {
+        fetch("/discount/" + OFFERS[i].code, { credentials: "same-origin" })
+          .then(function () { log("discount armed"); })
+          .catch(function () { log("could not arm discount"); });
+      }
+    }
+  } catch (e) {}
+
+  function activeOffers() {
+    return OFFERS.filter(function (o) {
+      try { return sessionStorage.getItem(STORAGE_PREFIX + o.id) === "1"; }
+      catch (e) { return false; }
+    });
+  }
+
+  /* --------------------------- drawer section ------------------------- */
+
+  function drawerSectionId() {
+    var drawer = document.querySelector("cart-drawer-component");
+    var section = drawer && drawer.closest(".shopify-section");
+    return section && section.id ? section.id.replace(/^shopify-section-/, "") : null;
+  }
+
+  /* ------------------------------ cart -------------------------------- */
+
+  function getCart() {
+    return fetch("/cart.js", { credentials: "same-origin" }).then(function (r) { return r.json(); });
+  }
+
+  function optionValue(line, name) {
+    if (!line.options_with_values) return null;
+    for (var i = 0; i < line.options_with_values.length; i++) {
+      if (line.options_with_values[i].name === name) return line.options_with_values[i].value;
+    }
+    return null;
+  }
+
+  function giftLineFor(cart, offerId) {
+    for (var i = 0; i < cart.items.length; i++) {
+      var p = cart.items[i].properties;
+      if (p && p[GIFT_PROP] === offerId) return cart.items[i];
+    }
+    return null;
+  }
+
+  function wantedGift(cart, offer) {
+    for (var i = 0; i < cart.items.length; i++) {
+      var line = cart.items[i];
+      var rule = offer.triggers[line.handle];
+      if (!rule) continue;
+      if (rule.by === "fixed") return rule.variant;
+      if (rule.by === "size") {
+        var size = optionValue(line, "Size");
+        if (size && rule.map[size]) return rule.map[size];
+        log("no size match for", line.handle, size);
+      }
+    }
+    return null;
+  }
+
+  function addGift(variantId, offerId) {
+    var props = {}; props[GIFT_PROP] = offerId;
+    var payload = { items: [{ id: variantId, quantity: 1, properties: props }] };
+    var sectionId = drawerSectionId();
+    if (sectionId) { payload.sections = sectionId; payload.sections_url = window.location.pathname; }
+
+    return fetch("/cart/add.js", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify(payload)
+    }).then(function (r) { return r.json(); });
+  }
+
+  function removeLine(key) {
+    var updates = {}; updates[key] = 0;
+    return fetch("/cart/update.js", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ updates: updates })
+    }).then(function (r) { return r.json(); });
+  }
+
+  /* --------------------------- live refresh --------------------------- */
+
+  function refreshUI(sections) {
+    var sectionId = drawerSectionId();
+
+    if (sections && sectionId && sections[sectionId]) {
+      var host = document.getElementById("shopify-section-" + sectionId);
+      if (host) {
+        var parsed = new DOMParser().parseFromString(sections[sectionId], "text/html");
+        var fresh = parsed.getElementById("shopify-section-" + sectionId);
+        if (fresh) {
+          var wasOpen = !!host.querySelector("dialog[open]");
+          host.innerHTML = fresh.innerHTML;
+          if (wasOpen) {
+            var drawer = host.querySelector("cart-drawer-component");
+            if (drawer && typeof drawer.open === "function") drawer.open();
+          }
+          log("drawer re-rendered");
+        }
+      }
+    }
+
+    return getCart().then(function (cart) {
+      document.dispatchEvent(new CustomEvent("cart:update", {
+        bubbles: true,
+        detail: {
+          resource: cart,
+          sourceId: "free-gift-auto",
+          data: { source: "free-gift-auto", itemCount: cart.item_count, sections: sections || {} }
+        }
+      }));
+      return cart;
+    });
+  }
+
+  /* ------------------------------ rule -------------------------------- */
+
+  var running = false;
+
+  function reconcile() {
+    var offers = activeOffers();
+    if (!offers.length || running) return Promise.resolve();
+    running = true;
+
+    return getCart().then(function (cart) {
+      for (var i = 0; i < offers.length; i++) {
+        var offer = offers[i];
+        var wanted = wantedGift(cart, offer);
+        var existing = giftLineFor(cart, offer.id);
+
+        if (!wanted && existing) {
+          log(offer.id, "- trigger gone, removing gift");
+          return removeLine(existing.key).then(function () { return refreshUI(null); });
+        }
+        if (wanted && existing && existing.variant_id !== wanted) {
+          log(offer.id, "- swapping gift");
+          return removeLine(existing.key)
+            .then(function () { return addGift(wanted, offer.id); })
+            .then(function (res) { return refreshUI(res && res.sections); });
+        }
+        if (wanted && !existing) {
+          log(offer.id, "- adding gift", wanted);
+          return addGift(wanted, offer.id).then(function (res) { return refreshUI(res && res.sections); });
+        }
+      }
+      return null;
+    })
+    .catch(function (err) { log("failed:", err); })
+    .then(function () { running = false; });
+  }
+
+  /* ---------------------------- triggers ------------------------------ */
+
+  var CART_WRITE = /\/cart\/(add|change|update)(\.js)?/;
+
+  var nativeFetch = window.fetch;
+  window.fetch = function (input) {
+    var url = (typeof input === "string") ? input : (input && input.url) || "";
+    var isWrite = CART_WRITE.test(url);
+    return nativeFetch.apply(this, arguments).then(function (res) {
+      if (isWrite && !running) setTimeout(reconcile, 0);
+      return res;
+    });
+  };
+
+  document.addEventListener("cart:update", function (e) {
+    if (e.detail && e.detail.sourceId === "free-gift-auto") return;
+    if (!running) setTimeout(reconcile, 0);
+  });
+
+  var nativeOpen = XMLHttpRequest.prototype.open;
+  var nativeSend = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (method, url) {
+    this.__giftWatch = CART_WRITE.test(url || "");
+    return nativeOpen.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__giftWatch) this.addEventListener("load", function () { if (!running) setTimeout(reconcile, 0); });
+    return nativeSend.apply(this, arguments);
+  };
+
+  /* ------------------------------ boot -------------------------------- */
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () { reconcile(); });
+  } else {
+    reconcile();
+  }
+  window.addEventListener("pageshow", function (e) { if (e.persisted) reconcile(); });
+})();
+
+/*
+  ============================================================================
+  MAILER LINKS  (v6 — plain product URLs, no /discount/ prefix)
+  ============================================================================
+  Shopify strips query strings from ?redirect= targets, so the old style of
+  link lost ?gift= in transit and the offer never switched on. The script now
+  applies the code itself, so the link is just a normal product URL.
+
+  OFFER 1 — muslin cover set -> free mattress protector (size-matched)
+    /products/white-muslin-cover-set?gift=protector
+    /products/green-lake-muslin-cover-set?gift=protector
+    /products/butterbean-muslin-cover-set?gift=protector      (no hyphen)
+    /products/astral-blue-muslin-cover-set?gift=protector
+
+  OFFER 2 — percale fitted sheet -> free KING muslin pillowcase (colour-matched)
+    /products/white-organic-cotton-percale-extra-deep-fitted-sheet?gift=pillowcase
+    /products/green-lake-organic-cotton-percale-extra-deep-fitted-sheet?gift=pillowcase
+    /products/butter-bean-organic-cotton-percale-extra-deep-fitted-sheet?gift=pillowcase
+    /products/astral-blue-organic-cotton-percale-extra-deep-fitted-sheet?gift=pillowcase
+
+  Prefix each with https://www.tangelos.co.uk
+
+  VERIFIED DISCOUNTS
+    BPEW9NRSX10J  4 muslin cover sets      -> mattress protector (product level)
+    V9F8F3YR1TDH  4 percale fitted sheets  -> KING muslin pillowcase variants:
+                    53224413298848 Green Lake  King
+                    53224415723680 Butter Bean King
+                    53224415953056 Astral Blue King
+                    56847110897824 White       King
+
+  IN MAILCHIMP
+  Click tracking rewrites links, but a plain URL with one query parameter
+  survives it. Send yourself a test and check the address bar still ends in
+  ?gift=pillowcase after landing.
+
+  IF IT STILL DOESN'T FIRE
+  Set DEBUG = true and watch the console.
+  ============================================================================
+*/

@@ -1,0 +1,625 @@
+{%- if section.settings.image_main != blank -%}
+<link rel="preload" as="image"
+  href="{{ section.settings.image_main | image_url: width: 900 }}"
+  imagesrcset="{{ section.settings.image_main | image_url: width: 400 }} 400w,{{ section.settings.image_main | image_url: width: 700 }} 700w,{{ section.settings.image_main | image_url: width: 900 }} 900w"
+  imagesizes="(max-width:749px) 100vw, 50vw"
+  fetchpriority="high">
+{%- endif -%}
+
+<section
+  class="eit"
+  style="
+    background: {{ section.settings.bg_color }};
+    padding: {{ section.settings.pad_top }}px {{ section.settings.pad_x }}px {{ section.settings.pad_bottom }}px;
+    --eit-img-ratio:    {{ section.settings.main_image_ratio }};
+    --eit-card-ratio:   {{ section.settings.card_image_ratio }};
+    --eit-card-w:       {{ section.settings.card_width }}%;
+    --eit-card-offset:  {{ section.settings.card_offset }}%;
+    --eit-gap:          {{ section.settings.col_gap }}px;
+    --eit-eyebrow-c:    {{ section.settings.eyebrow_color }};
+    --eit-heading-c:    {{ section.settings.heading_color }};
+    --eit-body-c:       {{ section.settings.body_color }};
+    --eit-cta-c:        {{ section.settings.cta_color }};
+    --eit-card-bg:      {{ section.settings.card_bg }};
+    --eit-card-label-c: {{ section.settings.card_label_color }};
+    --eit-card-text-c:  {{ section.settings.card_text_color }};
+  "
+>
+  <div class="eit__inner eit__inner--{{ section.settings.layout }}">
+
+    <!-- LEFT: stacked images -->
+    <div class="eit__media">
+      <!-- Main image -->
+      <div class="eit__img-main">
+        {%- if section.settings.image_main != blank -%}
+          {{ section.settings.image_main | image_url: width: 1000
+            | image_tag:
+              class: 'eit__img',
+              loading: 'eager',
+              fetchpriority: 'high',
+              decoding: 'sync',
+              widths: '400,600,800,1000',
+              sizes: '(max-width:749px) 100vw, 50vw',
+              alt: section.settings.image_main.alt | default: section.settings.heading }}
+        {%- else -%}
+          <div class="eit__img-ph">{{ 'image' | placeholder_svg_tag: 'eit__ph-svg' }}</div>
+        {%- endif -%}
+      </div>
+
+      <!-- Card overlay -->
+      {%- if section.settings.show_card -%}
+      <div class="eit__card">
+        {%- if section.settings.card_image != blank -%}
+          {{ section.settings.card_image | image_url: width: 500
+            | image_tag:
+              class: 'eit__card-img',
+              loading: 'lazy',
+              fetchpriority: 'low',
+              decoding: 'async',
+              widths: '200,300,400,500',
+              sizes: '25vw',
+              alt: section.settings.card_image.alt | default: '' }}
+        {%- elsif section.settings.card_label != blank or section.settings.card_text != blank -%}
+          <!-- text-only card — no image -->
+        {%- endif -%}
+        {%- if section.settings.card_label != blank or section.settings.card_text != blank -%}
+          <div class="eit__card-body">
+            {%- if section.settings.card_label != blank -%}
+              <p class="eit__card-label">{{ section.settings.card_label | escape }}</p>
+            {%- endif -%}
+            {%- if section.settings.card_text != blank -%}
+              <p class="eit__card-text">{{ section.settings.card_text | escape }}</p>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      </div>
+      {%- endif -%}
+    </div>
+
+    <!-- RIGHT: text -->
+    <div class="eit__content">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="eit__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.heading != blank -%}
+        <{{ section.settings.heading_tag }} class="eit__heading"
+          style="font-size:{{ section.settings.heading_size }}px;font-weight:{{ section.settings.heading_weight }};">
+          {{ section.settings.heading }}
+        </{{ section.settings.heading_tag }}>
+      {%- endif -%}
+
+      {%- if section.settings.body != blank -%}
+        <div class="eit__body"
+          style="font-size:{{ section.settings.body_size }}px;">
+          {{ section.settings.body }}
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.cta_text != blank and section.settings.cta_url != blank -%}
+        <a class="eit__cta" href="{{ section.settings.cta_url }}">
+          {{ section.settings.cta_text | escape }}
+        </a>
+      {%- endif -%}
+    </div>
+
+  </div>
+</section>
+
+<style>
+.eit, .eit * { box-sizing: border-box; }
+.eit { width: 100%; }
+
+/* ── Inner: two-col layout ── */
+.eit__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--eit-gap, 60px);
+  max-width: {{ section.settings.max_width }}px;
+  margin: 0 auto;
+}
+
+/* Image left, text right (default) */
+.eit__inner--image-left  { flex-direction: row; }
+/* Text left, image right */
+.eit__inner--image-right { flex-direction: row-reverse; }
+
+/* ── Media column ── */
+.eit__media {
+  position: relative;
+  flex: 0 0 {{ section.settings.image_col_width }}%;
+  max-width: {{ section.settings.image_col_width }}%;
+}
+
+/* ── Main image ── */
+.eit__img-main {
+  width: 100%;
+  aspect-ratio: var(--eit-img-ratio, 3/4);
+  overflow: hidden;
+  border-radius: {{ section.settings.image_radius }}px;
+}
+.eit__img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+}
+.eit__img-ph {
+  width: 100%; height: 100%;
+  background: #e8e4de;
+  display: flex; align-items: center; justify-content: center;
+}
+.eit__ph-svg { width: 50%; height: 50%; opacity: .2; }
+
+/* ── Overlapping card ── */
+.eit__card {
+  position: absolute;
+  bottom: calc(-1 * var(--eit-card-offset, 8%));
+  right: calc(-1 * var(--eit-card-offset, 8%));
+  width: var(--eit-card-w, 48%);
+  background: var(--eit-card-bg, #fff);
+  border-radius: {{ section.settings.card_radius }}px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+}
+.eit__card-img {
+  width: 100%;
+  aspect-ratio: var(--eit-card-ratio, 1/1);
+  object-fit: cover;
+  display: block;
+}
+.eit__card-body {
+  padding: {{ section.settings.card_padding }}px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.eit__card-label {
+  margin: 0;
+  font-size: {{ section.settings.card_label_size }}px;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--eit-card-label-c, rgba(0,0,0,0.45));
+  line-height: 1.3;
+}
+.eit__card-text {
+  margin: 0;
+  font-size: {{ section.settings.card_text_size }}px;
+  font-weight: {{ section.settings.card_text_weight }};
+  color: var(--eit-card-text-c, #111);
+  line-height: 1.4;
+}
+
+/* ── Text column ── */
+.eit__content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: {{ section.settings.content_gap }}px;
+  padding-bottom: {{ section.settings.card_offset_pad }}px;
+}
+
+/* Eyebrow */
+.eit__eyebrow {
+  margin: 0;
+  font-size: {{ section.settings.eyebrow_size }}px;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--eit-eyebrow-c, rgba(0,0,0,0.5));
+  line-height: 1.3;
+}
+
+/* Heading */
+.eit__heading {
+  margin: 0;
+  color: var(--eit-heading-c, #111);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+/* Body */
+.eit__body {
+  color: var(--eit-body-c, rgba(0,0,0,0.65));
+  line-height: 1.7;
+  margin: 0;
+}
+.eit__body p { margin: 0; }
+
+/* CTA */
+.eit__cta {
+  display: inline-block;
+  font-size: {{ section.settings.cta_size }}px;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--eit-cta-c, #111);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 2px;
+  align-self: flex-start;
+  transition: opacity 0.2s ease;
+}
+.eit__cta:hover { opacity: 0.6; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  .eit__inner { gap: calc(var(--eit-gap, 60px) * 0.7); }
+}
+
+@media (max-width: 749px) {
+  .eit__inner {
+    flex-direction: column !important;
+    gap: 32px;
+  }
+  .eit__media {
+    flex: 0 0 100%;
+    max-width: 100%;
+    /* Give room for card overlap at bottom */
+    margin-bottom: calc(var(--eit-card-w, 48%) * 0.3);
+  }
+  .eit__card {
+    bottom: calc(-1 * var(--eit-card-w, 48%) * 0.3);
+    right: 0;
+    width: 55%;
+  }
+  .eit__content {
+    width: 100%;
+    padding-bottom: 0;
+    gap: 16px;
+  }
+  .eit__heading { font-size: {{ section.settings.heading_size | times: 0.72 | round }}px !important; }
+
+</style>
+
+{% schema %}
+{
+  "name": "Editorial Image + Text",
+  "tag": "section",
+  "class": "eit-section",
+  "disabled_on": { "groups": ["header","footer"] },
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Image Position",
+      "options": [
+        { "value": "image-left",  "label": "Image Left, Text Right" },
+        { "value": "image-right", "label": "Image Right, Text Left" }
+      ],
+      "default": "image-left"
+    },
+    {
+      "type": "range",
+      "id": "image_col_width",
+      "label": "Image Column Width",
+      "min": 30, "max": 65, "step": 1, "default": 48, "unit": "%"
+    },
+    {
+      "type": "range",
+      "id": "col_gap",
+      "label": "Gap Between Columns",
+      "min": 20, "max": 160, "step": 4, "default": 80, "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "label": "Max Content Width",
+      "min": 800, "max": 1600, "step": 40, "default": 1200, "unit": "px"
+    },
+    {
+      "type": "header",
+      "content": "Spacing & Background"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background Color",
+      "default": "#f5f2ed"
+    },
+    {
+      "type": "range",
+      "id": "pad_x",
+      "label": "Side Padding",
+      "min": 0, "max": 120, "step": 4, "default": 80, "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "pad_top",
+      "label": "Padding Top",
+      "min": 0, "max": 160, "step": 4, "default": 80, "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "pad_bottom",
+      "label": "Padding Bottom",
+      "min": 0, "max": 160, "step": 4, "default": 80, "unit": "px"
+    },
+    {
+      "type": "header",
+      "content": "Main Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_main",
+      "label": "Main Image"
+    },
+    {
+      "type": "select",
+      "id": "main_image_ratio",
+      "label": "Aspect Ratio",
+      "options": [
+        { "value": "1/1",  "label": "Square 1:1" },
+        { "value": "3/4",  "label": "Portrait 3:4" },
+        { "value": "4/5",  "label": "Portrait 4:5" },
+        { "value": "4/3",  "label": "Landscape 4:3" },
+        { "value": "16/9", "label": "Wide 16:9" }
+      ],
+      "default": "3/4"
+    },
+    {
+      "type": "range",
+      "id": "image_radius",
+      "label": "Corner Radius",
+      "min": 0, "max": 24, "step": 2, "default": 0, "unit": "px"
+    },
+    {
+      "type": "header",
+      "content": "Overlay Card"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_card",
+      "label": "Show Overlay Card",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "card_image",
+      "label": "Card Image",
+      "info": "Optional. Leave blank for text-only card."
+    },
+    {
+      "type": "select",
+      "id": "card_image_ratio",
+      "label": "Card Image Ratio",
+      "options": [
+        { "value": "1/1",  "label": "Square 1:1" },
+        { "value": "3/4",  "label": "Portrait 3:4" },
+        { "value": "4/3",  "label": "Landscape 4:3" }
+      ],
+      "default": "1/1"
+    },
+    {
+      "type": "text",
+      "id": "card_label",
+      "label": "Card Label (small text)",
+      "default": "Provenance"
+    },
+    {
+      "type": "textarea",
+      "id": "card_text",
+      "label": "Card Text",
+      "default": "Harvested with conscience."
+    },
+    {
+      "type": "range",
+      "id": "card_width",
+      "label": "Card Width",
+      "min": 25, "max": 65, "step": 1, "default": 46, "unit": "%"
+    },
+    {
+      "type": "range",
+      "id": "card_offset",
+      "label": "Card Overlap Amount",
+      "info": "How far the card extends outside the image.",
+      "min": 0, "max": 20, "step": 1, "default": 8, "unit": "%"
+    },
+    {
+      "type": "range",
+      "id": "card_offset_pad",
+      "label": "Content Bottom Padding",
+      "info": "Add bottom space to text column to align with card overlap.",
+      "min": 0, "max": 120, "step": 4, "default": 40, "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "card_radius",
+      "label": "Card Corner Radius",
+      "min": 0, "max": 24, "step": 2, "default": 4, "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "card_padding",
+      "label": "Card Inner Padding",
+      "min": 8, "max": 40, "step": 2, "default": 20, "unit": "px"
+    },
+    {
+      "type": "color",
+      "id": "card_bg",
+      "label": "Card Background Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "card_label_size",
+      "label": "Card Label Size",
+      "min": 8, "max": 14, "step": 1, "default": 10, "unit": "px"
+    },
+    {
+      "type": "color",
+      "id": "card_label_color",
+      "label": "Card Label Color",
+      "default": "#999999"
+    },
+    {
+      "type": "range",
+      "id": "card_text_size",
+      "label": "Card Text Size",
+      "min": 12, "max": 28, "step": 1, "default": 18, "unit": "px"
+    },
+    {
+      "type": "select",
+      "id": "card_text_weight",
+      "label": "Card Text Weight",
+      "options": [
+        { "value": "300", "label": "Light" },
+        { "value": "400", "label": "Regular" },
+        { "value": "500", "label": "Medium" }
+      ],
+      "default": "400"
+    },
+    {
+      "type": "color",
+      "id": "card_text_color",
+      "label": "Card Text Color",
+      "default": "#111111"
+    },
+    {
+      "type": "header",
+      "content": "Eyebrow"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow Text",
+      "default": "The Ethical Harvest"
+    },
+    {
+      "type": "range",
+      "id": "eyebrow_size",
+      "label": "Eyebrow Size",
+      "min": 8, "max": 16, "step": 1, "default": 10, "unit": "px"
+    },
+    {
+      "type": "color",
+      "id": "eyebrow_color",
+      "label": "Eyebrow Color",
+      "default": "#999999"
+    },
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>A relationship with the soil.</p>"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "Heading Tag",
+      "options": [
+        { "value": "h1", "label": "H1" },
+        { "value": "h2", "label": "H2" },
+        { "value": "h3", "label": "H3" }
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Heading Size",
+      "min": 24, "max": 80, "step": 2, "default": 48, "unit": "px"
+    },
+    {
+      "type": "select",
+      "id": "heading_weight",
+      "label": "Heading Weight",
+      "options": [
+        { "value": "300", "label": "Light" },
+        { "value": "400", "label": "Regular" },
+        { "value": "500", "label": "Medium" }
+      ],
+      "default": "400"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading Color",
+      "default": "#111111"
+    },
+    {
+      "type": "header",
+      "content": "Body Text"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body Text",
+      "default": "<p>Our process begins not in a factory, but in the earth. We partner exclusively with rain-fed organic farms in Portugal, ensuring zero chemical runoff and a carbon-negative footprint for every thread.</p>"
+    },
+    {
+      "type": "range",
+      "id": "body_size",
+      "label": "Body Size",
+      "min": 12, "max": 20, "step": 1, "default": 15, "unit": "px"
+    },
+    {
+      "type": "color",
+      "id": "body_color",
+      "label": "Body Color",
+      "default": "#555555"
+    },
+    {
+      "type": "header",
+      "content": "CTA Link"
+    },
+    {
+      "type": "text",
+      "id": "cta_text",
+      "label": "Link Text",
+      "default": "Our Sustainability Manifesto"
+    },
+    {
+      "type": "url",
+      "id": "cta_url",
+      "label": "Link URL"
+    },
+    {
+      "type": "range",
+      "id": "cta_size",
+      "label": "Link Size",
+      "min": 9, "max": 16, "step": 1, "default": 11, "unit": "px"
+    },
+    {
+      "type": "color",
+      "id": "cta_color",
+      "label": "Link Color",
+      "default": "#111111"
+    },
+    {
+      "type": "header",
+      "content": "Content Spacing"
+    },
+    {
+      "type": "range",
+      "id": "content_gap",
+      "label": "Gap Between Text Elements",
+      "min": 8, "max": 48, "step": 2, "default": 24, "unit": "px"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Editorial Image + Text",
+      "settings": {
+        "layout": "image-left",
+        "eyebrow": "The Ethical Harvest",
+        "heading": "<p>A relationship with the soil.</p>",
+        "body": "<p>Our process begins not in a factory, but in the earth. We partner exclusively with rain-fed organic farms in Portugal, ensuring zero chemical runoff and a carbon-negative footprint for every thread.</p>",
+        "cta_text": "Our Sustainability Manifesto",
+        "card_label": "Provenance",
+        "card_text": "Harvested with conscience.",
+        "show_card": true,
+        "bg_color": "#f5f2ed"
+      }
+    }
+  ]
+}
+{% endschema %}

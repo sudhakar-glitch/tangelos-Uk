@@ -1,0 +1,392 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "type": "footer",
+  "name": "Footer",
+  "sections": {
+    "footer": {
+      "type": "Footer",
+      "blocks": {
+        "group_acXtYY": {
+          "type": "group",
+          "name": "Links",
+          "settings": {
+            "content_direction": "row",
+            "vertical_on_mobile": true,
+            "horizontal_alignment": "space-between",
+            "vertical_alignment": "flex-start",
+            "align_baseline": false,
+            "horizontal_alignment_flex_direction_column": "flex-start",
+            "vertical_alignment_flex_direction_column": "center",
+            "gap": 12,
+            "width": "fill",
+            "custom_width": 100,
+            "width_mobile": "fill",
+            "custom_width_mobile": 100,
+            "height": "fit",
+            "custom_height": 100,
+            "inherit_color_scheme": true,
+            "color_scheme": "",
+            "background_media": "none",
+            "video_position": "cover",
+            "background_image_position": "cover",
+            "border": "none",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_radius": 0,
+            "toggle_overlay": false,
+            "overlay_color": "#00000026",
+            "overlay_style": "solid",
+            "gradient_direction": "to top",
+            "link": "",
+            "open_in_new_tab": false,
+            "placeholder": "",
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {
+            "group_gz8NPq": {
+              "type": "group",
+              "name": "t:names.email_signup",
+              "settings": {
+                "content_direction": "column",
+                "vertical_on_mobile": true,
+                "horizontal_alignment": "flex-start",
+                "vertical_alignment": "center",
+                "align_baseline": false,
+                "horizontal_alignment_flex_direction_column": "flex-start",
+                "vertical_alignment_flex_direction_column": "center",
+                "gap": 12,
+                "width": "custom",
+                "custom_width": 30,
+                "width_mobile": "fill",
+                "custom_width_mobile": 100,
+                "height": "fit",
+                "custom_height": 100,
+                "inherit_color_scheme": true,
+                "color_scheme": "",
+                "background_media": "none",
+                "video_position": "cover",
+                "background_image_position": "cover",
+                "border": "none",
+                "border_width": 1,
+                "border_opacity": 100,
+                "border_radius": 0,
+                "toggle_overlay": false,
+                "overlay_color": "#00000026",
+                "overlay_style": "solid",
+                "gradient_direction": "to top",
+                "link": "",
+                "open_in_new_tab": false,
+                "placeholder": "",
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {
+                "text_jXqmE4": {
+                  "type": "text",
+                  "name": "t:names.heading",
+                  "settings": {
+                    "text": "",
+                    "width": "fit-content",
+                    "max_width": "normal",
+                    "alignment": "left",
+                    "type_preset": "custom",
+                    "font": "var(--font-heading--family)",
+                    "font_size": "2rem",
+                    "mobile_font_size": "",
+                    "line_height": "normal",
+                    "letter_spacing": "normal",
+                    "case": "none",
+                    "wrap": "pretty",
+                    "color": "var(--color-foreground)",
+                    "background": false,
+                    "background_color": "#00000026",
+                    "corner_radius": 0,
+                    "padding-block-start": 12,
+                    "padding-block-end": 0,
+                    "padding-inline-start": 0,
+                    "padding-inline-end": 0
+                  },
+                  "blocks": {}
+                },
+                "text_gaTYja": {
+                  "type": "text",
+                  "name": "t:names.text",
+                  "settings": {
+                    "text": "<p><strong>Get in Touch</strong></p><p>Email:<a href=\"mailto:care@tangelos.co.uk\" target=\"_blank\">care@tangelos.co.uk</a></p>",
+                    "width": "fit-content",
+                    "max_width": "normal",
+                    "alignment": "left",
+                    "type_preset": "rte",
+                    "font": "var(--font-body--family)",
+                    "font_size": "1rem",
+                    "mobile_font_size": "",
+                    "line_height": "normal",
+                    "letter_spacing": "normal",
+                    "case": "none",
+                    "wrap": "pretty",
+                    "color": "var(--color-foreground)",
+                    "background": false,
+                    "background_color": "#00000026",
+                    "corner_radius": 0,
+                    "padding-block-start": 0,
+                    "padding-block-end": 0,
+                    "padding-inline-start": 0,
+                    "padding-inline-end": 0
+                  },
+                  "blocks": {}
+                },
+                "email_signup_XgpLx7": {
+                  "type": "email-signup",
+                  "name": "t:names.email_signup",
+                  "settings": {
+                    "width": "fill",
+                    "custom_width": 100,
+                    "inherit_color_scheme": true,
+                    "color_scheme": "",
+                    "heading": "",
+                    "heading_preset": "h3",
+                    "border_style": "underline",
+                    "border_width": 1,
+                    "border_radius": 100,
+                    "input_type_preset": "paragraph",
+                    "style_class": "button-unstyled",
+                    "display_type": "arrow",
+                    "label": "Sign up",
+                    "integrated_button": false,
+                    "button_type_preset": "paragraph",
+                    "padding-block-start": 0,
+                    "padding-block-end": 0,
+                    "padding-inline-start": 0,
+                    "padding-inline-end": 0
+                  },
+                  "blocks": {}
+                },
+                "spacer_eDWEpc": {
+                  "type": "spacer",
+                  "name": "t:names.spacer",
+                  "settings": {
+                    "size": "pixel",
+                    "percent_size": 100,
+                    "pixel_size": 24,
+                    "custom_mobile_size": false,
+                    "size_mobile": "percent",
+                    "percent_size_mobile": 100,
+                    "pixel_size_mobile": 120
+                  },
+                  "blocks": {}
+                },
+                "social_links_nRVi8m": {
+                  "type": "social-links",
+                  "name": "t:names.social_media_links",
+                  "settings": {
+                    "facebook_url": "https://www.facebook.com/tangelosUK",
+                    "instagram_url": "https://www.instagram.com/tangelosuk/",
+                    "youtube_url": "https://www.youtube.com/@tangelos_UK",
+                    "tiktok_url": "https://www.tiktok.com/@tangelos_uk",
+                    "twitter_url": "",
+                    "threads_url": "",
+                    "linkedin_url": "",
+                    "bluesky_url": "",
+                    "snapchat_url": "",
+                    "pinterest_url": "https://uk.pinterest.com/tangelos_UK1/",
+                    "tumblr_url": "",
+                    "vimeo_url": "",
+                    "custom_url": ""
+                  },
+                  "blocks": {}
+                }
+              },
+              "block_order": [
+                "text_jXqmE4",
+                "text_gaTYja",
+                "email_signup_XgpLx7",
+                "spacer_eDWEpc",
+                "social_links_nRVi8m"
+              ]
+            },
+            "group_MTNPDR": {
+              "type": "group",
+              "name": "Navigation",
+              "settings": {
+                "content_direction": "row",
+                "vertical_on_mobile": true,
+                "horizontal_alignment": "flex-start",
+                "vertical_alignment": "flex-start",
+                "align_baseline": false,
+                "horizontal_alignment_flex_direction_column": "flex-start",
+                "vertical_alignment_flex_direction_column": "center",
+                "gap": 12,
+                "width": "custom",
+                "custom_width": 60,
+                "width_mobile": "fill",
+                "custom_width_mobile": 100,
+                "height": "fit",
+                "custom_height": 100,
+                "inherit_color_scheme": true,
+                "color_scheme": "",
+                "background_media": "none",
+                "video_position": "cover",
+                "background_image_position": "cover",
+                "border": "none",
+                "border_width": 1,
+                "border_opacity": 100,
+                "border_radius": 0,
+                "toggle_overlay": false,
+                "overlay_color": "#00000026",
+                "overlay_style": "solid",
+                "gradient_direction": "to top",
+                "link": "",
+                "open_in_new_tab": false,
+                "placeholder": "",
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {
+                "menu_zf63TX": {
+                  "type": "menu",
+                  "name": "t:names.menu",
+                  "settings": {
+                    "menu": "new-mail-menu",
+                    "heading": "Quick Shop",
+                    "menu_spacing": 12,
+                    "show_as_accordion": true,
+                    "accordion_icon": "caret",
+                    "accordion_dividers": false,
+                    "inherit_color_scheme": true,
+                    "color_scheme": "",
+                    "heading_preset": "h5",
+                    "link_preset": "paragraph",
+                    "padding-block-start": 0,
+                    "padding-block-end": 0,
+                    "padding-inline-start": 0,
+                    "padding-inline-end": 0
+                  },
+                  "blocks": {}
+                },
+                "menu_H4cHLN": {
+                  "type": "menu",
+                  "name": "t:names.menu",
+                  "settings": {
+                    "menu": "policies",
+                    "heading": "Information",
+                    "menu_spacing": 12,
+                    "show_as_accordion": true,
+                    "accordion_icon": "caret",
+                    "accordion_dividers": false,
+                    "inherit_color_scheme": true,
+                    "color_scheme": "",
+                    "heading_preset": "h5",
+                    "link_preset": "paragraph",
+                    "padding-block-start": 0,
+                    "padding-block-end": 0,
+                    "padding-inline-start": 0,
+                    "padding-inline-end": 0
+                  },
+                  "blocks": {}
+                },
+                "menu_HFzgCj": {
+                  "type": "menu",
+                  "name": "t:names.menu",
+                  "settings": {
+                    "menu": "customer-service",
+                    "heading": "Customer Service",
+                    "menu_spacing": 12,
+                    "show_as_accordion": true,
+                    "accordion_icon": "caret",
+                    "accordion_dividers": false,
+                    "inherit_color_scheme": true,
+                    "color_scheme": "",
+                    "heading_preset": "h5",
+                    "link_preset": "paragraph",
+                    "padding-block-start": 0,
+                    "padding-block-end": 0,
+                    "padding-inline-start": 0,
+                    "padding-inline-end": 0
+                  },
+                  "blocks": {}
+                }
+              },
+              "block_order": [
+                "menu_zf63TX",
+                "menu_H4cHLN",
+                "menu_HFzgCj"
+              ]
+            },
+            "custom_liquid_L83RGW": {
+              "type": "custom-liquid",
+              "name": "t:names.custom_liquid",
+              "settings": {
+                "custom_liquid": "{% comment %} custom store switcher {% endcomment %}\n  <div class=\"stores\">\n    {% liquid\n  assign current_path = request.path\n  assign current_domain = shop.domain\n  \n  if current_domain contains 'www.tangelos.co.uk'\n    assign current_label = \"UK\"\n    assign current_flag = \"🇬🇧\"\n  elsif current_domain contains 'www.tangelos.shop'\n    assign current_label = \"AU\"\n    assign current_flag = \"🇦🇺\"\n  else\n    assign current_label = \"\"\n    assign current_flag = \"\"\n  endif\n%}\n<div class=\"store-selector\">\n  <div class=\"store-current\">\n   <span class=\"current-flag\">{{ current_flag }}</span>\n    <span class=\"current-text\">{{ current_label }}</span>\n    <svg class=\"chevron\" viewBox=\"0 0 20 20\" fill=\"currentColor\">\n      <path d=\"M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z\" />\n    </svg>\n  </div>\n\n  <ul class=\"store-list\">\n    <li>\n      <a href=\"https://tangelos.co.uk\">\n        <span class=\"flag\">🇬🇧</span>\n        <span class=\"label\">United Kingdom</span>\n      </a>\n    </li>\n    <li>\n      <a href=\"https://tangelos.shop\">\n        <span class=\"flag\">🇦🇺</span>\n        <span class=\"label\">Australia</span>\n      </a>\n    </li>\n  </ul>\n</div>"
+              },
+              "blocks": {}
+            }
+          },
+          "block_order": [
+            "group_gz8NPq",
+            "group_MTNPDR",
+            "custom_liquid_L83RGW"
+          ]
+        }
+      },
+      "block_order": [
+        "group_acXtYY"
+      ],
+      "settings": {
+        "section_width": "page-width",
+        "gap": 0,
+        "color_scheme": "scheme-5",
+        "padding-block-start": 64,
+        "padding-block-end": 65
+      }
+    },
+    "utilities": {
+      "type": "footer-utilities",
+      "blocks": {
+        "footer_copyright_pmq7FD": {
+          "type": "footer-copyright",
+          "settings": {
+            "show_powered_by": false,
+            "font_size": "0.75rem",
+            "case": "none"
+          },
+          "blocks": {}
+        }
+      },
+      "block_order": [
+        "footer_copyright_pmq7FD"
+      ],
+      "settings": {
+        "section_width": "page-width",
+        "gap": 24,
+        "divider_thickness": 0,
+        "color_scheme": "scheme-5",
+        "justify_content": "space-between",
+        "overall_align": "center",
+        "vertical_align": "flex-end",
+        "logo_width": 250,
+        "logo_gap": 10,
+        "padding-block-start": 12,
+        "padding-block-end": 16
+      }
+    }
+  },
+  "order": [
+    "footer",
+    "utilities"
+  ]
+}
